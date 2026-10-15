@@ -1,0 +1,53 @@
+.home {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.home__conteudo {
+    display:flex;
+    flex-direction: column;
+    align-items:center;
+    justify-content:center;
+    gap: 1.5rem;
+    padding: 4rem 1rem;
+}
+
+.home__logo {
+    width: min(90%, 480px);
+}
+
+.home__mascote {
+    width: 140px;
+    margin-bottom: -1rem; position: relative; z-index:1;
+}
+
+.home__botao {
+    background: var(--azul-escuro);
+    color: #fff;
+    border:none;
+    padding: 0.8rem 3.5rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    border-radius: 4px;
+    cursor:pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.home__botao:hover {
+    transform: translateY(-2px);
+    background: #2d3366;
+}
+
+.home__circuitos{
+    position: absolute;
+    left:0;
+    bottom: 0;
+    width: 220px;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+@media (max-width: 600px) {
+    .home__circuitos {width: 130px;}
+}
