@@ -10,6 +10,7 @@ export default function Home(){
             <Navbar />
             <main className="home__conteudo">
                 <img src={logo} alt="CyberLadies - Compilando futuros, juntas." className="home__mascote" />
+                <img src={mascote} alt="Mascote" className="home__mascote" />
             <div className="home__login">   
                 <button className="home__botao"> Login</button>
             </div>
