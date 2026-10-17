@@ -2,12 +2,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    height: 64px;
     padding: 0 2rem;
     background: var(--fundo-nav);
 }
 
 .navbar__icone {
-    height: 48px;
+    height: 34px;
+    width: auto;
 }
 
 .navbar__links {
