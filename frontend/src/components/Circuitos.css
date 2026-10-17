@@ -1,0 +1,37 @@
+.circuitos {
+    --dx: -16%;
+    --dy: 0%;
+    position: absolute;
+    width: clamp(140px, 20vw, 300px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+
+.circuito--bl {
+    left: 0;
+    bottom: 0;
+    transform: translate(var(--dx), var(--dy));
+}
+
+.circuito--br {
+    right: 0;
+    bottom: 0;
+    transform: scaleX(-1) translate(var(--dx), var(--dy));
+}
+
+.circuito--tl {
+    left: 0;
+    top: 48px;
+    transform: scaleY(-1) translate(var(--dx), var(--dy));
+}
+
+.circuito--tr {
+    right: 0;
+    top: 48px;
+    transform: scale(-1, -1) translate(var(--dx), var(--dy));; 
+}
+
+@media (max-width:600px) {
+    .circuitos { width: 110px; }
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import PerfilPopup from '../components/PerfilPopup'
 import logo from '../assets/logo.svg'
@@ -9,6 +10,7 @@ import './Home.css'
 
 export default function Home(){
     const [popupAberto, setPopupAberto] = useState(false)
+    const navigate = useNavigate()
 
     return (
         <div className= "home">
@@ -30,7 +32,13 @@ export default function Home(){
             </div>
             </main>
             
-            {popupAberto && <PerfilPopup onFechar={() => setPopupAberto(false)} /> }
+            {popupAberto && (
+            <PerfilPopup 
+                onFechar={() => setPopupAberto(false)}
+                onLogin={() => navigate('/login')}
+            /> 
+            )}
+            
             
         </div>
     )
