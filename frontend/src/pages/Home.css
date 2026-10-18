@@ -87,36 +87,7 @@
     background: #2d3366;
 }
 
-.circuito {
-    position:absolute;
-    width: 20vw;
-    max-width: 300px;
-    height: auto;
-    pointer-events: none;
-}
 
-.circuito--tl {
-    left: 0;
-    top: 48px;
-    transform: scaleY(-1);
-}
-
-.circuito--tr {
-    right: 0;
-    top: 48px;
-    transform: scale(-1, -1); 
-}
-
-.circuito--bl {
-    left: 0;
-    bottom: 0;
-}
-
-.circuito--br {
-    right: 0;
-    bottom: 0;
-    transform: scaleX(-1);
-}
 
 
 

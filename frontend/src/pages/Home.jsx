@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar'
 import PerfilPopup from '../components/PerfilPopup'
 import logo from '../assets/logo.svg'
 import mascote from '../assets/mascote.svg'
-import circuitos from '../assets/circuitos.svg'
+import Circuitos from '../components/Circuitos'
 import './Home.css'
 
 
@@ -15,10 +15,7 @@ export default function Home(){
     return (
         <div className= "home">
             <Navbar />
-            <img src ={circuitos} alt="" className="circuito circuito--tl"/>
-            <img src ={circuitos} alt="" className="circuito circuito--tr"/>
-            <img src ={circuitos} alt="" className="circuito circuito--br"/>
-            <img src ={circuitos} alt="" className="circuito circuito--bl"/>
+            <Circuitos/>
          
 
             <main className="home__conteudo">
