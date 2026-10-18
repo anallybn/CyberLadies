@@ -1,0 +1,22 @@
+.circuitos {
+  --largura: clamp(140px, 20vw, 300px);
+  --folga: calc(var(--largura) * 0.16); /* margem transparente do SVG */
+  --menu: 64px;                         /* altura do menu */
+
+  position: absolute;
+  width: var(--largura);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* esquerda: linhas saem da borda esquerda */
+.circuitos--tl { top: var(--menu); left: calc(var(--folga) * -1); transform: scaleY(-1); }
+.circuitos--bl { bottom: 0;        left: calc(var(--folga) * -1); }
+
+/* direita: espelhados, linhas saem da borda direita */
+.circuitos--tr { top: var(--menu); right: calc(var(--folga) * -1); transform: scale(-1, -1); }
+.circuitos--br { bottom: 0;        right: calc(var(--folga) * -1); transform: scaleX(-1); }
+
+@media (max-width: 600px) {
+  .circuitos { --largura: 110px; }
+}

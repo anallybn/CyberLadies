@@ -5,6 +5,8 @@
     height: 64px;
     padding: 0 2rem;
     background: var(--fundo-nav);
+    position: relative;
+    z-index: 2;
 }
 
 .navbar__icone {
