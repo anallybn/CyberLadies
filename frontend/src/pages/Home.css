@@ -64,6 +64,7 @@
     z-index: 1;
     width: clamp(200px, 22vw, 300px);
     margin-bottom: -3.5rem;
+    pointer-events: none;
 }
 
 .home__botao {
