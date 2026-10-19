@@ -1,0 +1,70 @@
+.cadastro .login__conteudo,
+.cadastro .login__grupo {
+    overflow: visible;
+}
+
+.cadastro .login__grupo {
+    position: relative;             
+    width: min(100%, 560px);
+}
+
+.cadastro .login__cartao {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+}
+
+.cadastro__gatinho {
+    position: absolute;
+    z-index: 0;
+    width: 180px;
+    height: auto;
+    top: 50%;
+    right: calc(100% - 14px);  
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.cadastro__form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(0.7rem, 1.8vh, 1.1rem) 0.9rem;
+    text-align: left;
+}
+
+.cadastro__form .campo {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+
+.cadastro__form .campo--metade {
+    grid-column: auto;
+}
+
+.cadastro__form .campo__caixa {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.cadastro__form .campo__caixa input {
+    min-width: 0;
+    flex: 1;
+}
+.cadastro__form .login__mensagem,
+.cadastro__form .login__botao {
+    grid-column: 1 / -1;
+}
+
+@media (max-height: 760px) {
+    .cadastro .login__subtitulo { display: none; }
+    .cadastro .login__titulo { margin-bottom: 1rem; }
+}
+
+@media (max-width: 1000px) {
+    .cadastro__gatinho { display: none; }
+}
+
+@media (max-width: 700px) {
+    .cadastro__form .campo--metade { grid-column: 1 / -1; }
+    .cadastro__gatinho { display: none; }
+}
