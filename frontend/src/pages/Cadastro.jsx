@@ -1,0 +1,117 @@
+import { useState } from "react"
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import Navbar from '../components/Navbar'
+import Circuitos from '../components/Circuitos'
+import gatinho from '../assets/gatinho-login.png'
+import { cadastrar } from "../services/authService"
+import { perfis } from "./cadastro/perfis"
+import './Login.css'
+import './Cadastro.css'
+
+export default function Cadastro() {
+    const { perfil } = useParams()
+    const navigate = useNavigate()
+    const config = perfis[perfil]
+
+    const [valores, setValores] = useState({})
+    const [visiveis, setVisiveis] = useState({})
+    const [erros, setErros] = useState({})
+    const [mensagem, setMensagem] = useState(null)
+    const [carregando, setCarregando] = useState(false)
+
+    if (!config) return <Navigate to="/" replace />
+
+    function alterar(name, valor) {
+        setValores((atual) => ({...atual, [name]: valor}))
+    }
+
+    function validar() {
+        const novos = {}
+
+        config.campos.forEach((campo) => {
+            const bruto = valores[campo.name] || ''
+            const valor = campo.tipo === 'password' ? bruto : bruto.trim()
+
+            if (campo.obrigatorio && !valor) {
+                novos[campo.name] = 'Preencha este campo.'
+                return
+            }
+            if (campo.tipo === 'email' && valor && !/^\S+@\S+\.\S+$/.test(valor)) {
+                novos[campo.name] = 'Digite um e-mail válido.'
+            }
+        })
+
+        if (!novos.senha && (valores.senha || '').length < 8) {
+            novos.senha = 'A senha deve ter pelo menos 8 caracteres.'
+        }
+        if (!novos.confirmarSenha && valores.confirmarSenha !== valores.senha) {
+            novos.confirmarSenha = 'As senhas não coincidem.'
+        }
+
+        return novos
+    }
+
+    async function aoEnviar(e) {
+        e.preventDefault()
+        setMensagem(null)
+
+        const novos = validar()
+        setErros(novos)
+        if (Object.keys(novos).length > 0) return
+
+        const dados = {}
+        config.campos
+            .filter((campo) => campo.name !== 'confirmarSenha')
+            .forEach((campo) => {
+                const bruto = valores[campo.name] || ''
+                dados[campo.name] = campo.tipo === 'password' ? bruto : bruto.trim()
+            })
+
+        setCarregando(true)
+        try {
+            await cadastrar(perfil, dados)
+            setMensagem({ tipo: 'sucesso', texto: 'Conta criada! Levando você para o login...'})
+            setTimeout(() => navigate(`/login?perfil=${perfil}`), 1500)
+        } catch (erro) {
+            setMensagem({tipo: 'erro', texto:erro.message })
+        } finally {
+            setCarregando(false)
+        }
+        
+    }
+
+    return (
+        <div className="login cadastro">
+            <Navbar />
+            <Circuitos />
+
+            <main className="login__conteudo">
+                <div className="login__grupo">
+                    <img src={ gatinho } alt="" className="login__gatinho" />
+
+                    <section className="login__cartao">
+                        <button
+                            type="button"
+                            className="login__voltar"
+                            onClick={() => navigate(`/login?perfil=${perfil}`)}
+                            aria-label="Voltar para o login"
+                        >
+                            <ArrowLeft size={20} />
+                        </button>
+
+                        <h1 className="login__titulo">{config.titulo}</h1>
+                        <p className="login__subtitulo">{config.subtitulo}</p>
+
+                        <form className="cadastro__form" onSubmit={aoEnviar} noValidate>
+                            {config.campos.map((campo) => {
+                                const Icone = campo.icone
+                                const ehSenha = campo.tipo === 'password'
+                                const tipo = ehSenha && visiveis[campo.name] ? 'text' : campo.tipo
+
+                                return
+                </div>
+            </main>
+        </div>
+    )
+}
