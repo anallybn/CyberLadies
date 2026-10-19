@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Circuitos from '../components/Circuitos'
-import gatinho from '../assets/gatinho-login.png'
+import gatinho from '../assets/gatinho_sorrindo.png'
 import { cadastrar } from "../services/authService"
 import { perfis } from "./cadastro/perfis"
 import './Login.css'
@@ -88,7 +88,7 @@ export default function Cadastro() {
 
             <main className="login__conteudo">
                 <div className="login__grupo">
-                    <img src={ gatinho } alt="" className="login__gatinho" />
+                    <img src={ gatinho } alt="" className="cadastro__gatinho" />
 
                     <section className="login__cartao">
                         <button
@@ -109,7 +109,67 @@ export default function Cadastro() {
                                 const ehSenha = campo.tipo === 'password'
                                 const tipo = ehSenha && visiveis[campo.name] ? 'text' : campo.tipo
 
-                                return
+                                return (
+                                    <div
+                                        key={campo.name}
+                                        className={`campo ${campo.metade ? 'campo--metade' : ''} `}
+                                    >
+                                        <label htmlFor={campo.name}>{campo.label}</label>
+                                        <div className={`campo__caixa ${erros[campo.name] ? 'campo__caixa--erro' : ''}`}>
+
+                                            <Icone size={18} />
+                                            <input
+                                                id={campo.name}
+                                                type={tipo}
+                                                value={valores[campo.name] || ''}
+                                                onChange={(e) => alterar(campo.name, e.target.value)}
+                                                placeholder={campo.placeholder}
+                                                autoComplete={campo.autoComplete}
+                                            />
+
+                                            {ehSenha && (
+                                                <button
+                                                    type="button"
+                                                    className="campo__olho"
+                                                    onClick={() =>
+                                                        setVisiveis((atual) => ({ ...atual, [campo.name] : !atual[campo.name] }))
+                                                    }
+                                                    aria-label={visiveis[campo.name] ? 'Ocultar senha' : 'Mostrar senha'}
+                                                >
+                                                    {visiveis[campo.name] ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                </button>
+                                            )}
+                                        </div>
+                                        {erros[campo.name] && (
+                                            <span className="campo__erro" role="alert">{erros[campo.name]}</span>
+                                        )}
+                                    </div>
+                                
+                                )
+                            })}
+
+                            {mensagem && (
+                                <div className={`login__mensagem login__mensagem--${mensagem.tipo}`} role="alert">
+                                    {mensagem.texto}
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                className="login__botao"
+                                disabled={carregando || mensagem?.tipo === 'sucesso'}
+                            >
+
+                            {carregando ? (
+                            <span className="login__spinner" aria-label="Criando conta" />
+                            ) : (
+                                <>
+                                    CRIAR CONTA <ArrowRight size={18} />
+                                </>
+                            )}
+                            </button>
+                        </form>
+                    </section>          
                 </div>
             </main>
         </div>

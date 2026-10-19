@@ -255,6 +255,13 @@
     color: #fff;
 }
 
+
+button.login__cadastrar {
+    background: none;
+    font-family: inherit;
+    cursor: pointer;
+}
+
 /* janelas bem baixas: esconde o subtítulo para o cartão caber */
 @media (max-height: 620px) {
     .login__subtitulo { display: none; }

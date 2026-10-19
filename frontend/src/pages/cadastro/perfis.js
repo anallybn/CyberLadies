@@ -8,7 +8,7 @@ export const perfis = {
             {
                 name: 'nome',
                 label: 'Nome completo',
-                tipo: 'txt',
+                tipo: 'text',
                 icone: User,
                 placeholder: 'Seu nome',
                 autoComplete: 'name',
@@ -34,7 +34,7 @@ export const perfis = {
                 metade: true,
             },
             {
-                name: 'ConfirmarSenha',
+                name: 'confirmarSenha',
                 label: 'Confirmar Senha',
                 tipo: 'password',
                 icone: Lock,

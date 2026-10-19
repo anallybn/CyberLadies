@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import PerfilPopup from '../components/PerfilPopup'
 import { ArrowLeft, ArrowRight, AtSign, Lock, Eye, EyeOff } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Circuitos from '../components/Circuitos'
@@ -9,12 +10,21 @@ import './Login.css'
 
 export default function Login() {
     const navigate = useNavigate()
+    const [params] = useSearchParams()
+    const perfil = params.get('perfil')
+    const [popupAberto, setPopupAberto] = useState(false)
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState ('')
     const [mostrarSenha, setMostrarSenha] = useState(false)
     const [erros, setErros] = useState({})
     const [mensagem, setMensagem] = useState(null)
     const [carregando, setCarregando] =useState(false)
+
+
+    function irParaCadastro() {
+    if (perfil) navigate(`/cadastro/${perfil}`)
+    else setPopupAberto(true)
+}
 
     function validar() {
         const novos = {}
@@ -27,7 +37,7 @@ export default function Login() {
             novos.senha = 'Informe sua senha.'
         }
         return novos 
-    }
+     }
 
     async function aoEnviar(e) {
         e.preventDefault()
@@ -131,10 +141,20 @@ export default function Login() {
                                 </form>
 
                                 <p className="login__cadastro">É nova por aqui?</p>
-                                <Link to="/cadastro" className="login__cadastrar">CADASTRE-SE</Link>   
+
+                                <button type="button" className="login__cadastrar" onClick={irParaCadastro}>
+                                    CADASTRE-SE
+                                </button>  
                         </section>
                     </div>
                 </main>
+                {popupAberto && (
+                    <PerfilPopup
+                        onFechar={() => setPopupAberto(false)}
+                        onEscolher={(p) => navigate(`/cadastro/${p}`)}
+                        onLogin={() => setPopupAberto(false)}
+                    />
+                )}  
         </div>
     )
 }
