@@ -32,6 +32,7 @@ export default function Home(){
             {popupAberto && (
             <PerfilPopup 
                 onFechar={() => setPopupAberto(false)}
+                onEscolher={(perfil) => navigate(`/login?perfil=${perfil}`)}
                 onLogin={() => navigate('/login')}
             /> 
             )}
