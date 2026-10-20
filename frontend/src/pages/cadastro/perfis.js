@@ -1,4 +1,4 @@
-import { User, AtSign, Lock, Sparkles } from 'lucide-react'
+import { User, AtSign, Lock, Sparkles, BookOpen, School } from 'lucide-react'
 
 export const perfis = {
     usuaria: {
@@ -53,4 +53,69 @@ export const perfis = {
             },
         ],
     },
+
+    educadora: {
+        titulo: 'Cadastro de educadora',
+        subtitulo: 'Publique conteúdos e acompanhe suas alunas.',
+        campos: [
+            {
+                name: 'nome',
+                label: 'Nome completo',
+                tipo: 'text',
+                icone: User,
+                placeholder: 'Seu nome',
+                autoComplete: 'name',
+                obrigatorio: true,
+            },
+            {
+                name: 'email',
+                label: 'E-mail',
+                tipo: 'email',
+                icone: AtSign,
+                placeholder: 'seuemail@exemplo.com',
+                autoComplete: 'email',
+                obrigatorio: true,
+            },
+            {
+                name: 'senha',
+                label: 'Senha',
+                tipo: 'password',
+                icone: Lock,
+                placeholder: 'Mín. 8 caracteres',
+                autoComplete: 'new-password',
+                obrigatorio: true,
+                metade: true,
+            },
+            {
+                name:'confirmarSenha',
+                label: 'Confirmar senha',
+                tipo: 'password',
+                icone: Lock,
+                placeholder: 'Repita a senha',
+                autoComplete: 'new-password',
+                obrigatorio: true,
+                metade: true,
+
+            },
+            {
+                name: 'especialidade',
+                label: 'Especialidade',
+                tipo: 'text',
+                icone: BookOpen,
+                placeholder: 'Ex.: Back-end, UX',
+                obrigatorio: true,
+                metade: true,
+            },
+            {
+                name: 'instituicao',
+                label: 'Instituição',
+                tipo: 'text',
+                icone: School,
+                placeholder: 'Onde você atua',
+                obrigatorio: true,
+                metade: true,
+            },
+        ],
+    },
+
 }
