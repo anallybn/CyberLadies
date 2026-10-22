@@ -1,4 +1,5 @@
-import { User, AtSign, Lock, Sparkles, BookOpen, School } from 'lucide-react'
+import { User, AtSign, Lock, Sparkles, BookOpen, School, Building2, FileText, Briefcase } from 'lucide-react'
+import { mascararCnpj } from '../../utils/cnpj'
 
 export const perfis = {
     usuaria: {
@@ -112,10 +113,7 @@ export const perfis = {
                 tipo: 'text',
                 icone: School,
                 placeholder: 'Onde você atua',
-                obrigatorio: true,
-                metade: true,
+                obrigatorio: true,       name: 'nome',
+                label: 'Nome da empresa',     obrigatorio: true, 
             },
-        ],
-    },
-
-}
+            {
