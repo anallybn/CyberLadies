@@ -1,7 +1,7 @@
 export function mascararCnpj(valor) {
      const d = valor.replace(/\D/g, '').slice(0, 14)
      return d
-     .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})(\d)/, '$1.$2')
     .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
     .replace(/\.(\d{3})(\d)/, '.$1/$2')
     .replace(/(\d{4})(\d)/, '$1-$2')
@@ -27,5 +27,5 @@ export function cnpjValido(valor) {
 
     const d1 = calcular(d.slice(0, 12))
     const d2 = calcular(d.slice(0, 12) + d1)
-    return d1 == Number (d[12]) && d2 === Number(d[13])
+    return d1 === Number (d[12]) && d2 === Number(d[13])
 }
