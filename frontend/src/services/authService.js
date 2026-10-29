@@ -1,6 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL
+const MODO_TESTE = import.meta.env.VITE_MODO_TESTE === 'true'
 
 export async function login(email, senha) {
+    //teste enquanto n temos o back 
+    if (MODO_TESTE) {
+        await new Promise((resolve) => setTimeout(resolve, 800))
+        return { token: 'token-de-teste' }
+    }
+
     let resposta 
 
     try {
@@ -25,6 +32,12 @@ export async function login(email, senha) {
 }
 
 export async function cadastrar(perfil, dados) {
+    // só para testar as telas enquanto o back-end não está pronto
+    if (MODO_TESTE) {
+        await new Promise((resolve) => setTimeout(resolve, 800))
+        return { perfil }
+    }
+    
     let resposta
 
     try {

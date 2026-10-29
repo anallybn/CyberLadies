@@ -22,8 +22,9 @@ export default function Cadastro() {
 
     if (!config) return <Navigate to="/" replace />
 
-    function alterar(name, valor) {
-        setValores((atual) => ({...atual, [name]: valor}))
+    function alterar(campo, valor) {
+        const final = campo.mascara ? campo.mascara(valor) : valor
+        setValores((atual) => ({ ...atual, [campo.name]: final }))
     }
 
     function validar() {
@@ -39,6 +40,10 @@ export default function Cadastro() {
             }
             if (campo.tipo === 'email' && valor && !/^\S+@\S+\.\S+$/.test(valor)) {
                 novos[campo.name] = 'Digite um e-mail válido.'
+            }
+            if (valor && campo.validar) {
+            const mensagemErro = campo.validar(valor)
+            if (mensagemErro) novos[campo.name] = mensagemErro
             }
         })
 
@@ -65,16 +70,16 @@ export default function Cadastro() {
             .filter((campo) => campo.name !== 'confirmarSenha')
             .forEach((campo) => {
                 const bruto = valores[campo.name] || ''
-                dados[campo.name] = campo.tipo === 'password' ? bruto : bruto.trim()
+                const valor = campo.tipo === 'password' ? bruto : bruto.trim()
+                dados[campo.name] = campo.somenteNumeros ? valor.replace(/\D/g, '') : valor
             })
 
         setCarregando(true)
         try {
-            await cadastrar(perfil, dados)
-            setMensagem({ tipo: 'sucesso', texto: 'Conta criada! Levando você para o login...'})
-            setTimeout(() => navigate(`/login?perfil=${perfil}`), 1500)
+            await cadastrar(perfil, dados)   // TODO: reativar quando o back-end existir
+            navigate(`/cadastro-concluido?perfil=${perfil}`)
         } catch (erro) {
-            setMensagem({tipo: 'erro', texto:erro.message })
+            setMensagem({ tipo: 'erro', texto: erro.message })
         } finally {
             setCarregando(false)
         }
@@ -122,7 +127,7 @@ export default function Cadastro() {
                                                 id={campo.name}
                                                 type={tipo}
                                                 value={valores[campo.name] || ''}
-                                                onChange={(e) => alterar(campo.name, e.target.value)}
+                                                onChange={(e) => alterar(campo, e.target.value)}
                                                 placeholder={campo.placeholder}
                                                 autoComplete={campo.autoComplete}
                                             />
@@ -157,7 +162,7 @@ export default function Cadastro() {
                             <button
                                 type="submit"
                                 className="login__botao"
-                                disabled={carregando || mensagem?.tipo === 'sucesso'}
+                                disabled={carregando}
                             >
 
                             {carregando ? (
