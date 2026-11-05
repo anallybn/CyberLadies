@@ -18,3 +18,15 @@ CREATE TABLE IF NOT EXISTS talk_post (
     criado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS talk_post_autora_idx ON talk_post(autora_id);
+CREATE TABLE IF NOT EXISTS talk_curtida (
+    post_id BIGINT NOT NULL REFERENCES talk_post(id) ON DELETE CASCADE,
+    usuaria_id BIGINT NOT NULL REFERENCES talk_usuaria(id) ON DELETE CASCADE,
+    PRIMARY KEY(post_id, usuaria_id)
+);
+CREATE TABLE IF NOT EXISTS talk_comentario (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    post_id BIGINT NOT NULL REFERENCES talk_post(id) ON DELETE CASCADE,
+    autora_id BIGINT NOT NULL REFERENCES talk_usuaria(id),
+    texto VARCHAR(500) NOT NULL
+);
+CREATE INDEX IF NOT EXISTS talk_comentario_post_idx ON talk_comentario(post_id);
