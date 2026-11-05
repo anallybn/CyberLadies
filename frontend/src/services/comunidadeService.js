@@ -1,5 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL
-const MODO_TESTE = import.meta.env.VITE_MODO_TESTE === 'true'
+import { talk } from './talkApi'
+export const MODO_TESTE = import.meta.env.VITE_MODO_TESTE === 'true'
 
 //dados de exemplos para testes
 const dadosTeste = {
@@ -69,48 +69,15 @@ function pausa(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function cabecalhos() {
-    const token = localStorage.getItem('token')
-    return {
-        'Content-Type': 'application/json',
-        ...(token ? {Authorization: `Bearer ${token}`} : {}),
-    }
-}
-
-async function buscar(caminho) {
-    let resposta 
-
-    try {
-        resposta = await fetch(`${API_URL}${caminho}`, { headers: cabecalhos() })
-    } catch {
-        throw new Error('Não foi possível conectar ao servidor. Tente novamente em instantes.')
-    }
-
-    if (resposta.status === 401 || resposta.status === 403) {
-        throw new Error('Sua sessão expirou. Entre novamente.')
-    }
-    if (!resposta.ok) {
-        throw new Error('Não foi possível carregar a comunidade. Tente novamente.')
-    }
-    
-    return resposta.json()
-}
-
 export async function carregarComunidade() {
     if (MODO_TESTE) {
         await pausa(600)
         return JSON.parse(JSON.stringify(dadosTeste))
     }
 
-    const [usuaria, grupos, posts, sugestoes, eventos] = await Promise.all([
-        buscar('/usuaria'),
-        buscar('/grupos'),
-        buscar('/posts'),
-        buscar('/sugestoes'),
-        buscar('/eventos'),
-    ])
-
-    return { usuaria, grupos, posts, sugestoes, eventos }
+    const usuaria = await talk('/usuaria')
+    const posts = usuaria.membro ? await talk('/posts') : []
+    return { usuaria, posts }
 }
 
 export async function publicarPost(texto) {
@@ -130,21 +97,5 @@ export async function publicarPost(texto) {
         }
     }
 
-    let resposta 
-
-    try {
-        resposta = await fetch(`${API_URL}/posts`, {
-            method: 'POST',
-            headers: cabecalhos(),
-            body: JSON.stringify({ texto }),
-        })
-    } catch {
-        throw new Error('Não foi possível conectar ao servidor. Tente novamente em instantes.')
-    }
-
-    if (!resposta.ok) {
-        throw new Error('Não foi possível publicar o post. Tente novamente.')
-    }
-
-    return resposta.json()
+    return talk('/posts', 'POST', { texto })
 }

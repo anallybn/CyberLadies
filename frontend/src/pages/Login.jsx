@@ -49,8 +49,9 @@ export default function Login() {
 
         setCarregando(true)
         try {
-            await login(email.trim(), senha)
-            setMensagem({ tipo: 'sucesso', texto: 'Login realizado com sucesso!'})
+            const { token } = await login(email.trim(), senha)
+            sessionStorage.setItem('token', token)
+            navigate('/comunidade', { replace: true })
         } catch (erro) {
             setMensagem({ tipo: 'erro', texto: erro.message })
         } finally {
