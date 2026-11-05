@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Heart, MessageCircle, Share2 } from 'lucide-react'
+import { BookOpen, Building2, PawPrint, Heart, MessageCircle, Share2 } from 'lucide-react'
 import icone from '../assets/icone.svg'
 import Circuitos from '../components/Circuitos'
 import TopoLogado from '../components/TopoLogado'
@@ -14,10 +14,16 @@ const abas = [
     { id: 'vaga', label: 'Vagas' },
 ]
 
-const coresPapel = {'Usuária': 'lilas', 'Educadora': 'azul', 'Empresa': 'verde' }
+
+const iconesPapel = {
+    'Usuária': PawPrint, 
+    'Educadora': BookOpen, 
+    'Empresa': Building2, 
+}
 
 function Post({ post }) {
     const [curtido, setCurtido] = useState(false)
+    const IconePapel = iconesPapel[post.papel] || PawPrint
 
     return (
         <article className="cm-cartao cm-post">
@@ -26,8 +32,11 @@ function Post({ post }) {
                 <div>
                     <div className="cm-post__nome">
                         <strong>{post.autora}</strong>
-                        <span className={`cm-selo cm-selo--${coresPapel[post.papel] || 'lilas'}`}>
-                            {post.papel}
+                        <span className={`cm-selo cm-selo--${iconesPapel[post.papel] || 'lilas'}`}
+                            title={post.papel}
+                            aria-label={post.papel}
+                            >
+                                <IconePapel size={14} />
                         </span>
                     </div>
                     <p className="cm-post__info">{post.cargo} · {post.tempo}</p>
@@ -78,25 +87,25 @@ export default function Comunidade() {
     const [conectados, setConectando] = useState([])
 
     useEffect(() => {
-        let ativo = true
+    let ativo = true
 
-        carregarComunidade()
+    carregarComunidade()
         .then((resultado) => {
             if (!ativo) return
             setDados(resultado)
             setPosts(resultado.posts)
         })
         .catch((falha) => {
-            if (ativo) return
-            setErro(falha.message)
+            if (ativo) setErro(falha.message)
         })
         .finally(() => {
-            if (ativo) return
-            setCarregando(false)
+            if (ativo) setCarregando(false)
         })
 
-        return () => { ativo = false }
-    }, [tentativa])
+    return () => { ativo = false }
+}, [tentativa])
+
+   
 
     function tentarDeNovo() {
         setErro(null)
@@ -138,7 +147,7 @@ export default function Comunidade() {
 
             {carregando && (
                 <div className="cm-estado" role="status">
-                    <span className="cm=spinner" />
+                    <span className="cm-spinner" />
                     Carregando comunidade...
                 </div>
             )}
@@ -154,37 +163,6 @@ export default function Comunidade() {
 
             {!carregando && !erro && dados && (
                 <div className="cm-grade">
-                    <aside className="cm-coluna cm-coluna--esq">
-                        <section className="cm-cartao cm-perfil">
-                            <div className="cm-avatar cm-avatar--grande">{inicial}</div>
-                            <strong>{usuaria.nome}</strong>
-                            <p>{usuaria.curso}</p>
-                            <div className="cm-perfil__numeros">
-                                <span><b>{usuaria.conexoes}</b>Conexões</span>
-                                <span><b>{usuaria.publicacoes}</b>Publicações</span>
-                                <span><b>{usuaria.grupos}</b>Grupos</span>
-                            </div>
-                            <button type="button" className="cm-botao cm-botao--cheio">
-                                Ver meu perfil
-                            </button>
-                        </section>
-
-                        <section className="cm-cartao">
-                            <h2 className="cm-titulo">Meus grupos</h2>
-                            <ul className="cm-lista">
-                                {grupos.map((g) => (
-                                    <li key={g.id}>
-                                        <span className="cm-sigla">{g.sigla}</span>
-                                        <div>
-                                            <strong>{g.nome}</strong>
-                                            <p>{g.membros}</p>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    </aside>
-
                     <main className="cm-feed">
                         <form className="cm-cartao cm-publicar" onSubmit={publicar}>
                             <div className="cm-avatar">{inicial}</div>
@@ -204,7 +182,7 @@ export default function Comunidade() {
                             </button>
                         </form>
 
-                        {erroPublicar && <p className="cm-erro" role="alert">{erroPublicar}</p>}
+                        {erroPublicacao && <p className="cm-erro" role="alert">{erroPublicacao}</p>}
 
                         <nav className="cm-abas" aria-label="Filtrar publicações">
                             {abas.map((a) => (
@@ -217,7 +195,6 @@ export default function Comunidade() {
                                     {a.label}
                                 </button>
                             ))}
-                            
                         </nav>
 
                         {visiveis.length === 0 ? (
@@ -230,8 +207,23 @@ export default function Comunidade() {
                             visiveis.map((p) => <Post key={p.id} post={p} />)
                         )}
                     </main>
-                    
+
                     <aside className="cm-coluna cm-coluna--dir">
+                        <section className="cm-cartao">
+                            <h2 className="cm-titulo">Meus grupos</h2>
+                            <ul className="cm-lista">
+                                {grupos.map((g) => (
+                                    <li key={g.id}>
+                                        <span className="cm-sigla">{g.sigla}</span>
+                                        <div>
+                                            <strong>{g.nome}</strong>
+                                            <p>{g.membros}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+
                         <section className="cm-cartao">
                             <h2 className="cm-titulo">Sugestões para você</h2>
                             <ul className="cm-lista">
@@ -259,7 +251,7 @@ export default function Comunidade() {
                             <h2 className="cm-titulo">Próximos eventos</h2>
                             <ul className="cm-lista">
                                 {eventos.map((ev) => (
-                                    <li kay={ev.id}>
+                                    <li key={ev.id}>
                                         <span className="cm-data"><small>{ev.mes}</small>{ev.dia}</span>
                                         <div>
                                             <strong>{ev.titulo}</strong>
@@ -270,7 +262,7 @@ export default function Comunidade() {
                             </ul>
                         </section>
                     </aside>
-                </div>  
+                </div> 
             )}
         </div>
     )
