@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 const MODO_TESTE = import.meta.env.VITE_MODO_TESTE === 'true'
 
 export async function login(email, senha) {

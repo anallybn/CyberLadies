@@ -408,3 +408,23 @@
 @keyframes cm-girar {
     to { transform: rotate(360deg);}
 }
+.cm-grade--talk {
+    max-width: 780px;
+    grid-template-columns: minmax(0, 1fr);
+}
+.cm-talk-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.cm-post form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .75rem;
+}
+.cm-post form :is(textarea, input) {
+    flex: 1 1 15rem;
+    padding: .55rem;
+    font: inherit;
+}

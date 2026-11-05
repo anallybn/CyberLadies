@@ -3,7 +3,9 @@ import { BookOpen, Building2, PawPrint, Heart, MessageCircle, Share2 } from 'luc
 import icone from '../assets/icone.svg'
 import Circuitos from '../components/Circuitos'
 import TopoLogado from '../components/TopoLogado'
-import {carregarComunidade, publicarPost} from '../services/comunidadeService'
+import PostTalk from '../components/PostTalk'
+import { talk } from '../services/talkApi'
+import {MODO_TESTE, carregarComunidade, publicarPost} from '../services/comunidadeService'
 import './Comunidade.css'
 
 const abas = [
@@ -83,6 +85,7 @@ export default function Comunidade() {
     const [aba, setAba] = useState('todos')
     const [texto, setTexto] = useState('')
     const [publicando, setPublicando] = useState(false)
+    const [aviso, setAviso] = useState('')
     const [erroPublicacao, setErroPublicacao] = useState(null)
     const [conectados, setConectando] = useState([])
 
@@ -124,10 +127,34 @@ export default function Comunidade() {
             const post = await publicarPost(conteudo)
             setPosts((atuais) => [post, ...atuais])
             setTexto('')
+            setAviso('Publicação feita!')
         } catch (falha) {
             setErroPublicacao(falha.message)
         } finally {
             setPublicando(false)
+        }
+    }
+
+    async function aderir() {
+        setPublicando(true)
+        setErroPublicacao(null)
+        try {
+            await talk('/comunidade/adesao', 'PUT')
+            tentarDeNovo()
+        } catch (falha) {
+            setErroPublicacao(falha.message)
+        } finally {
+            setPublicando(false)
+        }
+    }
+
+    async function sair() {
+        try {
+            await talk('/auth/sessao', 'DELETE')
+            sessionStorage.removeItem('token')
+            window.location.replace('/login?perfil=usuaria')
+        } catch (falha) {
+            setErroPublicacao(falha.message)
         }
     }
 
@@ -161,9 +188,18 @@ export default function Comunidade() {
                 </div>
             )}
 
-            {!carregando && !erro && dados && (
-                <div className="cm-grade">
+            {!carregando && !erro && dados && !MODO_TESTE && !usuaria.membro && (
+                <section className="cm-estado"><h1>CyberTalk</h1>
+                    <button className="cm-botao" disabled={publicando} onClick={aderir}>Participar da comunidade</button>
+                    {erroPublicacao && <p role="alert">{erroPublicacao}</p>}
+                </section>
+            )}
+            {!carregando && !erro && dados && (MODO_TESTE || usuaria.membro) && (
+                <div className={MODO_TESTE ? "cm-grade" : "cm-grade cm-grade--talk"}>
                     <main className="cm-feed">
+                        {!MODO_TESTE && <header className="cm-talk-topo"><h1>CyberTalk</h1>
+                            <button type="button" className="cm-botao cm-botao--contorno" onClick={sair}>Sair</button>
+                        </header>}
                         <form className="cm-cartao cm-publicar" onSubmit={publicar}>
                             <div className="cm-avatar">{inicial}</div>
                             <input
@@ -182,9 +218,10 @@ export default function Comunidade() {
                             </button>
                         </form>
 
+                        {aviso && <p role="status">{aviso}</p>}
                         {erroPublicacao && <p className="cm-erro" role="alert">{erroPublicacao}</p>}
 
-                        <nav className="cm-abas" aria-label="Filtrar publicações">
+                        {MODO_TESTE && <nav className="cm-abas" aria-label="Filtrar publicações">
                             {abas.map((a) => (
                                 <button
                                     key={a.id}
@@ -195,7 +232,7 @@ export default function Comunidade() {
                                     {a.label}
                                 </button>
                             ))}
-                        </nav>
+                        </nav>}
 
                         {visiveis.length === 0 ? (
                             <div className="cm-cartao cm-vazio">
@@ -204,11 +241,14 @@ export default function Comunidade() {
                                 <small>Que tal ser a primeira?</small>
                             </div>
                         ) : (
-                            visiveis.map((p) => <Post key={p.id} post={p} />)
+                            visiveis.map((p) => MODO_TESTE ? <Post key={p.id} post={p} /> :
+                                <PostTalk key={p.id} post={p}
+                                    atualizar={novo => setPosts(lista => lista.map(item => item.id === novo.id ? novo : item))}
+                                    remover={id => { setPosts(lista => lista.filter(item => item.id !== id)); setAviso('Publicação excluída.') }} />)
                         )}
                     </main>
 
-                    <aside className="cm-coluna cm-coluna--dir">
+                    {MODO_TESTE && <aside className="cm-coluna cm-coluna--dir">
                         <section className="cm-cartao">
                             <h2 className="cm-titulo">Meus grupos</h2>
                             <ul className="cm-lista">
@@ -261,7 +301,7 @@ export default function Comunidade() {
                                 ))}
                             </ul>
                         </section>
-                    </aside>
+                    </aside>}
                 </div> 
             )}
         </div>
