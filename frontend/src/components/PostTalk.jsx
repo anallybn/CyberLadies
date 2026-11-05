@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Heart, MessageCircle } from 'lucide-react'
+import { Heart, MessageCircle, Share2 } from 'lucide-react'
+import AnexoTalk from './AnexoTalk'
 import { talk } from '../services/talkApi'
 
 export default function PostTalk({ post, atualizar, remover }) {
@@ -9,6 +10,7 @@ export default function PostTalk({ post, atualizar, remover }) {
     const [comentario, comentar] = useState('')
     const [ocupado, aguardar] = useState(false)
     const [aviso, avisar] = useState('')
+    const [linkManual, setLinkManual] = useState('')
     const rota = '/posts/' + post.id
 
     async function executar(acao) {
@@ -18,6 +20,17 @@ export default function PostTalk({ post, atualizar, remover }) {
         try { await acao() }
         catch (erro) { avisar(erro.message) }
         finally { aguardar(false) }
+    }
+
+    async function compartilhar() {
+        const link = new URL('/comunidade', window.location.origin)
+        link.searchParams.set('post', post.id)
+        try {
+            await navigator.clipboard.writeText(link.href)
+            avisar('Link copiado! Envie para outra pessoa da comunidade.')
+        } catch {
+            setLinkManual(link.href)
+        }
     }
 
     async function salvar() {
@@ -46,6 +59,7 @@ export default function PostTalk({ post, atualizar, remover }) {
             <button disabled={ocupado || !texto.trim()}>Salvar</button>
             <button type="button" disabled={ocupado} onClick={() => editar(false)}>Cancelar</button>
         </form> : <p className="cm-post__texto">{post.texto}</p>}
+        {post.anexoNome && <AnexoTalk post={post} />}
         <footer className="cm-post__acoes">
             <button disabled={ocupado} aria-pressed={post.curtido} aria-label="Curtir publicação"
                 onClick={() => executar(async () => atualizar(await talk(rota + '/curtida', post.curtido ? 'DELETE' : 'PUT')))}>
@@ -55,6 +69,7 @@ export default function PostTalk({ post, atualizar, remover }) {
                 onClick={() => executar(async () => listar(comentarios ? null : await talk(rota + '/comentarios')))}>
                 <MessageCircle size={16} />{post.comentarios}
             </button>
+            <button type="button" onClick={compartilhar}><Share2 size={16} /> Compartilhar</button>
             {post.propria && <>
                 <button disabled={ocupado} onClick={() => { escrever(post.texto); editar(true) }}>Editar</button>
                 <button disabled={ocupado} onClick={() => {
@@ -63,7 +78,9 @@ export default function PostTalk({ post, atualizar, remover }) {
                 }}>Excluir</button>
             </>}
         </footer>
+        {linkManual && <label>Copie o link <input readOnly value={linkManual} onFocus={e => e.target.select()} /></label>}
         {comentarios && <section aria-label="Comentários">
+            {comentarios.length === 0 && <p>Seja a primeira a comentar.</p>}
             {comentarios.map(c => <p key={c.id}><strong>{c.autora}</strong> {c.texto}</p>)}
             <form onSubmit={e => { e.preventDefault(); executar(enviarComentario) }}>
                 <input aria-label="Comentário" maxLength={500} value={comentario}
