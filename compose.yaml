@@ -1,0 +1,53 @@
+# Ambiente local. Banco e API são acessíveis somente dentro da rede do projeto.
+services:
+  banco:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: cyberladies
+      POSTGRES_USER: cyberladies
+      POSTGRES_PASSWORD: desenvolvimento-local
+    volumes:
+      - dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cyberladies"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  api:
+    image: maven:3.9-eclipse-temurin-21
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - maven:/root/.m2
+    environment:
+      DATABASE_URL: jdbc:postgresql://banco:5432/cyberladies
+      DATABASE_USER: cyberladies
+      DATABASE_PASSWORD: desenvolvimento-local
+    command: ["mvn", "spring-boot:run"]
+    depends_on:
+      banco:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/127.0.0.1/8080"]
+      interval: 5s
+      timeout: 3s
+      retries: 120
+  site:
+    image: node:22-bookworm
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - dependencias:/app/node_modules
+    environment:
+      API_PROXY: http://api:8080
+      VITE_API_URL: /api
+    command: ["sh", "-c", "npm ci && npm run dev -- --host 0.0.0.0 --strictPort"]
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+volumes:
+  dados:
+  maven:
+  dependencias:

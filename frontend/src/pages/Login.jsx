@@ -51,7 +51,9 @@ export default function Login() {
         try {
             const { token } = await login(email.trim(), senha)
             sessionStorage.setItem('token', token)
-            navigate('/comunidade', { replace: true })
+            const post = sessionStorage.getItem('talk-post')
+            sessionStorage.removeItem('talk-post')
+            navigate(post ? '/comunidade?post=' + encodeURIComponent(post) : '/comunidade', { replace: true })
         } catch (erro) {
             setMensagem({ tipo: 'erro', texto: erro.message })
         } finally {

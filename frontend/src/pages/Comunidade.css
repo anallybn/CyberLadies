@@ -428,3 +428,8 @@
     padding: .55rem;
     font: inherit;
 }
+
+.cm-publicar { flex-wrap: wrap; }
+.cm-publicar .cm-anexar { display: grid; gap: .35rem; font-size: .85rem; }
+.cm-anexo { display: grid; gap: .6rem; justify-items: start; overflow-wrap: anywhere; }
+.cm-anexo img { max-width: 100%; max-height: 26rem; object-fit: contain; border-radius: .6rem; }

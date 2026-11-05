@@ -30,3 +30,10 @@ CREATE TABLE IF NOT EXISTS talk_comentario (
     texto VARCHAR(500) NOT NULL
 );
 CREATE INDEX IF NOT EXISTS talk_comentario_post_idx ON talk_comentario(post_id);
+
+CREATE TABLE IF NOT EXISTS talk_anexo (
+    post_id BIGINT PRIMARY KEY REFERENCES talk_post(id) ON DELETE CASCADE,
+    nome VARCHAR(200) NOT NULL,
+    tipo VARCHAR(80) NOT NULL,
+    dados BYTEA NOT NULL
+);
