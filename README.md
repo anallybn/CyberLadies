@@ -10,13 +10,47 @@ Na raiz do repositório, execute `docker compose up` e aguarde a mensagem do Vit
 
 O botão **Compartilhar** copia um link para a publicação. Quem abrir precisa entrar e participar da comunidade. Em desenvolvimento, um link localhost só funciona na máquina que hospeda o site. Cada post aceita um arquivo de até 5 MB, com ou sem texto. JPEG e PNG têm visualização e os demais arquivos podem ser baixados.
 
-### Executar localmente sem Docker
+### Abrir o CyberTalk no Windows sem Docker
 
-Use Java 21, PostgreSQL e Node.js 22.12 ou superior. No PostgreSQL, crie um banco chamado `cyberladies` e um usuário proprietário. No terminal do backend, defina `DATABASE_USER` e `DATABASE_PASSWORD` com as credenciais desse usuário. Para outro servidor ou banco, defina também `DATABASE_URL` no formato `jdbc:postgresql://host:5432/banco`.
+Use Git Bash no VS Code, JDK 21, PostgreSQL 16 e Node.js 22.12 ou superior. Cada computador usa seu próprio banco local.
 
-1. Na pasta `backend`, execute `bash mvnw spring-boot:run` (PowerShell: `.\mvnw.cmd spring-boot:run`). O aplicativo cria as tabelas e escuta na porta 8080.
-2. Em outro terminal, na pasta `frontend`, execute `npm ci` e `npm run dev`. Abra a URL exibida pelo Vite. O proxy local encaminha `/api` ao backend. Remova configurações antigas de `VITE_API_URL`.
-3. Abra `/cadastro/usuaria`, crie a conta, faça login e clique em **Participar da comunidade**. Publique um texto, recarregue a página, edite e exclua. Para testar permissões, use uma segunda conta em uma janela privativa.
+**Preparação inicial.** Baixe o projeto com `git clone https://github.com/anallybn/CyberLadies.git` e abra a pasta CyberLadies no VS Code. Se já possui o projeto, abra a cópia atualizada. No Git Bash, confira `java -version`, `javac -version` e `node -v`. O Java e o compilador devem indicar 21. Se aparecer um Java antigo, defina `JAVA_HOME` para a pasta do JDK 21 instalado e coloque `$JAVA_HOME/bin` no início do `PATH`.
+
+Abra **SQL Shell (psql)** pelo menu Iniciar. Aceite os valores padrão para localhost, banco postgres, porta 5432 e usuário postgres. Digite a senha escolhida na instalação. No prompt `postgres=#`, execute uma linha por vez, apenas na primeira configuração:
+
+```sql
+CREATE USER cyberladies;
+\password cyberladies
+CREATE DATABASE cyberladies OWNER cyberladies;
+```
+
+O comando `\password` pede a nova senha duas vezes. Guarde-a para o terminal do backend.
+
+**Terminal 1 — backend.** Abra um Git Bash na pasta do projeto e execute:
+
+```bash
+cd "$(git rev-parse --show-toplevel)/backend" && export DATABASE_USER=cyberladies
+```
+
+Cole a próxima linha sozinha. Quando solicitado, digite a senha do usuário do banco e pressione Enter. A senha fica oculta.
+
+```bash
+read -rs -p "Senha do banco cyberladies: " DATABASE_PASSWORD && export DATABASE_PASSWORD && echo && bash mvnw spring-boot:run
+```
+
+Aguarde `Started CyberladiesApplication`. Mantenha o terminal aberto. O backend usa a porta 8080 e cria as tabelas. Para usar outro banco, configure `DATABASE_URL` com um endereço JDBC PostgreSQL.
+
+**Terminal 2 — site.** Abra um segundo Git Bash no VS Code:
+
+```bash
+cd "$(git rev-parse --show-toplevel)/frontend" && npm ci && VITE_API_URL= npm run dev
+```
+
+Deixe o valor de `VITE_API_URL` vazio, como no comando. O frontend usa o caminho padrão `/api` e o Vite encaminha a requisição ao Spring Boot. No Git Bash do Windows, definir explicitamente a variável como `/api` pode transformá-la em um caminho de arquivo.
+
+Abra o endereço **Local** exibido pelo Vite e acesse `/cadastro/usuaria`. Crie uma conta do site, entre e clique em **Participar da comunidade**. Publique com um anexo, comente e atualize a página para conferir a persistência. Teste também editar, compartilhar e excluir a publicação.
+
+**Para reabrir depois de fechar o VS Code**, abra a mesma pasta e repita os dois terminais. O banco já estará criado. Pode omitir `npm ci` se as dependências continuarem instaladas e o arquivo de lock estiver igual.
 
 ### Contrato da API
 
