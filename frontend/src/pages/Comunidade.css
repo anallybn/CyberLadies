@@ -10,7 +10,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
     gap: 1.5rem;
-    width: min(100%, 1100%);
+    width: min(100%, 1100px);
     margin: 0 auto;
     padding: 1.75rem 1.5rem 3rem;
     align-items: start;
@@ -58,8 +58,7 @@
     box-shadow: 0 8px 18px rgba(120, 90, 200, 0.25);
 }
 
-
-/*listas de grupos, sugestões e eventos */
+/* listas de grupos, sugestões e eventos */
 .cm-lista {
     display: flex;
     flex-direction: column;
@@ -73,7 +72,7 @@
     gap: 0.75rem;
 }
 
-.cm-lista li > div:not(.cm-avatar) {
+.cm-lista li > div:not(.cm-avatar):not(.cm-data) {
     flex: 1;
     min-width: 0;
 }
@@ -82,11 +81,15 @@
     display: block;
     font-size: 0.85rem;
     color: var(--azul-escuro);
-
 }
 
-.cm-lista p{
+.cm-lista p {
     font-size: 0.75rem;
+    color: #8b7fb8;
+}
+
+.cm-lista-vazia {
+    font-size: 0.8rem;
     color: #8b7fb8;
 }
 
@@ -101,6 +104,7 @@
     color: #5e3fb5;
     font-size: 0.75rem;
     font-weight: 700;
+    text-transform: uppercase;
 }
 
 .cm-data {
@@ -126,9 +130,28 @@
 /* publicar */
 .cm-publicar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.9rem 1rem;
+}
+
+.cm-publicar > .cm-avatar { order: 0; }
+
+.cm-publicar > input:not([type="file"]) {
+    order: 1;
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.cm-publicar > button[type="submit"] { order: 2; }
+
+.cm-publicar .cm-anexar {
+    order: 3;
+    flex: 1 0 100%;
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    color: #8b7fb8;
 }
 
 .cm-publicar input {
@@ -155,12 +178,83 @@
     color: #b9aed8;
 }
 
+.cm-publicar input[type="file"] {
+    flex: none;
+    width: 100%;
+    height: auto;
+    padding: 0.5rem 0.6rem;
+    border-style: dashed;
+    font-size: 0.8rem;
+    color: #5a4a9c;
+    cursor: pointer;
+}
+
+.cm-publicar input[type="file"]::file-selector-button {
+    margin-right: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border: none;
+    border-radius: 10px;
+    background: var(--azul-escuro);
+    color: #fff;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
 .cm-erro {
     padding: 0.7rem 0.9rem;
     border-radius: 12px;
     background: #fde8ef;
     color: #a52c4f;
     font-size: 0.82rem;
+}
+
+/* anexos dos posts (serve para <a> e <button>) */
+.cm-anexo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.cm-anexo > a,
+.cm-anexo > button {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid #d9ccf3;
+    border-radius: 14px;
+    background: #fff;
+    color: #5a4a9c;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.cm-anexo > a:hover,
+.cm-anexo > button:hover {
+    border-color: #8a6fd1;
+    background: #f6f0ff;
+}
+
+.cm-anexo img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    max-height: 26rem;
+    object-fit: contain;
+    border-radius: 0.6rem;
 }
 
 /* abas */
@@ -216,7 +310,8 @@
     gap: 0.5rem;
 }
 
-.cm-post__nome strong {
+.cm-post__nome strong,
+.cm-post__topo strong {
     font-size: 0.92rem;
     color: var(--azul-escuro);
 }
@@ -250,6 +345,7 @@
 
 .cm-post__acoes {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     padding-top: 0.75rem;
     border-top: 1px solid #ece4fa;
@@ -275,8 +371,27 @@
     color: var(--azul-escuro);
 }
 
-.cm-post__acoes button.ativo {
+.cm-post__acoes button.ativo,
+.cm-post__acoes button[aria-pressed="true"] {
     color: #d6456f;
+}
+
+/* formulários dentro do post (editar e comentar) */
+.cm-post form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.cm-post form :is(textarea, input) {
+    flex: 1 1 15rem;
+    padding: 0.55rem;
+    border: 1.5px solid #d9ccf3;
+    border-radius: 12px;
+    background: #fff;
+    font: inherit;
+    color: var(--azul-escuro);
 }
 
 /* selos */
@@ -300,8 +415,8 @@
 
 .cm-selo--azul {
     color: #5a3fb0;
-    background:  #e4d9fa;
-    border-color:  #cbb9f0;
+    background: #e4d9fa;
+    border-color: #cbb9f0;
 }
 
 .cm-selo--verde {
@@ -360,6 +475,10 @@
     opacity: 1;
 }
 
+.cm-coluna > .cm-botao--contorno {
+    align-self: flex-start;
+}
+
 /* vazio, carregando e erro */
 .cm-vazio {
     display: flex;
@@ -406,30 +525,12 @@
 }
 
 @keyframes cm-girar {
-    to { transform: rotate(360deg);}
-}
-.cm-grade--talk {
-    max-width: 780px;
-    grid-template-columns: minmax(0, 1fr);
-}
-.cm-talk-topo {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.cm-post form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .5rem;
-    margin-top: .75rem;
-}
-.cm-post form :is(textarea, input) {
-    flex: 1 1 15rem;
-    padding: .55rem;
-    font: inherit;
+    to { transform: rotate(360deg); }
 }
 
-.cm-publicar { flex-wrap: wrap; }
-.cm-publicar .cm-anexar { display: grid; gap: .35rem; font-size: .85rem; }
-.cm-anexo { display: grid; gap: .6rem; justify-items: start; overflow-wrap: anywhere; }
-.cm-anexo img { max-width: 100%; max-height: 26rem; object-fit: contain; border-radius: .6rem; }
+/* telas menores: a coluna da direita desce para baixo do feed */
+@media (max-width: 900px) {
+    .cm-grade {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
