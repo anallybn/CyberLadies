@@ -1,7 +1,9 @@
 package CyberLadies.mentoria.service;
 
 import CyberLadies.mentoria.model.Mentoria;
+import org.springframework.stereotype.Service;
 
+@Service 
 // Responsável pelas regras de negócio das mentorias.
 public class MentoriaService {
 
