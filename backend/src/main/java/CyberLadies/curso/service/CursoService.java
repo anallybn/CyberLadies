@@ -1,7 +1,9 @@
 package CyberLadies.curso.service;
 
 import CyberLadies.curso.model.Curso;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CursoService {
 
     // Verifica se os dados obrigatórios do curso são válidos.
