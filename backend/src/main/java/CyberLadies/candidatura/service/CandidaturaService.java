@@ -1,7 +1,9 @@
 package CyberLadies.candidatura.service;
 
 import CyberLadies.candidatura.model.Candidatura;
+import org.springframework.stereotype.Service;
 
+@Service 
 public class CandidaturaService {
 
     // Verifica se a candidatura possui usuária e vaga.
