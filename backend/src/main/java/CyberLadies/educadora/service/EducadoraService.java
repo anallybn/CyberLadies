@@ -2,7 +2,9 @@ package CyberLadies.educadora.service;
 
 import CyberLadies.educadora.model.Educadora;
 import CyberLadies.educadora.model.StatusAprovacao;
+import org.springframework.stereotype.Service;
 
+@Service 
 // Responsável pelas regras de negócio das educadoras.
 public class EducadoraService {
 
