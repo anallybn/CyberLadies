@@ -1,7 +1,9 @@
 package CyberLadies.empresa.service;
 
 import CyberLadies.empresa.model.Empresa;
+import org.springframework.stereotype.Service;
 
+@Service 
 public class EmpresaService {
 
     // Verifica se a empresa informou os dados obrigatórios.
