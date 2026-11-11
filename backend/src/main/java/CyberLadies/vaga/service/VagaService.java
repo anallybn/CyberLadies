@@ -1,7 +1,9 @@
 package CyberLadies.vaga.service;
 
 import CyberLadies.vaga.model.Vaga;
+import org.springframework.stereotype.Service;
 
+@Service 
 public class VagaService {
 
     // Verifica se os dados obrigatórios da vaga foram preenchidos.
