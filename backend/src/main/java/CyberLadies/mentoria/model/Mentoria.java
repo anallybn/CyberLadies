@@ -45,4 +45,36 @@ public class Mentoria {
     public String getDataHorario() {
         return dataHorario;
     }
+
+
+    // Define o identificador da mentoria.
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    // Define a educadora responsável pela mentoria.
+    public void setEducadoraId(Long educadoraId) {
+        this.educadoraId = educadoraId;
+    }
+
+    // Define a usuária participante da mentoria.
+    public void setUsuariaId(Long usuariaId) {
+        this.usuariaId = usuariaId;
+    }
+
+    // Define o título da mentoria.
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+
+    // Define a descrição da mentoria.
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    // Define a data e o horário da mentoria.
+    public void setDataHorario(String dataHorario) {
+        this.dataHorario = dataHorario;
+    }
+
 }
