@@ -1,5 +1,8 @@
 package CyberLadies.empresa.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+
 // Representa uma empresa cadastrada no CyberLadies.
 public class Empresa {
 
@@ -7,7 +10,11 @@ public class Empresa {
     private String nome;
     private String cnpj;
     private String email;
+    
+    // Impede que o hash da senha apareça nas respostas da API.
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String senhaHash;
+
 
     public Empresa() {
     }
@@ -40,4 +47,31 @@ public class Empresa {
     public String getSenhaHash() {
         return senhaHash;
     }
+
+    // Define o identificador da empresa.
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    // Atualiza o nome da empresa.
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    // Atualiza o CNPJ da empresa.
+    public void setCnpj(String cnpj) {
+        this.cnpj = cnpj;
+    }
+
+    // Atualiza o e-mail da empresa.
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    // Define o hash da senha da empresa.
+    public void setSenhaHash(String senhaHash) {
+        this.senhaHash = senhaHash;
+    }
+
+
 }
