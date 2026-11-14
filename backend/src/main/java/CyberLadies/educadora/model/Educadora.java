@@ -1,5 +1,6 @@
 
 package CyberLadies.educadora.model;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 // Representa os dados de uma educadora cadastrada no CyberLadies.
 public class Educadora {
@@ -7,11 +8,15 @@ public class Educadora {
     private Long id;
     private String nome;
     private String email;
-    // Senha protegida por hash. Nunca armazenaremos a senha original.
+    
+// Permite receber o hash, mas impede sua exposição nas respostas JSON.
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String senhaHash;
     private String especialidade;
     private String instituicao;
-    private StatusAprovacao status;
+    // Toda nova educadora começa aguardando aprovação.
+    private StatusAprovacao status = StatusAprovacao.PENDENTE;
+
     private String motivoRejeicao;
 
     public Educadora() {
@@ -79,6 +84,32 @@ public class Educadora {
     public String getMotivoRejeicao() {
         return motivoRejeicao;
     }
+
+    // Define o nome da educadora.
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    // Define o e-mail da educadora.
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    // Define o hash da senha.
+    public void setSenhaHash(String senhaHash) {
+        this.senhaHash = senhaHash;
+    }
+
+    // Define a especialidade da educadora.
+    public void setEspecialidade(String especialidade) {
+        this.especialidade = especialidade;
+    }
+
+    // Define a instituição da educadora.
+    public void setInstituicao(String instituicao) {
+        this.instituicao = instituicao;
+    }
+
 
     // Atualiza os dados profissionais da educadora.
     public void atualizarDados(
