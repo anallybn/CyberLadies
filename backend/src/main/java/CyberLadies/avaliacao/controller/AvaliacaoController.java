@@ -2,6 +2,8 @@ package CyberLadies.avaliacao.controller;
 
 import CyberLadies.avaliacao.service.AvaliacaoService;
 
+import CyberLadies.avaliacao.model.Avaliacao; // Representa os dados de uma avaliação.
+import java.util.List; // Permite retornar uma lista de avaliações.
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,82 @@ public class AvaliacaoController {
     // O Spring fornece automaticamente o serviço.
     public AvaliacaoController(AvaliacaoService avaliacaoService) {
         this.avaliacaoService = avaliacaoService;
+    }
+
+    // Recebe uma requisição para cadastrar uma avaliação.
+    @PostMapping
+    public ResponseEntity<Avaliacao> cadastrar(
+            @RequestBody Avaliacao dados) {
+
+        // Envia os dados ao Service para validar e cadastrar.
+        Avaliacao novaAvaliacao = avaliacaoService.cadastrar(dados);
+
+        // Retorna HTTP 201 quando o cadastro é realizado.
+        return ResponseEntity.status(201).body(novaAvaliacao);
+    }
+
+    // Retorna todas as avaliações cadastradas.
+    @GetMapping
+    public ResponseEntity<List<Avaliacao>> listarTodos() {
+
+        // Busca a lista de avaliações no Service.
+        List<Avaliacao> avaliacoes = avaliacaoService.listarTodos();
+
+        // Retorna HTTP 200 com a lista de avaliações.
+        return ResponseEntity.ok(avaliacoes);
+    }
+
+    // Busca uma avaliação pelo seu identificador.
+    @GetMapping("/{id}")
+    public ResponseEntity<Avaliacao> buscarPorId(
+            @PathVariable Long id) {
+
+        // Solicita ao Service a avaliação correspondente.
+        Avaliacao avaliacao = avaliacaoService.buscarPorId(id);
+
+        // Retorna HTTP 404 se a avaliação não existir.
+        if (avaliacao == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Retorna HTTP 200 com a avaliação encontrada.
+        return ResponseEntity.ok(avaliacao);
+    }
+
+    // Atualiza uma avaliação existente pelo ID.
+    @PutMapping("/{id}")
+    public ResponseEntity<Avaliacao> atualizar(
+            @PathVariable Long id,
+            @RequestBody Avaliacao dados) {
+
+        // Envia os novos dados ao Service.
+        Avaliacao atualizada = avaliacaoService.atualizar(id, dados);
+
+        // Retorna HTTP 404 se a avaliação não existir.
+        if (atualizada == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Retorna HTTP 200 com a avaliação atualizada.
+        return ResponseEntity.ok(atualizada);
+    }
+
+
+    // Exclui uma avaliação pelo seu identificador.
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(
+            @PathVariable Long id) {
+
+        // Solicita ao Service a exclusão da avaliação.
+        boolean excluida = avaliacaoService.excluir(id);
+
+        // Retorna HTTP 404 se a avaliação não existir.
+        if (!excluida) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Retorna HTTP 204 quando a exclusão é realizada.
+        return ResponseEntity.noContent().build();
     }
 
     // Recebe uma nota para verificar se é válida.
