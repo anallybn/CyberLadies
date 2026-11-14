@@ -5,9 +5,17 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList; // Permite armazenar eventos em uma lista.
+import java.util.List; // Representa uma lista de eventos.
+import java.util.concurrent.atomic.AtomicLong; // Gera IDs sequenciais.
 
 @Service
 public class EventoAgendaService {
+    // Armazena temporariamente os eventos cadastrados em memoria.
+    private final List<EventoAgenda> eventos = new ArrayList<>();
+
+    // Gera um identificador unico para cada evento.
+    private final AtomicLong proximoId = new AtomicLong(1);
 
     // Cria um evento na agenda de uma usuária.
     public EventoAgenda criar(Long usuariaId, String titulo, String descricao, String tipoEvento, LocalDateTime dataInicio, LocalDateTime dataFim) {
@@ -105,4 +113,126 @@ public class EventoAgendaService {
             LocalDateTime.now()
         );
     }
+
+    // Cadastra um novo evento na agenda.
+    public synchronized EventoAgenda cadastrar(EventoAgenda dados) {
+
+        // Verifica se os dados foram enviados.
+        if (dados == null) {
+            throw new IllegalArgumentException(
+                "Informe os dados do evento."
+            );
+        }
+
+        // Reutiliza as validacoes existentes no metodo criar().
+        EventoAgenda evento = criar(
+            dados.getUsuariaId(),
+            dados.getTitulo(),
+            dados.getDescricao(),
+            dados.getTipoEvento(),
+            dados.getDataInicio(),
+            dados.getDataFim()
+        );
+
+        // Gera um ID unico para o novo evento.
+        evento.setId(proximoId.getAndIncrement());
+
+        // Armazena o evento temporariamente em memoria.
+        eventos.add(evento);
+
+        // Retorna o evento cadastrado.
+        return evento;
+    }
+
+    // Retorna todos os eventos cadastrados na agenda.
+    public synchronized List<EventoAgenda> listarTodos() {
+
+        // Cria uma copia da lista de eventos.
+        // Isso evita que outras partes do sistema alterem
+        // diretamente a lista original.
+        return new ArrayList<>(eventos);
+    }
+
+
+    // Busca um evento pelo seu identificador.
+    public synchronized EventoAgenda buscarPorId(Long id) {
+
+        // Verifica se o ID informado e valido.
+        if (id == null || id <= 0) {
+            return null;
+        }
+
+        // Percorre todos os eventos cadastrados.
+        for (EventoAgenda evento : eventos) {
+
+            // Compara o ID do evento com o ID solicitado.
+            if (evento.getId().equals(id)) {
+
+                // Retorna o evento encontrado.
+                return evento;
+            }
+        }
+
+        // Retorna null caso o evento nao exista.
+        return null;
+    }
+
+    // Atualiza um evento existente na agenda.
+    public synchronized EventoAgenda atualizar(Long id, EventoAgenda dados) {
+
+        // Procura o evento pelo ID informado.
+        EventoAgenda existente = buscarPorId(id);
+
+        // Retorna null se o evento nao existir.
+        if (existente == null) {
+            return null;
+        }
+
+        // Verifica se os novos dados foram enviados.
+        if (dados == null) {
+            throw new IllegalArgumentException(
+                "Informe os dados do evento."
+            );
+        }
+
+        // Reutiliza as validacoes do metodo criar().
+        EventoAgenda validado = criar(
+            dados.getUsuariaId(),
+            dados.getTitulo(),
+            dados.getDescricao(),
+            dados.getTipoEvento(),
+            dados.getDataInicio(),
+            dados.getDataFim()
+        );
+
+        // Atualiza os campos do evento existente.
+        existente.setUsuariaId(validado.getUsuariaId());
+        existente.setTitulo(validado.getTitulo());
+        existente.setDescricao(validado.getDescricao());
+        existente.setTipoEvento(validado.getTipoEvento());
+        existente.setDataInicio(validado.getDataInicio());
+        existente.setDataFim(validado.getDataFim());
+
+        // Preserva o ID original do evento.
+        return existente;
+    }
+ 
+    // Exclui um evento cadastrado na agenda.
+    public synchronized boolean excluir(Long id) {
+
+        // Procura o evento pelo identificador informado.
+        EventoAgenda existente = buscarPorId(id);
+
+        // Retorna false se o evento nao existir.
+        if (existente == null) {
+            return false;
+        }
+
+        // Remove o evento da lista em memoria.
+        eventos.remove(existente);
+
+        // Retorna true para confirmar a exclusao.
+        return true;
+    }
+
 }
