@@ -35,4 +35,26 @@ public class Candidatura {
     public String getStatus() {
         return status;
     }
+
+
+    // Define o identificador da candidatura.
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    // Define a usuária responsável pela candidatura.
+    public void setUsuariaId(Long usuariaId) {
+        this.usuariaId = usuariaId;
+    }
+
+    // Define a vaga à qual a usuária se candidatou.
+    public void setVagaId(Long vagaId) {
+        this.vagaId = vagaId;
+    }
+
+    // Atualiza a situação da candidatura.
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
 }
