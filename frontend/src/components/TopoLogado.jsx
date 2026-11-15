@@ -4,17 +4,14 @@ import { useSessao } from '../hooks/useSessao'
 import { sair, temPapel } from '../services/sessaoService'
 import { UserRound } from 'lucide-react'
 import icone from '../assets/icone.svg'
+import { secoes } from './secoes'
+import MenuPopup from './MenuPopup'
 import './TopoLogado.css'
-
-const secoes = [
-    { id: 'academy', nome: 'CyberAcademy', rota: null },
-    { id: 'vagas', nome: 'CyberVagas', rota: null },
-    { id: 'talk', nome: 'CyberTalk', rota: '/comunidade' },
-]
 
 // topo das páginas de dentro do site (depois do login)
 export default function TopoLogado({ ativa, inicial }) {
     const { conta } = useSessao()
+    const [menuAberto, setMenuAberto] = useState(false)
     const navigate = useNavigate()
     const [erro, setErro] = useState('')
     const [saindo, setSaindo] = useState(false)
@@ -27,6 +24,7 @@ export default function TopoLogado({ ativa, inicial }) {
         finally { setSaindo(false) }
     }
     return (
+        <>
         <header className="topo-logado">
             <Link to={admin ? '/admin/educadoras' : '/comunidade'} aria-label="CyberLadies">
                 <img src={icone} alt="" className="topo-logado__logo" />
@@ -41,7 +39,7 @@ export default function TopoLogado({ ativa, inicial }) {
                             className={`topo-logado__link ${ativa === s.id ? 'ativa' : ''}`}
                             aria-current={ativa === s.id ? 'page' : undefined}
                         >
-                            {s.nome}
+                            {s.titulo}
                         </Link>
                     ) : (
                         <button
@@ -51,7 +49,7 @@ export default function TopoLogado({ ativa, inicial }) {
                             disabled
                             title="Em breve"
                         >
-                            {s.nome}
+                            {s.titulo}
                         </button>
                     )
                 )}
@@ -60,9 +58,11 @@ export default function TopoLogado({ ativa, inicial }) {
             </nav>
             {conta && <button type="button" className="topo-logado__link" disabled={saindo} onClick={encerrar}>{saindo ? 'Saindo...' : 'Sair'}</button>}
             {erro && <p role="alert" className="topo-logado__erro">{erro}</p>}
-            <div className="topo-logado__avatar" title="Meu perfil">
+            <button type="button" className="topo-logado__avatar" onClick={() => setMenuAberto(true)} aria-label="Abrir menu da conta" aria-haspopup="dialog" aria-expanded={menuAberto}>
                 {inicial || <UserRound size={18} />}
-            </div>
+            </button>
         </header>
+        {menuAberto && <MenuPopup ativa={ativa} onFechar={() => setMenuAberto(false)} aoSair={encerrar} saindo={saindo} erro={erro} />}
+        </>
     )
 }

@@ -56,8 +56,8 @@ export default function PostTalk({ post, atualizar, remover }) {
         {editando ? <form onSubmit={e => { e.preventDefault(); executar(salvar) }}>
             <textarea aria-label="Editar publicação" maxLength={500} value={texto}
                 onChange={e => escrever(e.target.value)} />
-            <button disabled={ocupado || !texto.trim()}>Salvar</button>
-            <button type="button" disabled={ocupado} onClick={() => editar(false)}>Cancelar</button>
+            <button type="submit" className="cm-botao" aria-busy={ocupado} disabled={ocupado || !texto.trim()}>Salvar</button>
+            <button type="button" className="cm-botao cm-botao--contorno" disabled={ocupado} onClick={() => editar(false)}>Cancelar</button>
         </form> : <p className="cm-post__texto">{post.texto}</p>}
         {post.anexoNome && <AnexoTalk post={post} />}
         <footer className="cm-post__acoes">
@@ -85,7 +85,7 @@ export default function PostTalk({ post, atualizar, remover }) {
             <form onSubmit={e => { e.preventDefault(); executar(enviarComentario) }}>
                 <input aria-label="Comentário" maxLength={500} value={comentario}
                     onChange={e => comentar(e.target.value)} />
-                <button disabled={ocupado || !comentario.trim()}>Comentar</button>
+                <button type="submit" className="cm-botao" aria-busy={ocupado} disabled={ocupado || !comentario.trim()}>Comentar</button>
             </form>
         </section>}
         {aviso && <p role="status">{aviso}</p>}

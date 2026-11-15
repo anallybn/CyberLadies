@@ -1,5 +1,44 @@
 # Sessão, educadora e análise administrativa no frontend
 
+## Integração do CyberTalk de origin/main
+
+Integração realizada em `integracao/cybertalk-layout`, a partir do checkpoint
+`1ea31ea`, com `origin/main` em `cc60a6b`. Por decisão confirmada, incorpora o
+frontend e preserva integralmente o backend do checkpoint. Os CRUDs em memória,
+a autenticação antiga e o `schema.sql` da origem não são incorporados.
+
+O feed e a coluna lateral, os cartões, os estilos de publicação, edição e
+comentários e o menu popup mantêm o desenho da colega. O menu consulta os papéis
+da sessão compartilhada, oferece os caminhos de educadora e ADMIN e usa o logout
+existente. No celular, os caminhos ficam disponíveis pelo avatar. Escape fecha
+o menu, o foco permanece dentro dele e retorna ao avatar ao fechar.
+
+A adesão ao Talk continua explícita. Os filtros por tipo de autora ficam
+desabilitados com indicação “Em breve”, pois o contrato atual das publicações
+não fornece essa classificação. CyberAcademy, CyberVagas, perfil e chat continuam
+indisponíveis. Grupos, sugestões e eventos mostram os estados vazios do layout;
+não foram acrescentados dados fictícios ou serviços para essas áreas.
+
+Validação desta integração em 15/11/2026:
+
+- Backend: 53 testes aprovados, sem falhas ou ignorados, com PostgreSQL novo em
+  `127.0.0.1:55439`; inclui migrações, sessão, cadastro, papéis e educadoras.
+- Frontend: 8 testes unitários aprovados; lint e build aprovados.
+- Chrome/Playwright: 7 testes aprovados com API em `18081`, banco exclusivo
+  `cyberladies_frontend_e2e` e Vite em `5175`. Cobrem cadastro, login, retorno ao
+  post, adesão explícita, publicação com anexo, leitura do anexo, curtida,
+  comentário, edição, persistência após recarga, exclusão e logout com token
+  invalidado. Também cobrem solicitação de educadora, aprovação, rejeição,
+  conflito, filtro/paginação administrativa, 403, sessão expirada e erro de rede.
+- Capturas do Chrome em desktop e celular foram inspecionadas: feed, coluna
+  lateral, menu popup e telas de educadora/admin. Build não substituiu essa
+  conferência visual. Não houve validação em Firefox ou Safari.
+
+Os testes usaram um cluster novo e separado. O banco atual e os dados da
+demonstração em `55440` não foram usados pelos testes. As configurações pessoais
+de `.vscode`, credenciais protegidas e arquivos da demonstração ficam locais,
+fora dos commits. A demonstração continua disponível em `http://127.0.0.1:5176`.
+
 O site mantém React/Vite, cores, circuitos, cartões e componentes existentes.
 A identidade e o conjunto de papéis vêm de `GET /api/auth/me`; nenhum papel é
 obtido de `perfil` ou de outro parâmetro da URL. USUARIA e EDUCADORA podem
