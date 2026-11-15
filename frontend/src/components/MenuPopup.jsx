@@ -1,7 +1,6 @@
-import {userEffect} from 'react'
-import {Layers, Briefcase, MessageSquare, User, MessageCircle, X  } from 'lucide-react'
+import {Layers, Briefcase} from 'lucide-react'
 
-const itensPrincipais = [
+export const itensPrincipais = [
     {id: 'academy', 
     titulo: 'CyberAcademy', 
     descricao: 'Trilhas & conteúdos', 

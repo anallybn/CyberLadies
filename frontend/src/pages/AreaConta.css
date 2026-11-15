@@ -1,0 +1,24 @@
+.area-conta__conteudo { position:relative; z-index:1; width:min(100% - 2rem,1000px); margin:2rem auto 4rem; display:grid; gap:1.25rem; }
+.area-conta__conteudo h1 { font-size:clamp(1.5rem,4vw,2rem); }
+.area-conta__conteudo h2 { font-size:1.15rem; }
+.area-conta__conteudo p { line-height:1.7; }
+.area-conta__secao, .area-conta__form, .area-conta__form fieldset, .solicitacao-dados { display:grid; gap:1rem; }
+.area-conta__form fieldset { border:0; min-width:0; }
+.area-conta__form :is(input,select,textarea), .area-conta__filtros select { padding:.8rem; border:1.5px solid #cbb9e7; border-radius:12px; background:white; color:var(--azul-escuro); font:inherit; width:100%; }
+.area-conta__form textarea { min-height:8rem; resize:vertical; }
+.area-conta__form :is(input,select,textarea):focus-visible, .area-conta :is(a,button):focus-visible { outline:3px solid #8060be; outline-offset:3px; }
+.area-conta__form label, .area-conta__filtros label { font-weight:600; }
+.area-conta__acoes, .area-conta__filtros { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
+.area-conta__filtros label { display:grid; gap:.5rem; }
+.area-conta__acoes a { text-decoration:none; }
+.solicitacao-status { justify-self:start; padding:.4rem .9rem; border-radius:999px; background:#e9defb; font-weight:600; }
+.solicitacao-status--aprovada { background:#ddefe8; color:#24513d; }
+.solicitacao-status--rejeitada { background:#fde8ef; color:#8c2645; }
+.solicitacao-dados dl { display:grid; gap:1rem; }
+.solicitacao-dados dt { font-size:.85rem; font-weight:600; }
+.solicitacao-dados dd { overflow-wrap:anywhere; white-space:pre-wrap; }
+.area-conta__tabela { overflow-x:auto; }
+.area-conta__tabela table { border-collapse:collapse; width:100%; text-align:left; }
+.area-conta__tabela caption { text-align:left; font-weight:600; padding-bottom:1rem; }
+.area-conta__tabela :is(th,td) { padding:.8rem; border-bottom:1px solid #e2d8ef; overflow-wrap:anywhere; }
+@media(max-width:600px) { .area-conta__conteudo { margin-top:1.25rem; } .area-conta__tabela :is(th,td) { padding:.5rem; font-size:.85rem; } }

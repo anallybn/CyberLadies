@@ -1,0 +1,39 @@
+CREATE TABLE talk_usuaria (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome VARCHAR(120) NOT NULL,
+    email VARCHAR(254) NOT NULL UNIQUE,
+    senha_hash VARCHAR(255) NOT NULL,
+    competencias VARCHAR(500) NOT NULL,
+    membro BOOLEAN NOT NULL DEFAULT FALSE
+);
+CREATE TABLE talk_sessao (
+    token_hash VARCHAR(64) PRIMARY KEY,
+    usuaria_id BIGINT NOT NULL REFERENCES talk_usuaria(id) ON DELETE CASCADE,
+    expira_em TIMESTAMP WITH TIME ZONE NOT NULL
+);
+CREATE TABLE talk_post (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    autora_id BIGINT NOT NULL REFERENCES talk_usuaria(id),
+    texto VARCHAR(500) NOT NULL,
+    criado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX talk_post_autora_idx ON talk_post(autora_id);
+CREATE TABLE talk_curtida (
+    post_id BIGINT NOT NULL REFERENCES talk_post(id) ON DELETE CASCADE,
+    usuaria_id BIGINT NOT NULL REFERENCES talk_usuaria(id) ON DELETE CASCADE,
+    PRIMARY KEY(post_id, usuaria_id)
+);
+CREATE TABLE talk_comentario (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    post_id BIGINT NOT NULL REFERENCES talk_post(id) ON DELETE CASCADE,
+    autora_id BIGINT NOT NULL REFERENCES talk_usuaria(id),
+    texto VARCHAR(500) NOT NULL
+);
+CREATE INDEX talk_comentario_post_idx ON talk_comentario(post_id);
+
+CREATE TABLE talk_anexo (
+    post_id BIGINT PRIMARY KEY REFERENCES talk_post(id) ON DELETE CASCADE,
+    nome VARCHAR(200) NOT NULL,
+    tipo VARCHAR(80) NOT NULL,
+    dados BYTEA NOT NULL
+);

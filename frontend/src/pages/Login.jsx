@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, AtSign, Lock, Eye, EyeOff } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Circuitos from '../components/Circuitos'
 import gatinho from '../assets/gatinho-login.png'
-import { login } from '../services/authService';
+import { entrar, destinoAposLogin } from '../services/sessaoService'
 import './Login.css'
 
 export default function Login() {
@@ -49,11 +49,8 @@ export default function Login() {
 
         setCarregando(true)
         try {
-            const { token } = await login(email.trim(), senha)
-            sessionStorage.setItem('token', token)
-            const post = sessionStorage.getItem('talk-post')
-            sessionStorage.removeItem('talk-post')
-            navigate(post ? '/comunidade?post=' + encodeURIComponent(post) : '/comunidade', { replace: true })
+            const conta = await entrar(email.trim(), senha)
+            navigate(destinoAposLogin(conta, params.get('post')), { replace: true })
         } catch (erro) {
             setMensagem({ tipo: 'erro', texto: erro.message })
         } finally {
@@ -84,6 +81,8 @@ export default function Login() {
                             
                             <h1 className="login__titulo">Bem-vinda de volta!</h1>
                             <p className="login__subtitulo">Entre para continuar sua jornada na tech</p>
+                            {params.get('motivo') === 'sessao-expirada' && <p role="status">Sua sessão expirou. Entre novamente para continuar.</p>}
+                            {perfil === 'educadora' && <p>Entre com sua conta pessoal. Na comunidade, acesse “Atuar como educadora”.</p>}
 
                             <form className="login__form" onSubmit={aoEnviar} noValidate>
                                 <div className="campo">

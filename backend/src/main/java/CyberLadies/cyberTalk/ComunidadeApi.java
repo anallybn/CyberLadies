@@ -1,42 +1,48 @@
-package CyberLadies.talk;
+package CyberLadies.cyberTalk;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.time.OffsetDateTime;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import org.springframework.http.*;
-import org.springframework.web.multipart.MultipartFile;
-import java.util.List;
-import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api")
 class ComunidadeApi {
     private final JdbcClient db;
     private final AcessoTalk acesso;
-    private static final String SELECT_POST = """
-        SELECT p.id,u.nome AS autora,p.texto,p.criado_em,a.nome AS anexo_nome,a.tipo AS anexo_tipo,
-               p.autora_id=:pessoa AS propria,
-               EXISTS(SELECT 1 FROM talk_curtida k WHERE k.post_id=p.id AND k.usuaria_id=:pessoa) AS curtido,
-               (SELECT count(*) FROM talk_curtida k WHERE k.post_id=p.id) AS curtidas,
-               (SELECT count(*) FROM talk_comentario c WHERE c.post_id=p.id) AS comentarios
-        FROM talk_post p JOIN talk_usuaria u ON u.id=p.autora_id
-        LEFT JOIN talk_anexo a ON a.post_id=p.id
-        """;
+    private final PublicacaoConsultaService consultas;
 
     record Texto(@NotBlank @Size(max=500) String texto) {}
-    record Post(long id, String autora, String texto, OffsetDateTime criadoEm, boolean propria,
-                boolean curtido, long curtidas, long comentarios, String anexoNome, String anexoTipo) {}
     record Comentario(long id, String autora, String texto) {}
 
-    ComunidadeApi(JdbcClient db, AcessoTalk acesso) {
+    ComunidadeApi(JdbcClient db, AcessoTalk acesso, PublicacaoConsultaService consultas) {
         this.db = db;
         this.acesso = acesso;
+        this.consultas = consultas;
     }
 
     @GetMapping("/usuaria")
@@ -45,22 +51,22 @@ class ComunidadeApi {
     @PutMapping("/comunidade/adesao")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void aderir() {
-        db.sql("UPDATE talk_usuaria SET membro=true WHERE id=?").param(acesso.usuaria().id()).update();
+        db.sql("INSERT INTO talk_participacao(conta_id) VALUES (?) ON CONFLICT DO NOTHING")
+            .param(acesso.usuaria().id()).update();
     }
 
     @GetMapping("/posts")
-    List<Post> listar() {
-        return db.sql(SELECT_POST + " ORDER BY p.criado_em DESC,p.id DESC")
-            .param("pessoa", acesso.membro().id()).query(Post.class).list();
+    List<PublicacaoResponse> listar() {
+        return consultas.listar();
     }
 
     @GetMapping("/posts/{id}")
-    Post consultar(@PathVariable long id) { return buscar(id, acesso.membro().id()); }
+    PublicacaoResponse consultar(@PathVariable long id) { return consultas.consultar(id); }
 
     @PostMapping(value="/posts", consumes=MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    Post publicar(@Valid @RequestBody Texto entrada) {
+    PublicacaoResponse publicar(@Valid @RequestBody Texto entrada) {
         long autora = acesso.membro().id();
         return buscar(inserir(autora, entrada.texto().strip()), autora);
     }
@@ -73,7 +79,7 @@ class ComunidadeApi {
     @PostMapping(value="/posts", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    Post publicarComAnexo(@RequestParam(defaultValue="") String texto,
+    PublicacaoResponse publicarComAnexo(@RequestParam(defaultValue="") String texto,
                           @RequestParam MultipartFile arquivo) throws IOException {
         long autora = acesso.membro().id();
         if (texto.length() > 500 || arquivo.isEmpty())
@@ -114,7 +120,7 @@ class ComunidadeApi {
 
     @PutMapping("/posts/{id}")
     @Transactional
-    Post editar(@PathVariable long id, @Valid @RequestBody Texto entrada) {
+    PublicacaoResponse editar(@PathVariable long id, @Valid @RequestBody Texto entrada) {
         long autora = acesso.membro().id();
         exigirAutora(id, autora);
         db.sql("UPDATE talk_post SET texto=? WHERE id=?").params(entrada.texto().strip(), id).update();
@@ -131,7 +137,7 @@ class ComunidadeApi {
 
     @PutMapping("/posts/{id}/curtida")
     @Transactional
-    Post curtir(@PathVariable long id) {
+    PublicacaoResponse curtir(@PathVariable long id) {
         long pessoa = acesso.membro().id();
         bloquearPost(id);
         db.sql("INSERT INTO talk_curtida VALUES (?,?) ON CONFLICT DO NOTHING").params(id, pessoa).update();
@@ -140,7 +146,7 @@ class ComunidadeApi {
 
     @DeleteMapping("/posts/{id}/curtida")
     @Transactional
-    Post descurtir(@PathVariable long id) {
+    PublicacaoResponse descurtir(@PathVariable long id) {
         long pessoa = acesso.membro().id();
         bloquearPost(id);
         db.sql("DELETE FROM talk_curtida WHERE post_id=? AND usuaria_id=?").params(id, pessoa).update();
@@ -152,7 +158,7 @@ class ComunidadeApi {
         buscar(id, acesso.membro().id());
         return db.sql("""
             SELECT c.id,u.nome AS autora,c.texto FROM talk_comentario c
-            JOIN talk_usuaria u ON u.id=c.autora_id WHERE post_id=? ORDER BY c.id
+            JOIN conta u ON u.id=c.autora_id WHERE post_id=? ORDER BY c.id
             """).param(id).query(Comentario.class).list();
     }
 
@@ -168,9 +174,8 @@ class ComunidadeApi {
         return new Comentario(chave, autora.nome(), texto);
     }
 
-    private Post buscar(long id, long pessoa) {
-        return db.sql(SELECT_POST + " WHERE p.id=:id").param("id", id).param("pessoa", pessoa)
-            .query(Post.class).optional().orElseThrow(ComunidadeApi::ausente);
+    private PublicacaoResponse buscar(long id, long pessoa) {
+        return consultas.buscar(id, pessoa);
     }
 
     private long bloquearPost(long id) {

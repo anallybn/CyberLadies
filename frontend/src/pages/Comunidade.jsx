@@ -87,16 +87,6 @@ export default function Comunidade() {
         }
     }
 
-    async function sair() {
-        try {
-            await talk('/auth/sessao', 'DELETE')
-            sessionStorage.removeItem('token')
-            window.location.replace('/login?perfil=usuaria')
-        } catch (falha) {
-            setErroPublicacao(falha.message)
-        }
-    }
-
     const usuaria = dados?.usuaria
     const inicial = usuaria?.nome?.[0] || ''
 
@@ -133,7 +123,6 @@ export default function Comunidade() {
                 <div className="cm-grade cm-grade--talk">
                     <main className="cm-feed">
                         <header className="cm-talk-topo"><h1>CyberTalk</h1>
-                            <button type="button" className="cm-botao cm-botao--contorno" onClick={sair}>Sair</button>
                         </header>
                         {postId && <Link to="/comunidade">Ver todas as publicações</Link>}
                         {!postId && <form className="cm-cartao cm-publicar" onSubmit={publicar}>
@@ -190,4 +179,3 @@ export default function Comunidade() {
         </div>
     )
 }
-        

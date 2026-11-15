@@ -1,0 +1,166 @@
+import { test, expect } from '@playwright/test'
+import { randomUUID } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
+import process from 'node:process'
+
+test.skip(process.env.E2E_ISOLATED !== 'true', 'Exige API isolada em 18081 e PostgreSQL descartável em 55439.')
+const criadas = new Set()
+test.afterEach(() => {
+    if (!criadas.size) return
+    const ids = [...criadas].join(',')
+    sql(`BEGIN; DELETE FROM educadora WHERE conta_id IN (${ids}); DELETE FROM talk_comentario WHERE autora_id IN (${ids}); DELETE FROM talk_post WHERE autora_id IN (${ids}); DELETE FROM conta WHERE id IN (${ids}); COMMIT;`)
+    criadas.clear()
+})
+function sql(comando) {
+    const executavel = process.platform === 'win32' ? 'C:/Program Files/PostgreSQL/16/bin/psql.exe' : 'psql'
+    return execFileSync(executavel, ['-X','-h','127.0.0.1','-p','55439','-U','migration_test','-d','cyberladies_frontend_e2e','-v','ON_ERROR_STOP=1'],
+        { input: comando, encoding: 'utf8' })
+}
+async function conta(request, admin = false) {
+    const identificador = randomUUID()
+    const dados = { nome: 'Pessoa ' + identificador.slice(0,8), email: identificador + '@example.com', senha: randomUUID() }
+    expect((await request.post('/api/auth/cadastro/usuaria', { data: dados })).status()).toBe(201)
+    const token = (await (await request.post('/api/auth/login', { data: { email: dados.email, senha: dados.senha } })).json()).token
+    const id = (await (await request.get('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })).json()).id
+    criadas.add(id)
+    if (admin) sql(`BEGIN; DELETE FROM usuaria WHERE conta_id=${id}; DELETE FROM conta_papel WHERE conta_id=${id}; INSERT INTO conta_papel VALUES (${id},'ADMIN'); COMMIT;`)
+    return { ...dados, id, token, admin }
+}
+async function login(page, pessoa) {
+    await page.goto('/login')
+    await page.getByLabel('E-mail', { exact: true }).fill(pessoa.email)
+    await page.getByLabel('Senha', { exact: true }).fill(pessoa.senha)
+    await page.getByRole('button', { name: 'ENTRAR', exact: true }).click()
+    await expect(page).toHaveURL(pessoa.admin ? /\/admin\/educadoras$/ : /\/comunidade$/)
+}
+async function solicitar(request, pessoa) {
+    expect((await request.post('/api/educadora/solicitacao', { headers: { Authorization: 'Bearer ' + pessoa.token },
+        data: { especialidade: 'Java', instituicao: 'Escola de teste' } })).status()).toBe(201)
+}
+test('conta pessoal solicita; ADMIN rejeita; educadora consulta sem reenvio', async ({ page, browser, request }) => {
+    const pessoa = await conta(request)
+    await login(page, pessoa)
+    await expect(page).toHaveURL(/\/comunidade$/)
+    await page.getByRole('button', { name: 'Participar da comunidade' }).click()
+    await expect(page.getByRole('heading', { name: 'CyberTalk' })).toBeVisible()
+    await page.getByRole('link', { name: 'Atuar como educadora' }).click()
+    await page.getByLabel('Especialidade', { exact: true }).fill('Java')
+    await page.getByLabel('Instituição', { exact: true }).fill('Escola de teste')
+    await page.getByRole('button', { name: 'Enviar solicitação' }).click()
+    await expect(page.getByText('Pendente', { exact: true })).toBeVisible()
+    const sessao = await request.get('/api/auth/me', { headers: { Authorization: 'Bearer ' + pessoa.token } })
+    expect((await sessao.json()).papeis).toEqual(expect.arrayContaining(['USUARIA','EDUCADORA']))
+    const admin = await conta(request, true)
+    const contexto = await browser.newContext()
+    const painel = await contexto.newPage()
+    await login(painel, admin)
+    await expect(painel).toHaveURL(/\/admin\/educadoras$/)
+    await painel.getByLabel('Por página').selectOption('50')
+    await painel.getByRole('row').filter({ hasText: pessoa.nome }).getByRole('link', { name: /Analisar/ }).click()
+    await expect(painel.getByRole('heading', { name: pessoa.nome })).toBeVisible()
+    await painel.getByLabel('Decisão', { exact: true }).selectOption('REJEITADA')
+    await painel.getByRole('button', { name: 'Confirmar decisão' }).click()
+    await expect(painel.getByLabel('Motivo da rejeição')).toBeFocused()
+    await painel.getByLabel('Motivo da rejeição').fill('Documentação insuficiente.')
+    await painel.getByRole('button', { name: 'Confirmar decisão' }).click()
+    await expect(painel.getByText('Rejeitada', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Atualizar status' }).click()
+    await expect(page.getByText('Documentação insuficiente.', { exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Enviar solicitação' })).toHaveCount(0)
+    await page.screenshot({ path: 'test-results/educadora-rejeitada.png', fullPage: true })
+    await painel.screenshot({ path: 'test-results/admin-decisao.png', fullPage: true })
+    await page.getByRole('button', { name: 'Sair', exact: true }).click()
+    await expect(page).toHaveURL(/\/login$/)
+    await contexto.close()
+})
+test('aprovação, filtro, paginação e conflito recarregam a decisão atual', async ({ page, request }) => {
+    const admin = await conta(request, true)
+    const candidatas = []
+    for (let i=0; i<11; i++) { const pessoa = await conta(request); await solicitar(request, pessoa); candidatas.push(pessoa) }
+    await login(page, admin)
+    await page.getByLabel('Status', { exact: true }).selectOption('PENDENTE')
+    await page.getByLabel('Por página').selectOption('10')
+    await expect(page.getByRole('button', { name: 'Próxima' })).toBeEnabled()
+    await page.getByRole('button', { name: 'Próxima' }).click()
+    await expect(page.getByText(/Página 2 de/)).toBeVisible()
+    const candidata = candidatas.at(-1)
+    await page.goto('/admin/educadoras/' + candidata.id)
+    await expect(page.getByRole('button', { name: 'Confirmar decisão' })).toBeVisible()
+    expect((await request.post('/api/admin/educadoras/solicitacoes/' + candidata.id + '/decisao', {
+        headers: { Authorization: 'Bearer ' + admin.token }, data: { status: 'APROVADA' },
+    })).status()).toBe(200)
+    await page.getByRole('button', { name: 'Confirmar decisão' }).click()
+    await expect(page.getByText('Aprovada', { exact: true })).toBeVisible()
+    await expect(page.getByText(/resultado atual foi recarregado/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Confirmar decisão' })).toHaveCount(0)
+    await page.goto('/admin/educadoras/' + candidatas[0].id)
+    await page.getByRole('button', { name: 'Confirmar decisão' }).click()
+    await expect(page.getByText('Aprovada', { exact: true })).toBeVisible()
+    await expect(page.getByText('Decisão registrada.', { exact: true })).toBeVisible()
+})
+test('403 preserva sessão; URL não concede ADMIN; expiração exige login', async ({ page, request }) => {
+    const pessoa = await conta(request)
+    await login(page, pessoa)
+    const tokenAntes = await page.evaluate(() => sessionStorage.getItem('token'))
+    await page.goto('/admin/educadoras?perfil=ADMIN')
+    await expect(page.getByRole('heading', { name: 'Acesso negado' })).toBeVisible()
+    expect(await page.evaluate(() => sessionStorage.getItem('token'))).toBe(tokenAntes)
+    await page.goto('/educadora')
+    await page.route('**/api/educadora/solicitacao', route => route.fulfill({ status: 403, json: { detail: 'Acesso negado pelo servidor.' } }))
+    await page.reload()
+    await expect(page.getByRole('alert')).toContainText('Acesso negado pelo servidor.')
+    expect(await page.evaluate(() => sessionStorage.getItem('token'))).toBe(tokenAntes)
+    await page.unroute('**/api/educadora/solicitacao')
+    sql(`UPDATE auth_sessao SET expira_em=CURRENT_TIMESTAMP WHERE usuaria_id=${pessoa.id};`)
+    await page.reload()
+    await expect(page).toHaveURL(/\/login\?motivo=sessao-expirada/)
+    await expect(page.getByText('Sua sessão expirou. Entre novamente para continuar.')).toBeVisible()
+})
+test('carregamento, erro de rede e nova tentativa', async ({ page, request }) => {
+    const pessoa = await conta(request)
+    await login(page, pessoa)
+    let liberar
+    const aguardando = new Promise(resolve => { liberar = resolve })
+    await page.route('**/api/educadora/solicitacao', async route => { await aguardando; await route.abort('failed') })
+    await page.getByRole('link', { name: 'Atuar como educadora' }).click()
+    await expect(page.getByText('Carregando solicitação...', { exact: true })).toBeVisible()
+    liberar()
+    await expect(page.getByRole('alert')).toContainText('Falha de conexão')
+    await expect(page.getByRole('button', { name: 'Enviar solicitação' })).toHaveCount(0)
+    await page.unroute('**/api/educadora/solicitacao')
+    await page.getByRole('button', { name: 'Tentar novamente' }).click()
+    await expect(page.getByRole('button', { name: 'Enviar solicitação' })).toBeVisible()
+})
+test('cadastro de educadora orienta conta pessoal e post compartilhado é preservado', async ({ page, request }) => {
+    await page.goto('/cadastro/educadora')
+    await expect(page.getByRole('heading', { name: 'Quero atuar como educadora' })).toBeVisible()
+    await expect(page.getByLabel('Senha', { exact: true })).toHaveCount(0)
+    await page.getByRole('link', { name: 'Criar conta pessoal' }).click()
+    const pessoa = { nome: 'Nova pessoa', email: randomUUID() + '@example.com', senha: randomUUID() }
+    for (const campo of ['nome','email','senha']) await page.locator('#' + campo).fill(pessoa[campo])
+    await page.locator('#confirmarSenha').fill(pessoa.senha)
+    await page.getByRole('button', { name: 'CRIAR CONTA' }).click()
+    await expect(page.getByRole('heading', { name: 'Cadastro completo!' })).toBeVisible()
+    const token = (await (await request.post('/api/auth/login', { data: { email: pessoa.email, senha: pessoa.senha } })).json()).token
+    criadas.add((await (await request.get('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })).json()).id)
+    const autora = await conta(request)
+    await request.put('/api/comunidade/adesao', { headers: { Authorization: 'Bearer ' + autora.token } })
+    const post = await (await request.post('/api/posts', { headers: { Authorization: 'Bearer ' + autora.token }, data: { texto: 'Post compartilhado de teste' } })).json()
+    await page.goto('/comunidade?post=' + post.id)
+    await expect(page).toHaveURL(/\/login\?post=/)
+    await page.getByLabel('E-mail', { exact: true }).fill(pessoa.email)
+    await page.getByLabel('Senha', { exact: true }).fill(pessoa.senha)
+    await page.getByRole('button', { name: 'ENTRAR', exact: true }).click()
+    await expect(page).toHaveURL('/comunidade?post=' + post.id)
+    await page.getByRole('button', { name: 'Participar da comunidade' }).click()
+    await expect(page.getByText('Post compartilhado de teste', { exact: true })).toBeVisible()
+})
+test('formulário e navegação cabem no celular', async ({ page, request }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    const pessoa = await conta(request)
+    await login(page, pessoa)
+    await page.getByRole('link', { name: 'Atuar como educadora' }).click()
+    await expect(page.getByRole('button', { name: 'Enviar solicitação' })).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    await page.screenshot({ path: 'test-results/educadora-mobile.png', fullPage: true })
+})

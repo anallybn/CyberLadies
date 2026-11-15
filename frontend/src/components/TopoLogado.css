@@ -6,7 +6,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    height: 64px;
+    min-height: 64px;
+    flex-wrap: wrap;
     padding: 0 2rem;
     background: var(--fundo-nav);
 }
@@ -21,7 +22,11 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
+
+.topo-logado__erro { flex-basis:100%; color:#8c2645; padding:.5rem; }
+@media(max-width:720px) { .topo-logado { padding:.65rem 1rem; gap:.5rem; } .topo-logado__nav { order:3; width:100%; } .topo-logado__link { padding:.45rem .7rem; } }
 
 .topo-logado__link {
     padding: 0.45rem 1.1rem;
@@ -51,6 +56,8 @@
     color: #fff;
     font-weight: 600;
 }
+
+.topo-logado__link.ativa:hover { background:var(--azul-escuro); color:#fff; }
 
 .topo-logado__avatar {
     display: grid;
