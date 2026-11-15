@@ -366,7 +366,7 @@
     transition: background 0.2s, color 0.2s;
 }
 
-.cm-post__acoes button:hover {
+.cm-post__acoes button:hover:not(:disabled) {
     background: #f0e8fc;
     color: var(--azul-escuro);
 }
@@ -379,6 +379,8 @@
 /* formulários dentro do post (editar e comentar) */
 .cm-post form {
     display: flex;
+    align-items: center;
+    min-width: 0;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.75rem;
@@ -386,7 +388,10 @@
 
 .cm-post form :is(textarea, input) {
     flex: 1 1 15rem;
-    padding: 0.55rem;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
     border: 1.5px solid #d9ccf3;
     border-radius: 12px;
     background: #fff;
@@ -427,6 +432,10 @@
 
 /* botões */
 .cm-botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     padding: 0.6rem 1.3rem;
     border: none;
     border-radius: 12px;
@@ -516,6 +525,8 @@
 }
 
 .cm-spinner {
+    display: inline-block;
+    flex-shrink: 0;
     width: 32px;
     height: 32px;
     border: 4px solid #d9ccf3;
@@ -532,5 +543,75 @@
 @media (max-width: 900px) {
     .cm-grade {
         grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Campos e ações de edição e comentários */
+.cm-post form textarea {
+    flex-basis: 100%;
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+}
+
+.cm-post form :is(textarea, input) {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cm-post form :is(textarea, input):focus {
+    outline: 2px solid #8a6fd1;
+    outline-offset: 2px;
+    border-color: #8a6fd1;
+    box-shadow: 0 0 0 4px rgba(138, 111, 209, 0.18);
+}
+
+.cm-post form .cm-botao {
+    min-height: 44px;
+}
+
+.cm-post form .cm-botao--contorno {
+    padding: 0.6rem 1.3rem;
+    font-size: 0.8rem;
+}
+
+.cm-post section[aria-label="Comentários"] {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.cm :is(button, a, input[type="file"]):focus-visible {
+    outline: 2px solid #6a4fb0;
+    outline-offset: 3px;
+}
+
+.cm-post__acoes button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.cm-botao[aria-busy="true"] {
+    opacity: 1;
+    cursor: progress;
+}
+
+/* O spinner de publicação usa a animação cm-girar compartilhada. */
+.cm-publicar .cm-botao .cm-spinner {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+}
+
+@media (max-width: 480px) {
+    .cm-post form > input {
+        flex-basis: 100%;
+    }
+
+    .cm-post form > .cm-botao {
+        flex: 1 1 auto;
+        max-width: 100%;
     }
 }
