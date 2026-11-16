@@ -1,5 +1,11 @@
 # Correção da integração: módulos da main
 
+> Registro da correção anterior, preservada no checkpoint `15796f5`.
+> A integração posterior das novas telas incorpora os contratos seguros e
+> persistentes de vagas/candidaturas da main, conforme decisão recebida, e mantém
+> os outros sete módulos em memória. O estado atual, validações e roteiro estão
+> em [INTEGRACAO_APRESENTACAO.md](../docs/INTEGRACAO_APRESENTACAO.md).
+
 ## Base e preservação do trabalho
 
 Em 15/11/2026, o fetch confirmou `origin/main` em `cc60a6b` e a integração em
