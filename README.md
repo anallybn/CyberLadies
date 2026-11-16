@@ -1,6 +1,10 @@
 # CyberLadies
 Projeto Integrador III
 
+A recuperação dos módulos em memória da main, seus contratos e limitações e os
+conflitos pendentes do CRUD antigo de educadoras estão documentados em
+[backend/CORRECAO_INTEGRACAO.md](backend/CORRECAO_INTEGRACAO.md).
+
 A integração de sessão, solicitação de educadora e análise administrativa no
 frontend está descrita em [frontend/VALIDACAO.md](frontend/VALIDACAO.md), incluindo
 as rotas de tela e os testes com PostgreSQL isolado.

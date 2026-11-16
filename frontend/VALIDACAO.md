@@ -3,9 +3,14 @@
 ## Integração do CyberTalk de origin/main
 
 Integração realizada em `integracao/cybertalk-layout`, a partir do checkpoint
-`1ea31ea`, com `origin/main` em `cc60a6b`. Por decisão confirmada, incorpora o
-frontend e preserva integralmente o backend do checkpoint. Os CRUDs em memória,
-a autenticação antiga e o `schema.sql` da origem não são incorporados.
+`1ea31ea`, com `origin/main` em `cc60a6b`. O merge `81ef086` incorporou o
+frontend e preservou integralmente o backend do checkpoint, deixando de incorporar
+os módulos em memória da main. Não há evidência suficiente para afirmar aprovação
+específica da perda dessas funcionalidades. A correção em
+`correcao/preservar-modulos-main` recupera nove módulos sem alterar seus contratos
+ou armazenamento; os conflitos de educadora permanecem para revisão prévia.
+A autenticação atual e Flyway continuam preservados. Consulte
+[a revisão e validação da correção](../backend/CORRECAO_INTEGRACAO.md).
 
 O feed e a coluna lateral, os cartões, os estilos de publicação, edição e
 comentários e o menu popup mantêm o desenho da colega. O menu consulta os papéis
@@ -56,7 +61,8 @@ coexistir. As proteções de tela não substituem a autorização do backend.
 ADMIN é direcionado à área administrativa após login; contas pessoais continuam
 na comunidade. O menu oferece o acesso à solicitação de educadora. O cadastro
 de administrador não é público; o comando operacional continua documentado em
-`backend/ADMINISTRADOR.md`. Empresas e cursos não foram implementados.
+`backend/ADMINISTRADOR.md`. As telas de empresas e cursos não foram implementadas;
+suas APIs em memória foram recuperadas da main nesta correção e não integram a sessão.
 
 A solicitação rejeitada mostra o motivo e não oferece reenvio. Uma solicitação
 pendente pode ter o status atualizado. ADMIN precisa informar o motivo para
@@ -140,7 +146,7 @@ Ao terminar, encerre a API e a instância PostgreSQL de teste, sem parar os
 serviços do ambiente atual. A regressão backend pode ser executada nos bancos
 isolados próprios, conforme `backend/MIGRACOES.md`.
 
-## Resultados desta implementação
+## Resultados anteriores à integração de layout
 
 - Build de produção e lint aprovados.
 - 8 testes unitários do frontend aprovados.
@@ -148,5 +154,6 @@ isolados próprios, conforme `backend/MIGRACOES.md`.
 - 53 testes existentes do backend aprovados, sem falhas ou ignorados.
 - Capturas desktop e celular inspecionadas visualmente.
 
-Não houve teste em Safari/Firefox nem ensaio Docker. Não houve alteração do
-backend ou das migrações, acesso ao banco atual, commit ou push.
+Não houve teste em Safari/Firefox nem ensaio Docker nessa etapa. Esses resultados
+são históricos; os resultados atuais e as limitações da recuperação do backend
+estão em [CORRECAO_INTEGRACAO.md](../backend/CORRECAO_INTEGRACAO.md).
