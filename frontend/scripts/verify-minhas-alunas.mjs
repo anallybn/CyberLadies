@@ -160,7 +160,7 @@ try {
         await waitFor("!document.querySelector('.ma-dialogo')")
         await click('.ed-menu-botao');await waitFor("!!document.querySelector('.me')")
         assert.equal(await evaluate("document.querySelector('.me .mp-item--ativo').getAttribute('href')"),'/educadora/minhas-alunas')
-        assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),2)
+        assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),1)
         await click('.mp-fechar')
         console.log('PASS '+width+'px: tabela/cards, menu, detalhes, Escape e ausência de overflow')
     }

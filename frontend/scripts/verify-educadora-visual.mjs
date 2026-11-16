@@ -119,7 +119,7 @@ try {
     await waitFor("!!document.querySelector('.ed-indicadores')")
     assert.equal(await evaluate("document.querySelectorAll('.ed-indicadores > div').length"),5)
     assert.equal(await evaluate("document.querySelector('.ed-saudacao h1').textContent"),'Bem-vinda, '+dados.nome+'!')
-    const links=['/educadora/dashboard','/educadora/enviar-material','/educadora/meus-materiais','/educadora/minhas-alunas','/comunidade','/academy','/vagas']
+    const links=['/educadora/dashboard','/educadora/enviar-material','/educadora/meus-materiais','/educadora/minhas-alunas','/chat','/comunidade','/academy','/vagas']
     for(const [width,height] of [[390,844],[768,1024],[1440,1000],[390,568]]) {
         await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<600})
         await evaluate("document.fonts.ready.then(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))")
@@ -145,7 +145,7 @@ try {
         if(height===568) assert.ok(geometria.scroll>geometria.client,'Faltou rolagem interna')
         assert.equal(await evaluate("document.querySelector('.me .mp-titulo').textContent"),'Painel da educadora')
         assert.equal(await evaluate("Array.from(document.querySelectorAll('.me-principal .mp-texto strong')).map(e=>e.textContent).join('|')"),'Dashboard|Enviar Material|Meus Materiais|Minhas Alunas|Chat|CyberTalk')
-        assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),2)
+        assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),1)
         assert.equal(await evaluate("document.querySelectorAll('.me .mp-item--ativo').length"),1)
         const hrefs=await evaluate("Array.from(document.querySelectorAll('.me a')).map(a=>a.getAttribute('href'))")
         assert.deepEqual(hrefs,links)

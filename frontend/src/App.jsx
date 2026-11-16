@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
+import CyberChat from './pages/CyberChat'
 import DashboardEducadora from './pages/DashboardEducadora'
 import EnviarMaterial from './pages/EnviarMaterial'
 import MeusMateriais from './pages/MeusMateriais'
@@ -19,6 +20,7 @@ import Comunidade from './pages/Comunidade'
 export default function App() {
     return (
         <Routes>
+            <Route path="/chat" element={<CyberChat />} />
             <Route path="/educadora/dashboard" element={<DashboardEducadora />} />
             <Route path="/educadora/enviar-material" element={<EnviarMaterial />} />
             <Route path="/educadora/meus-materiais" element={<MeusMateriais />} />

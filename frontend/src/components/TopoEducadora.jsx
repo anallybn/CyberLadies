@@ -9,7 +9,7 @@ import '../pages/DashboardEducadora.css'
 
 export default function TopoEducadora({ ativa = 'dashboard-educadora', confirmarSaida }) {
     const [menu, setMenu] = useState(false)
-    const secao = { enviar: ['Enviar Material', '/educadora/enviar-material'], materiais: ['Meus Materiais', '/educadora/meus-materiais'], alunas: ['Minhas Alunas', '/educadora/minhas-alunas'] }[ativa] || ['Dashboard', '/educadora/dashboard']
+    const secao = { chat: ['CyberChat', '/chat'], enviar: ['Enviar Material', '/educadora/enviar-material'], materiais: ['Meus Materiais', '/educadora/meus-materiais'], alunas: ['Minhas Alunas', '/educadora/minhas-alunas'] }[ativa] || ['Dashboard', '/educadora/dashboard']
     return <>
         <header className="topo-logado ed-topo">
             <button type="button" aria-label="Abrir menu da Educadora" aria-haspopup="dialog" className="ed-menu-botao" aria-expanded={menu} onClick={() => setMenu(true)}><Menu size={20} /></button>

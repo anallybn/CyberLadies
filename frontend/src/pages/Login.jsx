@@ -54,9 +54,9 @@ export default function Login() {
             const post = sessionStorage.getItem('talk-post')
             sessionStorage.removeItem('talk-post')
             const retorno = params.get('retorno')
-            const destinoVaga = retorno && (retorno === '/perfil' || /^\/academy(?:\/(?:mentorias|trilhas\/[1-9]\d*|aulas\/[1-9]\d*|certificados\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}))?$/.test(retorno) || /^\/vagas(?:\?vaga=[1-9]\d*)?$/.test(retorno)) ? retorno : null
+            const destinoVaga = retorno && (retorno === '/chat' || retorno === '/perfil' || /^\/academy(?:\/(?:mentorias|trilhas\/[1-9]\d*|aulas\/[1-9]\d*|certificados\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}))?$/.test(retorno) || /^\/vagas(?:\?vaga=[1-9]\d*)?$/.test(retorno)) ? retorno : null
             if (perfilAutenticado === 'EDUCADORA' || perfilAutenticado === 'EMPRESA') {
-                navigate(perfilAutenticado === 'EDUCADORA' ? '/educadora/dashboard' : '/vagas', { replace: true })
+                navigate(retorno === '/chat' ? '/chat' : perfilAutenticado === 'EDUCADORA' ? '/educadora/dashboard' : '/vagas', { replace: true })
                 return
             }
             navigate(destinoVaga || (post ? '/comunidade?post=' + encodeURIComponent(post) : '/comunidade'), { replace: true })

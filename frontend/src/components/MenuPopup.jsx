@@ -10,7 +10,7 @@ import './MenuEducadora.css'
 // itens da conta (ficam "em breve" até as páginas existirem)
 const conta = [
     { id: 'perfil', titulo: 'Perfil', descricao: 'Minha conta', icone: User, cor: 'lilas', rota: '/perfil' },
-    { id: 'chat', titulo: 'Chat', descricao: 'Mensagens diretas', icone: MessageCircle, cor: 'verde', rota: null },
+    { id: 'chat', titulo: 'Chat', descricao: 'Mensagens diretas', icone: MessageCircle, cor: 'verde', rota: '/chat' },
 ]
 
 function Item({ item, ativo, aoClicar }) {
@@ -120,7 +120,7 @@ export default function MenuPopup({ ativa, onFechar, confirmarSaida }) {
                                 { id: 'enviar', titulo: 'Enviar Material', descricao: 'Novo conteúdo', icone: Upload, rota: '/educadora/enviar-material' },
                                 { id: 'materiais', titulo: 'Meus Materiais', descricao: 'Conteúdos publicados', icone: FileText, rota: '/educadora/meus-materiais' },
                                 { id: 'alunas', titulo: 'Minhas Alunas', descricao: 'Alunas inscritas', icone: Users, rota: '/educadora/minhas-alunas' },
-                                { id: 'chat', titulo: 'Chat', descricao: 'Mensagens diretas', icone: MessageCircle, rota: null },
+                                { id: 'chat', titulo: 'Chat', descricao: 'Mensagens diretas', icone: MessageCircle, rota: '/chat' },
                                 { id: 'talk', titulo: 'CyberTalk', descricao: 'Comunidade', icone: MessageCircle, rota: '/comunidade' },
                             ].map((item) => <Item key={item.id} item={{ ...item, cor: 'lilas' }} ativo={ativa === item.id} aoClicar={onFechar} />)}
                         </div>
