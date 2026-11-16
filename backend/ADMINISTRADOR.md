@@ -65,6 +65,34 @@ Linux usa `:` em vez de `;` e caminhos internos do container. Não reutilize um
 classpath Windows dentro do container. Essa execução Docker não foi validada
 nesta entrega; não forneça a senha por pipe para contornar falta de console.
 
+## Definir nova senha do ADMIN existente no ambiente local
+
+Para o ambiente persistente em `http://127.0.0.1:5178`, a API usa
+`cyberladies_apresentacao` em `127.0.0.1:55439`. A definição de senha não faz parte
+da inicialização. Na raiz do projeto, em PowerShell/Windows Terminal interativo:
+
+```powershell
+.\scripts\Definir-SenhaAdmin.ps1 -Email EMAIL_DO_ADMIN_EXISTENTE
+```
+
+Substitua somente o e-mail. O comando solicita a nova senha e sua confirmação
+com `System.console().readPassword`, sem eco, arquivo, variável de ambiente de
+senha da conta, argumento de linha de comando ou token impresso. Entrada por
+pipe/redirecionamento é recusada. Não digite a senha no chat ou no comando.
+
+O comando confere a identidade da instância persistente, atualiza somente
+`senha_hash` de uma conta já existente com ADMIN e preserva ID, e-mail, nome,
+papéis e dados relacionados. Não cria contas, não concede ADMIN e não altera
+senhas de outros perfis. Usa o mesmo encoder do login existente. Após a troca,
+valida login por `5178/api/auth/login`, confere ID/papel em `/auth/me` e encerra
+somente a sessão dessa validação. Se a troca tiver sido concluída mas a API
+falhar, informa essa diferença; não redefine novamente de forma automática.
+
+A senha escolhida não é atualizada em anotações locais: depois da troca, qualquer
+senha antiga anotada para essa conta deixa de valer. Se não houver console
+interativo, use o terminal integrado do IDE ou Windows Terminal diretamente,
+sem redirecionar a entrada.
+
 ## Autenticar e conferir
 
 Use o login existente: `POST /api/auth/login`, JSON com `email` e `senha`. Digite

@@ -1,39 +1,40 @@
-param([ValidateRange(1024,65535)][int]$PortaFrontend=5178,
-      [ValidateRange(1024,65535)][int]$PortaApi=18083)
-$ErrorActionPreference='Stop'
-$projeto=Split-Path $PSScriptRoot -Parent
-$backend=Join-Path $projeto 'backend'
-$frontend=Join-Path $projeto 'frontend'
-$artefato=Join-Path $backend 'target/cyberladies-0.0.1-SNAPSHOT.jar'
-if(-not (Test-Path -LiteralPath $artefato)){throw 'Compile o backend com mvn package antes de iniciar.'}
-$estadoPg=Join-Path $env:TEMP 'cyberladies-apresentacao-current.txt'
-if(-not (Test-Path -LiteralPath $estadoPg)){throw 'Cluster isolado local não preparado. Consulte docs/INTEGRACAO_APRESENTACAO.md.'}
-$cluster=(Get-Content -LiteralPath $estadoPg -Raw).Trim()
-$prefixo=Join-Path $env:TEMP 'cyberladies-apresentacao-'
-if(-not $cluster.StartsWith($prefixo,[StringComparison]::OrdinalIgnoreCase)){throw 'Caminho inesperado do cluster isolado.'}
-$pgCtl='C:/Program Files/PostgreSQL/16/bin/pg_ctl.exe'
-& $pgCtl -D $cluster status *> $null
-if($LASTEXITCODE -ne 0){
-    & $pgCtl -D $cluster -l (Join-Path $cluster 'server.log') -o '-h 127.0.0.1 -p 55439' -w start
-    if($LASTEXITCODE -ne 0){throw 'Não foi possível iniciar o cluster isolado.'}
+. (Join-Path $PSScriptRoot 'Apresentacao-Comum.ps1')
+$config = Get-AmbienteApresentacao
+$jar = Join-Path $script:ProjetoApresentacao 'backend/target/cyberladies-0.0.1-SNAPSHOT.jar'
+if (-not (Test-Path -LiteralPath $jar -PathType Leaf)) { throw 'Artefato da API ausente: compile o backend. Os dados persistentes não foram alterados.' }
+if (-not (Test-Path -LiteralPath (Join-Path $script:ProjetoApresentacao 'frontend/node_modules/vite/bin/vite.js'))) {
+    throw 'Dependências do frontend ausentes: execute npm ci em frontend. O banco existente não foi alterado.'
 }
-$env:DATABASE_URL='jdbc:postgresql://127.0.0.1:55439/cyberladies_apresentacao'
-$env:DATABASE_USER='migration_test'
-# O cluster descartável usa trust somente em loopback; não usa senha do banco atual.
-$env:DATABASE_PASSWORD=''
-$env:API_PROXY="http://127.0.0.1:$PortaApi"
-$api=Get-NetTCPConnection -State Listen -LocalPort $PortaApi -ErrorAction SilentlyContinue
-if(-not $api){
-    $processoApi=Start-Process -FilePath (Get-Command java.exe).Source -ArgumentList @('-jar',('"'+$artefato+'"'),"--server.port=$PortaApi",'--server.address=127.0.0.1','--debug=false','--logging.level.root=INFO','--logging.level.org.springframework=INFO') -WorkingDirectory $backend -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $backend 'target/apresentacao-api.log') -RedirectStandardError (Join-Path $backend 'target/apresentacao-api-erro.log')
-    Write-Output "API iniciada (PID $($processoApi.Id))."
-}else{
-    $processoExistente=Get-CimInstance Win32_Process -Filter "ProcessId=$($api[0].OwningProcess)"
-    if($processoExistente.CommandLine -notlike ('*'+$artefato+'*')){throw 'Porta da API ocupada por outro processo; nada foi encerrado.'}
+$api = Get-ProcessoPortaApresentacao 18083
+$frontend = Get-ProcessoPortaApresentacao 5178
+Assert-ProcessoApresentacao $api 'api'
+Assert-ProcessoApresentacao $frontend 'frontend'
+$logs = Join-Path $script:RaizApresentacao 'logs'
+$null = New-Item -ItemType Directory -Path $logs -Force
+$pgCtl = Join-Path $config.pgBin 'pg_ctl.exe'
+& $pgCtl -D $config.dataDirectory status *> $null
+if ($LASTEXITCODE -ne 0) {
+    if (Get-ProcessoPortaApresentacao 55439) { throw 'Porta 55439 ocupada por outra instância; não será criada ou iniciada uma alternativa.' }
+    & $pgCtl -D $config.dataDirectory -l (Join-Path $logs 'postgresql.log') -o '-h 127.0.0.1 -p 55439' -w -t 45 start
+    if ($LASTEXITCODE -ne 0) { throw 'Instância persistente indisponível. Confira logs/postgresql.log. Nenhum banco alternativo foi criado.' }
 }
-$site=Get-NetTCPConnection -State Listen -LocalPort $PortaFrontend -ErrorAction SilentlyContinue
-if(-not $site){
-    $processoSite=Start-Process -FilePath $env:ComSpec -ArgumentList @('/d','/c',"npm.cmd run dev -- --host 127.0.0.1 --port $PortaFrontend --strictPort") -WorkingDirectory $frontend -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $backend 'target/apresentacao-site.log') -RedirectStandardError (Join-Path $backend 'target/apresentacao-site-erro.log')
-    Write-Output "Frontend iniciado (PID $($processoSite.Id))."
-}else{Write-Output 'Porta do frontend já está em uso; confira a URL e os logs antes de reutilizar.'}
-Write-Output "Endereço: http://127.0.0.1:$PortaFrontend"
-Write-Output 'Banco separado: cyberladies_apresentacao em 55439. O banco da demonstração anterior não foi acessado.'
+$null = Get-IdentidadeBancoApresentacao $config
+$env:DATABASE_URL = 'jdbc:postgresql://127.0.0.1:55439/cyberladies_apresentacao'
+$env:DATABASE_USER = $config.user
+# Mantém a autenticação PostgreSQL já configurada no cluster; não altera pg_hba ou senhas.
+if (-not $env:DATABASE_PASSWORD) { $env:DATABASE_PASSWORD = '' }
+$env:API_PROXY = 'http://127.0.0.1:18083'
+if (-not $api) {
+    $null = Start-Process -FilePath (Get-Command java.exe).Source -ArgumentList @(
+        '-jar',('"'+$jar+'"'),'--server.port=18083','--server.address=127.0.0.1',
+        '--spring.datasource.url=jdbc:postgresql://127.0.0.1:55439/cyberladies_apresentacao',
+        '--debug=false','--logging.level.root=INFO','--logging.level.org.springframework=INFO'
+    ) -WorkingDirectory (Join-Path $script:ProjetoApresentacao 'backend') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $logs 'api.log') -RedirectStandardError (Join-Path $logs 'api-erro.log')
+}
+Wait-CatalogoApresentacao 'http://127.0.0.1:18083/api/vagas'
+if (-not $frontend) {
+    $null = Start-Process -FilePath $env:ComSpec -ArgumentList @('/d','/c','npm.cmd run dev -- --host 127.0.0.1 --port 5178 --strictPort') -WorkingDirectory (Join-Path $script:ProjetoApresentacao 'frontend') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $logs 'frontend.log') -RedirectStandardError (Join-Path $logs 'frontend-erro.log')
+}
+Wait-CatalogoApresentacao 'http://127.0.0.1:5178/api/vagas'
+Write-Output 'Ambiente disponível: http://127.0.0.1:5178'
+Write-Output 'Banco existente: cyberladies_apresentacao em 127.0.0.1:55439. Nenhuma conta ou credencial foi recriada.'

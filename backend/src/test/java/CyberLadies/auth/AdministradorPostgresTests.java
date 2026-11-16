@@ -154,6 +154,55 @@ class AdministradorPostgresTests {
         assertFalse(saida.contains("Nome da conta"));
     }
 
+    @Test
+    void alteraSenhaSemDuplicarContaOuModificarIdentidadePapeisEDados() throws Exception {
+        long id=criar(email,"cyberladies_auth_test");
+        String antes=db.sql("SELECT (to_jsonb(c)-'senha_hash')::text FROM conta c WHERE id=?").param(id).query(String.class).single();
+        var papeis=db.sql("SELECT papel FROM conta_papel WHERE conta_id=? ORDER BY papel").param(id).query(String.class).list();
+        long quantidade=db.sql("SELECT count(*) FROM conta").query(Long.class).single();
+        char[] nova=UUID.randomUUID().toString().toCharArray();
+        try {
+            try(var c=DriverManager.getConnection(System.getenv("DATABASE_URL"),System.getenv("DATABASE_USER"),System.getenv("DATABASE_PASSWORD"))) {
+                assertEquals(id,AlterarSenhaAdministrador.alterar(c,encoder,"cyberladies_auth_test",email,nova));
+            }
+            assertEquals(antes,db.sql("SELECT (to_jsonb(c)-'senha_hash')::text FROM conta c WHERE id=?").param(id).query(String.class).single());
+            assertEquals(papeis,db.sql("SELECT papel FROM conta_papel WHERE conta_id=? ORDER BY papel").param(id).query(String.class).list());
+            assertEquals(quantidade,db.sql("SELECT count(*) FROM conta").query(Long.class).single());
+            String auth=login(email,new String(nova));
+            mvc.perform(get("/api/auth/me").header("Authorization",auth)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id)).andExpect(jsonPath("$.papeis[0]").value("ADMIN"));
+            mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\""+email+"\",\"senha\":\""+new String(senha)+"\"}")).andExpect(status().isUnauthorized());
+        } finally { Arrays.fill(nova,'\0'); }
+    }
+
+    @Test
+    void trocaDeSenhaRecusaDestinoIncorretoEContaInexistenteSemCriarNada() throws Exception {
+        long id=criar(email,"cyberladies_auth_test");
+        long quantidade=db.sql("SELECT count(*) FROM conta").query(Long.class).single();
+        try(var c=DriverManager.getConnection(System.getenv("DATABASE_URL"),System.getenv("DATABASE_USER"),System.getenv("DATABASE_PASSWORD"))) {
+            assertThrows(IllegalArgumentException.class,()->AlterarSenhaAdministrador.alterar(c,encoder,"outro_banco",email,senha));
+        }
+        try(var c=DriverManager.getConnection(System.getenv("DATABASE_URL"),System.getenv("DATABASE_USER"),System.getenv("DATABASE_PASSWORD"))) {
+            assertThrows(IllegalArgumentException.class,()->AlterarSenhaAdministrador.alterar(c,encoder,"cyberladies_auth_test",UUID.randomUUID()+"@example.invalid",senha));
+        }
+        assertEquals(quantidade,db.sql("SELECT count(*) FROM conta").query(Long.class).single());
+        assertTrue(encoder.matches(CharBuffer.wrap(senha),db.sql("SELECT senha_hash FROM conta WHERE id=?").param(id).query(String.class).single()));
+    }
+
+    @Test
+    void trocaDeSenhaRecusaPipeSemConectarOuSolicitarSegredo() throws Exception {
+        String executavel=Path.of(System.getProperty("java.home"),"bin","java").toString();
+        var processo=new ProcessBuilder(executavel,"-cp",System.getProperty("surefire.test.class.path",System.getProperty("java.class.path")),
+            "CyberLadies.auth.AlterarSenhaAdministrador","--email="+email).redirectErrorStream(true).start();
+        processo.getOutputStream().close();
+        assertTrue(processo.waitFor(10,TimeUnit.SECONDS));
+        String saida=new String(processo.getInputStream().readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals(1,processo.exitValue());
+        assertTrue(saida.contains("terminal interativo"));
+        assertFalse(saida.contains("Nova senha"));
+    }
+
     private long criar(String endereco, String banco) throws Exception {
         try (var c = DriverManager.getConnection(System.getenv("DATABASE_URL"),System.getenv("DATABASE_USER"),System.getenv("DATABASE_PASSWORD"))) {
             long id = AdministradorOperacao.criar(c,encoder,banco,"Operação de teste",endereco,senha);

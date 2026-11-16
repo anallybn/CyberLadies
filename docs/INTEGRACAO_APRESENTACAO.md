@@ -153,14 +153,19 @@ frontend/VALIDACAO.md; `schema.sql` não voltou como inicializador.
 ## Ambiente local e preservação da demonstração
 
 Abra **http://127.0.0.1:5178**. API em `127.0.0.1:18083`, proxy `/api` preservado.
-Banco **novo** `cyberladies_apresentacao` no cluster descartável em `55439`.
+Banco **existente e persistente** `cyberladies_apresentacao` em `55439`.
+Seu diretório original foi movido de TEMP para
+`%LOCALAPPDATA%\CyberLadies\apresentacao\postgresql\data`, após backup integral e
+recuperação validada. Os comandos e evidências atuais estão em
+[AMBIENTE_LOCAL.md](AMBIENTE_LOCAL.md).
 O banco da demonstração anterior não foi conectado, migrado ou sobrescrito.
 Como ele não foi usado, não houve necessidade de backup ou atualização dele.
 As migrações e a adoção do esquema anterior foram ensaiadas em outros bancos
 novos isolados pela suíte de migração, preservando contas/sessões/posts/anexos.
 
 Há contas locais de usuária, educadora aprovada, ADMIN e empresa. Os acessos ficam
-somente em `backend/target/ACESSOS-LOCAIS.md`, ignorado pelo Git. A aprovação da
+somente em `%LOCALAPPDATA%\CyberLadies\apresentacao\ACESSOS-LOCAIS.md`, fora do Git e
+das pastas de limpeza. A aprovação da
 educadora de apresentação foi realizada pela API ADMIN atual. O catálogo inclui
 uma vaga identificada como demonstrativa, uma trilha com aula e um horário de
 mentoria. Não correspondem a oportunidades ou atividades reais.
@@ -171,11 +176,12 @@ Para reabrir neste computador, na raiz do projeto:
 .\scripts\Iniciar-Apresentacao.ps1
 ```
 
-O script usa o cluster isolado já preparado e o JAR em `backend/target`, inicia
-processos ocultos e não encerra serviços que estejam usando as portas. Logs ficam
-em `backend/target/apresentacao-*.log`. Não remover o cluster temporário antes
-da apresentação. Para recompilar o JAR após alterações, executar `mvn package`
-em backend com os testes apontados ao banco isolado; não usar o banco padrão.
+Para parar, use `.\scripts\Parar-Apresentacao.ps1`. O comando de iniciar usa
+sempre a instância persistente cadastrada e o JAR em `backend/target`. Não cria
+ou restaura bancos nem recria contas. Logs ficam na pasta permanente descrita
+em AMBIENTE_LOCAL.md. Depois de reiniciar o Windows, o mesmo comando reutiliza
+esse armazenamento. Para recompilar o JAR, executar `mvn package` com os testes
+apontados aos bancos exclusivos de teste; nunca ao banco de apresentação.
 
 ## Roteiro curto (16/11/2026)
 

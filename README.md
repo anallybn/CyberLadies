@@ -1,10 +1,11 @@
 # CyberLadies
 Projeto Integrador III
 
-Para a apresentação, abra **http://127.0.0.1:5178**. O ambiente usa banco novo e
-separado, sem alterar a demonstração anterior. Consulte o
+Para o ambiente local, abra **http://127.0.0.1:5178**. Ele reutiliza sempre o banco
+existente `cyberladies_apresentacao` em `55439`, com armazenamento permanente.
+Consulte os [comandos de iniciar/parar e a validação da persistência](docs/AMBIENTE_LOCAL.md) e o
 [roteiro, mapa de telas, validações e diferenças contra a main](docs/INTEGRACAO_APRESENTACAO.md).
-Para reabrir neste computador: `.\scripts\Iniciar-Apresentacao.ps1`.
+Para iniciar: `.\scripts\Iniciar-Apresentacao.ps1`. Para parar: `.\scripts\Parar-Apresentacao.ps1`.
 
 A recuperação dos módulos em memória da main, seus contratos e limitações e os
 conflitos pendentes do CRUD antigo de educadoras estão documentados em
