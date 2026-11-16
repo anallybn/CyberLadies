@@ -71,3 +71,10 @@ Prefixo `/api`. Após o login, envie o token em `Authorization: Bearer <token>`.
 Publicações e comentários recebem `{"texto":"Minha mensagem"}`. Criações retornam 201. A API diferencia dados inválidos (400), sessão inválida (401), falta de permissão (403), publicação ausente (404) e e-mail duplicado (409).
 
 Esta etapa cobre o perfil usuária e publicações de texto. Rascunhos e moderação ficam para as próximas etapas. Para publicar o projeto, sirva o frontend e encaminhe `/api` ao backend no mesmo domínio.
+
+## Fase 1 — autenticação dos três perfis
+
+A evolução de cadastro/login está descrita em [docs/AutenticacaoPerfis.md](docs/AutenticacaoPerfis.md).
+A migração é explícita e não é aplicada automaticamente ao banco existente.
+Antes de reiniciar a API com esta versão, siga o procedimento de backup, confirmação
+e migração. Para revisão sem alterar o principal, use a instância isolada em 5175.
