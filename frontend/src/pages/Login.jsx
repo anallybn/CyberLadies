@@ -49,11 +49,17 @@ export default function Login() {
 
         setCarregando(true)
         try {
-            const { token } = await login(email.trim(), senha)
+            const { token, perfil: perfilAutenticado } = await login(email.trim(), senha)
             sessionStorage.setItem('token', token)
             const post = sessionStorage.getItem('talk-post')
             sessionStorage.removeItem('talk-post')
-            navigate(post ? '/comunidade?post=' + encodeURIComponent(post) : '/comunidade', { replace: true })
+            const retorno = params.get('retorno')
+            const destinoVaga = retorno && (retorno === '/perfil' || /^\/academy(?:\/(?:mentorias|trilhas\/[1-9]\d*|aulas\/[1-9]\d*|certificados\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}))?$/.test(retorno) || /^\/vagas(?:\?vaga=[1-9]\d*)?$/.test(retorno)) ? retorno : null
+            if (perfilAutenticado === 'EDUCADORA' || perfilAutenticado === 'EMPRESA') {
+                navigate(perfilAutenticado === 'EDUCADORA' ? '/educadora/dashboard' : '/vagas', { replace: true })
+                return
+            }
+            navigate(destinoVaga || (post ? '/comunidade?post=' + encodeURIComponent(post) : '/comunidade'), { replace: true })
         } catch (erro) {
             setMensagem({ tipo: 'erro', texto: erro.message })
         } finally {
