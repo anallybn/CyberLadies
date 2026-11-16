@@ -50,7 +50,9 @@ export default function Login() {
         setCarregando(true)
         try {
             const conta = await entrar(email.trim(), senha)
-            navigate(destinoAposLogin(conta, params.get('post')), { replace: true })
+            const retorno = params.get('retorno')
+            const seguro = retorno && /^\/(academy|vagas|perfil)(\/|\?|$)/.test(retorno) && !retorno.includes('\\')
+            navigate(conta.papeis.includes('EMPRESA') ? '/vagas' : seguro ? retorno : destinoAposLogin(conta, params.get('post')), { replace: true })
         } catch (erro) {
             setMensagem({ tipo: 'erro', texto: erro.message })
         } finally {

@@ -1,133 +1,40 @@
 package CyberLadies.candidatura.service;
-
 import CyberLadies.candidatura.model.Candidatura;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
+import CyberLadies.candidatura.repository.CandidaturaRepository;
+import CyberLadies.auth.service.AcessoConta;
+import CyberLadies.vaga.service.VagaService;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-
-
-@Service 
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+@Service
 public class CandidaturaService {
-
-    // Armazena temporariamente as candidaturas cadastradas.
-    private final List<Candidatura> candidaturas = new ArrayList<>();
-
-    // Gera um ID único para cada nova candidatura.
-    private final AtomicLong proximoId = new AtomicLong(1);
-
-
-    // Cadastra uma nova candidatura na lista.
-    public synchronized Candidatura cadastrar(Candidatura candidatura) {
-
-        // Verifica se os dados obrigatórios foram informados.
-        if (!dadosValidos(candidatura)) {
-            return null;
-        }
-
-        // Gera automaticamente um ID para a candidatura.
-        candidatura.setId(proximoId.getAndIncrement());
-
-        // Define o status inicial da candidatura.
-        candidatura.setStatus("PENDENTE");
-
-        // Armazena a candidatura na lista.
-        candidaturas.add(candidatura);
-
-        // Retorna a candidatura cadastrada.
-        return candidatura;
+    private final CandidaturaRepository repository;
+    private final AcessoConta acesso;
+    private final VagaService vagas;
+    public CandidaturaService(CandidaturaRepository repository,AcessoConta acesso,VagaService vagas) {
+        this.repository=repository; this.acesso=acesso; this.vagas=vagas;
     }
-
-
-    // Retorna todas as candidaturas cadastradas.
-    public synchronized List<Candidatura> listarTodos() {
-
-        // Cria uma cópia da lista para proteger os dados originais.
-        return new ArrayList<>(candidaturas);
+    public List<Candidatura> listar() { return repository.listar(acesso.cyberLadie().id()); }
+    public Candidatura buscar(long id) {
+        long usuaria=acesso.cyberLadie().id();
+        return repository.buscar(id,usuaria).orElseThrow(() ->
+            new ResponseStatusException(HttpStatus.NOT_FOUND,"Candidatura não encontrada."));
     }
-
-
-    // Busca uma candidatura pelo seu identificador.
-    public synchronized Candidatura buscarPorId(Long id) {
-
-        // Percorre todas as candidaturas cadastradas.
-        for (Candidatura candidatura : candidaturas) {
-
-            // Verifica se o ID corresponde ao solicitado.
-            if (candidatura.getId().equals(id)) {
-
-                // Retorna a candidatura encontrada.
-                return candidatura;
-            }
+    @Transactional
+    public Candidatura cadastrar(long vagaId) {
+        long usuaria=acesso.cyberLadie().id();
+        vagas.buscarPorId(vagaId);
+        var criada=repository.cadastrar(usuaria,vagaId);
+        if (criada.isEmpty()) {
+            vagas.buscarPorId(vagaId);
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Você já se candidatou a esta vaga.");
         }
-
-        // Retorna null caso nenhuma candidatura seja encontrada.
-        return null;
+        return criada.get();
     }
-
-
-    // Atualiza os dados de uma candidatura existente.
-    public synchronized Candidatura atualizar(
-            Long id, Candidatura dadosAtualizados) {
-
-        // Procura a candidatura pelo ID informado.
-        Candidatura candidatura = buscarPorId(id);
-
-        // Verifica se a candidatura existe.
-        if (candidatura == null) {
-            return null;
-        }
-
-        // Verifica se os novos dados são válidos.
-        if (!dadosValidos(dadosAtualizados)) {
-            return null;
-        }
-
-        // Atualiza a usuária vinculada à candidatura.
-        candidatura.setUsuariaId(dadosAtualizados.getUsuariaId());
-
-        // Atualiza a vaga vinculada à candidatura.
-        candidatura.setVagaId(dadosAtualizados.getVagaId());
-
-        // Atualiza o status, caso tenha sido informado.
-        if (dadosAtualizados.getStatus() != null
-                && !dadosAtualizados.getStatus().isBlank()) {
-            candidatura.setStatus(dadosAtualizados.getStatus());
-        }
-
-        // Retorna a candidatura com os dados atualizados.
-        return candidatura;
-    }
-
-    // Exclui uma candidatura pelo seu ID.
-    public synchronized boolean excluir(Long id) {
-
-        // Procura a candidatura cadastrada.
-        Candidatura candidatura = buscarPorId(id);
-
-        // Verifica se a candidatura existe.
-        if (candidatura == null) {
-            return false;
-        }
-
-        // Remove a candidatura da lista.
-        candidaturas.remove(candidatura);
-
-        // Confirma que a exclusão foi realizada.
-        return true;
-    }
-
-    // Verifica se a candidatura possui usuária e vaga.
-    public boolean dadosValidos(Candidatura candidatura) {
-
-        // Impede a validação de uma candidatura inexistente.
-        if (candidatura == null) {
-            return false;
-        }
-
-        // Confere se a usuária e a vaga foram informadas.
-        return candidatura.getUsuariaId() != null
-                && candidatura.getVagaId() != null;
+    public void bloquearAlteracao() {
+        acesso.cyberLadie().id();
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Alterações de candidaturas não estão disponíveis nesta etapa.");
     }
 }

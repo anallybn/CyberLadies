@@ -4,8 +4,8 @@ import CyberLadies.agenda.controller.EventoAgendaController;
 import CyberLadies.agenda.service.EventoAgendaService;
 import CyberLadies.avaliacao.controller.AvaliacaoController;
 import CyberLadies.avaliacao.service.AvaliacaoService;
-import CyberLadies.candidatura.controller.CandidaturaController;
-import CyberLadies.candidatura.service.CandidaturaService;
+
+
 import CyberLadies.certificado.controller.CertificadoController;
 import CyberLadies.certificado.service.CertificadoService;
 import CyberLadies.curso.controller.CursoController;
@@ -16,8 +16,8 @@ import CyberLadies.mentoria.controller.MentoriaController;
 import CyberLadies.mentoria.service.MentoriaService;
 import CyberLadies.notificacao.controller.NotificacaoController;
 import CyberLadies.notificacao.service.NotificacaoService;
-import CyberLadies.vaga.controller.VagaController;
-import CyberLadies.vaga.service.VagaService;
+
+
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,8 +40,6 @@ class ModulosMainTests {
                 "{\"usuariaId\":1,\"titulo\":\"Original\",\"tipoEvento\":\"CURSO\",\"dataInicio\":\"2030-01-01T10:00:00\",\"dataFim\":\"2030-01-01T11:00:00\"}", "titulo"),
             new Contrato("avaliacoes", new AvaliacaoController(new AvaliacaoService()),
                 "{\"usuariaId\":1,\"tipoAtividade\":\"CURSO\",\"atividadeId\":1,\"nota\":5,\"comentario\":\"Original\"}", "comentario"),
-            new Contrato("candidaturas", new CandidaturaController(new CandidaturaService()),
-                "{\"usuariaId\":1,\"vagaId\":1,\"status\":\"Original\"}", "status"),
             new Contrato("certificados", new CertificadoController(new CertificadoService()),
                 "{\"usuariaId\":1,\"nomeAtividade\":\"Original\"}", "nomeAtividade"),
             new Contrato("cursos", new CursoController(new CursoService()),
@@ -49,9 +47,7 @@ class ModulosMainTests {
             new Contrato("empresas", new EmpresaController(new EmpresaService()),
                 "{\"nome\":\"Original\",\"cnpj\":\"12345678000199\",\"email\":\"empresa@example.com\",\"senhaHash\":\"fixture-sem-credencial-real\"}", "nome"),
             new Contrato("mentorias", new MentoriaController(new MentoriaService()),
-                "{\"educadoraId\":1,\"usuariaId\":1,\"titulo\":\"Original\",\"descricao\":\"Descricao\",\"dataHorario\":\"2030-01-01T10:00:00\"}", "titulo"),
-            new Contrato("vagas", new VagaController(new VagaService()),
-                "{\"empresaId\":1,\"titulo\":\"Original\",\"descricao\":\"Descricao\",\"requisitos\":\"Java\",\"modalidade\":\"REMOTO\"}", "titulo")
+                "{\"educadoraId\":1,\"usuariaId\":1,\"titulo\":\"Original\",\"descricao\":\"Descricao\",\"dataHorario\":\"2030-01-01T10:00:00\"}", "titulo")
         );
     }
 

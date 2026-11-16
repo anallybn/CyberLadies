@@ -437,6 +437,25 @@ concorrência e tratamento de decisões legadas](ANALISE_EDUCADORAS.md).
 O procedimento de atualização coordenada e recuperação por backup continua
 obrigatório. Nenhuma aprovação foi executada no banco atual.
 
+## V6–V9: integração das novas telas
+
+V6 acrescenta catálogo persistente de vagas, candidaturas, Academy, progresso,
+mentorias, certificados e perfil privado, referenciando a identidade `conta`.
+V7 vincula autoria à educadora existente; V8 acrescenta rascunhos privados e V9
+vincula empresa à conta. V1–V5 permanecem inalteradas. A transferência de dados
+existentes em memória para esses módulos novos não é automática.
+
+As migrações foram ensaiadas em bancos isolados novos e no procedimento de adoção
+do esquema anterior, verificando preservação de contas, sessões e conteúdo.
+O banco da demonstração anterior não foi conectado ou atualizado; a apresentação
+usa outro banco novo. Para atualizar qualquer banco existente, manter a janela
+sem escritas, backup e ensaio em cópia descritos neste documento. Recuperação é
+por restauração do backup em outro banco; não editar histórico ou migrações.
+
+Não executar o schema.sql ou os scripts avulsos da autenticação da origem como
+alternativa ao Flyway. Detalhes, alterações de contrato aprovadas e limitações
+estão em [INTEGRACAO_APRESENTACAO.md](../docs/INTEGRACAO_APRESENTACAO.md).
+
 ## Referências
 
 - [Inicialização de banco no Spring Boot](https://docs.spring.io/spring-boot/how-to/data-initialization.html)

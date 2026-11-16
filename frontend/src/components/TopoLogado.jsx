@@ -16,6 +16,7 @@ export default function TopoLogado({ ativa, inicial }) {
     const [erro, setErro] = useState('')
     const [saindo, setSaindo] = useState(false)
     const pessoal = temPapel(conta, 'USUARIA') || temPapel(conta, 'EDUCADORA')
+    const empresa = temPapel(conta, 'EMPRESA')
     const admin = temPapel(conta, 'ADMIN')
     async function encerrar() {
         setSaindo(true); setErro('')
@@ -31,7 +32,7 @@ export default function TopoLogado({ ativa, inicial }) {
             </Link>
 
             <nav className="topo-logado__nav" aria-label="Seções do site">
-                {pessoal && secoes.map((s) =>
+                {(pessoal || empresa) && secoes.filter(s => !empresa || s.id !== 'talk').map((s) =>
                     s.rota ? (
                         <Link
                             key={s.id}

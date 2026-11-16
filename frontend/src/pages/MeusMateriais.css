@@ -1,0 +1,54 @@
+/* Estilos exclusivos de Meus Materiais. */
+.mm-conteudo { max-width: 1240px; padding-top: 38px; }
+.mm-apresentacao h1 { color: #554370; font-size: 28px; line-height: 1.3; letter-spacing: -.5px; margin-bottom: 7px; }
+.mm-apresentacao > p { font-size: 14px; line-height: 1.7; color: #806c92; }
+.mm-indicadores { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0; }
+.mm-indicadores > div { display: flex; align-items: center; gap: 16px; padding: 10px 15px; background: #ffffff88; border: 1px solid #e1d5ed; border-radius: 9px; }
+.mm-indicadores dt { font-size: 13px; color: #877299; }
+.mm-indicadores dd { margin: 0; font-size: 18px; font-weight: 600; color: #685280; font-variant-numeric: tabular-nums; }
+.mm-indicadores .mm-em-breve { font-size: 12px; font-weight: 500; }
+.mm-consulta { margin-bottom: 27px; }
+.mm-pesquisa { display: flex; align-items: center; gap: 10px; max-width: 900px; border: 1px solid #b9a6cf; border-radius: 8px; background: #ffffffed; padding: 0 13px; color: #8a739f; }
+.mm-pesquisa input { border: 0; background: transparent; padding: 12px 0; width: 100%; min-width: 0; color: #645078; font: inherit; font-size: 16px; outline-offset: 3px; }
+.mm-pesquisa input::placeholder { color: #8d789f; opacity: 1; }
+.mm-pesquisa > svg { flex-shrink: 0; }
+.mm-filtros { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 16px; }
+.mm-status { display: flex; flex-wrap: wrap; gap: 10px; }
+.mm-status button { font: inherit; font-size: 13px; padding: 6px 18px; border-radius: 7px; border: 1px solid #b8a7ce; background: #eeE7f6; color: #716183; cursor: pointer; }
+.mm-status button[aria-pressed=true] { background: #8b7aaf; border-color: #8b7aaf; color: #fff; }
+.mm-status button:hover:not([aria-pressed=true]) { background: #e5daf1; }
+.mm-trilha { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #826c94; margin-left: auto; min-width: 0; max-width: 100%; }
+.mm-trilha select { min-width: 0; max-width: 270px; border: 1px solid #cfbfe0; border-radius: 7px; padding: 8px; background: #fdfaff; color: #735d88; font: inherit; }
+.mm-resultado { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #826d96; margin-bottom: 13px; }
+.mm-resultado small { font-size: 12px; }
+.mm-grade { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 22px; }
+.mm-material { min-width: 0; background: #fcfaff; border: 1px solid #e2d9ec; border-top: 5px solid #82709e; border-radius: 9px; overflow: hidden; box-shadow: 0 5px 17px #68518109; display: flex; flex-direction: column; }
+.mm-material:nth-child(3n+2) { border-top-color: #a18cb9; }
+.mm-material:nth-child(3n) { border-top-color: #c6b5d9; }
+.mm-miniatura { min-height: 140px; position: relative; display: grid; place-items: center; background: linear-gradient(145deg,#faf8fc,#f1ebf7); color: #b3a0c5; padding: 35px 15px 20px; }
+.mm-publicado,.mm-duracao { position: absolute; top: 9px; font-size: 11px; border-radius: 6px; padding: 3px 7px; }
+.mm-publicado { left: 10px; color: #78618e; border: 1px solid #d7c9e4; background: #fdfbff; }
+.mm-duracao { right: 10px; display: flex; align-items: center; gap: 4px; color: #76618c; background: #e5dded; }
+.mm-material-corpo { padding: 16px; flex: 1; display: flex; flex-direction: column; overflow-wrap: anywhere; }
+.mm-categoria { font-size: 12px; color: #8d729f; }
+.mm-material h2 { font-size: 17px; line-height: 1.5; font-weight: 600; color: #5e476e; margin: 5px 0 10px; }
+.mm-material-trilha,.mm-nivel { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; line-height: 1.6; color: #8a7599; margin-bottom: 7px; }
+.mm-material-corpo svg { flex-shrink: 0; margin-top: 2px; }
+.mm-visualizar { display: flex; align-items: center; gap: 7px; padding-top: 12px; margin-top: auto; border-top: 1px solid #ede5f4; color: #806495; font-size: 13px; text-decoration: none; }
+.mm-visualizar:hover { color: #5c3e76; }
+.mm-estado { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 44px 24px; border: 1px solid #e0d3ec; border-radius: 12px; background: #ffffff9c; color: #9c82ae; }
+.mm-estado > svg { box-sizing: content-box; padding: 14px; border-radius: 16px; background: #eee4f7; margin-bottom: 15px; }
+.mm-estado h2 { font-size: 18px; font-weight: 600; color: #735783; line-height: 1.5; }
+.mm-estado p { max-width: 560px; font-size: 14px; line-height: 1.8; color: #887197; margin-top: 9px; }
+.mm-estado button,.mm-estado > a { border: 1px solid #cdb9df; background: #f5eefb; border-radius: 8px; padding: 9px 16px; color: #7d6093; font: inherit; font-size: 13px; margin-top: 17px; cursor: pointer; text-decoration: none; }
+.mm-carregando { width: 26px; height: 26px; border: 2px solid #dfd1ed; border-top-color: #9277ac; border-radius: 50%; animation: mm-girar 1s linear infinite; }
+.mm-nota { font-size: 13px; line-height: 1.8; color: #8d789f; margin-top: 16px; }
+.mm-acoes { margin-top: 26px; }
+.mm-acoes > a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px; background: #8977af; color: #fff; text-decoration: none; font-size: 14px; }
+.mm-acoes > a:hover { background: #756096; }
+.mm-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.mm-pagina :focus-visible { outline: 2px solid #a58bc0; outline-offset: 3px; }
+@keyframes mm-girar { to { transform: rotate(360deg); } }
+@media(max-width: 1000px) { .mm-grade { grid-template-columns: repeat(2,minmax(0,1fr)); } .mm-trilha { margin-left: 0; } }
+@media(max-width: 580px) { .mm-grade { grid-template-columns: minmax(0,1fr); } .mm-conteudo { padding-top: 27px; } .mm-apresentacao h1 { font-size: 25px; } .mm-status { gap: 8px; } .mm-status button { font-size: 13px; padding: 6px 11px; } .mm-indicadores { gap: 8px; } .mm-indicadores > div { padding: 9px 11px; gap: 10px; } .mm-indicadores dt { font-size: 12px; } .mm-estado { padding: 30px 18px; } .mm-trilha { width: 100%; } .mm-trilha select { flex: 1; max-width: 100%; } }
+@media(prefers-reduced-motion: reduce) { .mm-carregando { animation: none; } }

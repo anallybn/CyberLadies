@@ -1,0 +1,77 @@
+.em-conteudo { max-width: 1240px; }
+.em-apresentacao { display: grid; grid-template-columns: fit-content(560px) 185px; gap: 40px; justify-content: start; align-items: center; width: fit-content; max-width: 100%; margin-bottom: 22px; }
+.em-voltar { font-size: 13px; text-decoration: none; color: #80658f; display: inline-flex; gap: 12px; margin-bottom: 10px; }
+.em-apresentacao h1 { font-size: 28px; letter-spacing: -.65px; line-height: 1.3; color: #55416f; margin-bottom: 6px; }
+.em-apresentacao p { font-size: 14px; color: #7e688e; }
+.em-etiqueta { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 13px; color: #795d92; }
+.em-reserva-mascote { display: grid; place-items: center; min-width: 0; }
+.em-mascote { display: block; width: 100%; height: auto; object-fit: contain; }
+/* Arte exclusiva da Educadora, inteira e proporcional à área de apresentação. */
+.em-aviso { display: flex; align-items: flex-start; gap: 12px; padding: 15px 18px; border: 1px solid #dfd1ed; border-radius: 12px; background: #f9f4ffbb; margin-bottom: 25px; color: #806691; }
+.em-aviso > svg { flex-shrink: 0; margin-top: 2px; }
+.em-aviso strong { font-size: 15px; font-weight: 600; }
+.em-aviso p { font-size: 13px; line-height: 1.8; margin-top: 3px; color: #78628a; }
+.em-layout { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(0,1fr); gap: 28px; align-items: start; }
+.em-formulario { min-width: 0; }
+.em-card { background: linear-gradient(135deg,#fffffff2,#fdfaffed); border: 1px solid #e2d6ed; border-radius: 15px; box-shadow: 0 6px 24px #75508d08; overflow: hidden; }
+.em-formulario > .em-card + .em-card { margin-top: 22px; }
+.em-card-titulo { display: flex; align-items: center; gap: 11px; padding: 20px 23px 17px; border-bottom: 1px solid #eee4f5; }
+.em-card-titulo > div { min-width: 0; overflow-wrap: anywhere; }
+.em-card-titulo > span { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 11px; color: #9778b6; background: #f0e7f9; flex-shrink: 0; }
+.em-card-titulo h2 { font-size: 17px; color: #6b517e; font-weight: 600; }
+.em-card-titulo p { font-size: 13px; color: #80698f; margin-top: 3px; line-height: 1.7; }
+.em-campos { padding: 21px 23px 24px; display: flex; flex-direction: column; gap: 16px; }
+.em-campos label { display: flex; flex-direction: column; gap: 7px; line-height: 1.5; font-size: 15px; font-weight: 500; color: #6e557e; min-width: 0; }
+.em-campos label > span:not(.em-checkbox span) { font-weight: 400; }
+.em-campos input:not([type=checkbox]),.em-campos textarea,.em-campos select { width: 100%; min-width: 0; border: 1px solid #dfd3eb; border-radius: 9px; background: #fff; color: #665179; padding: 11px 12px; font: inherit; font-size: 16px; line-height: 1.5; outline-offset: 2px; }
+.em-campos input::placeholder,.em-campos textarea::placeholder { color: #826c92; opacity: 1; }
+.em-campos textarea { resize: vertical; min-height: 128px; line-height: 1.65; }
+.em-campos input[readonly],.em-campos select:disabled { background: #f7f3fb; color: #80668f; opacity: 1; }
+.em-campos select:disabled { cursor: default; }
+.em-campos input[aria-invalid=true] { border-color: #9671ad; }
+.em-campos label small { color: #80698f; font-size: 13px; font-weight: 400; }
+.em-dupla { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 15px; }
+.em-ajuda { font-size: 13px; line-height: 1.8; color: #80698f; margin-top: -8px; }
+.em-erro { font-size: 13px; color: #79518f; line-height: 1.7; }
+.em-campos .em-checkbox { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; font-size: 14px; font-weight: 400; line-height: 1.65; background: #f7f1fc; padding: 13px; border-radius: 9px; }
+.em-checkbox input { width: 15px; height: 15px; margin-top: 2px; accent-color: #8a6aa7; flex-shrink: 0; }
+.em-acoes { margin-top: 20px; }
+.em-acoes > p { display: flex; align-items: flex-start; gap: 7px; font-size: 13px; color: #80698f; margin-bottom: 12px; }
+.em-acoes > div { display: flex; gap: 12px; justify-content: flex-end; }
+.em-acoes button { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 17px; font: inherit; font-size: 15px; border: 1px solid #d9cae6; background: #f8f3fc; border-radius: 10px; color: #795e8c; }
+.em-acoes .em-publicar { background: #d9cae8; color: #7e6494; border-color: #d9cae8; }
+.em-acoes svg,.em-previa-meta svg { flex-shrink: 0; }
+.em-acoes button:disabled { opacity: 1; cursor: not-allowed; }
+.em-previa { position: sticky; top: 86px; min-width: 0; }
+.em-previa-cabecalho { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 0 2px 12px; color: #795d92; }
+.em-previa-cabecalho h2 { font-size: 16px; font-weight: 500; }
+.em-previa-cabecalho > span { margin-left: auto; font-size: 13px; padding: 4px 7px; border-radius: 5px; background: #e9dff3; color: #785c8e; }
+.em-previa-video { min-height: 175px; padding: 25px; background: radial-gradient(ellipse at 70% 20%,#f9f6fe66,transparent),linear-gradient(135deg,#eadff5,#e2d4ef); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.em-previa-video > span { display: grid; place-items: center; width: 49px; height: 49px; border-radius: 50%; background: #ffffff70; color: #a48bbb; margin-bottom: 12px; }
+.em-previa-video p { font-size: 15px; color: #795e8f; }
+.em-previa-video small { font-size: 13px; color: #80688f; margin-top: 5px; line-height: 1.8; }
+.em-previa-corpo { padding: 21px; overflow-wrap: anywhere; }
+.em-previa-tipo { font-size: 13px; letter-spacing: .08em; color: #806292; }
+.em-previa-corpo h3 { font-size: 21px; color: #6e5283; margin: 8px 0; line-height: 1.5; }
+.em-previa-descricao { white-space: pre-wrap; font-size: 13px; color: #78638a; line-height: 1.9; max-height: 220px; overflow-y: auto; }
+.em-previa-meta { display: flex; flex-wrap: wrap; gap: 11px; margin: 19px 0 13px; font-size: 13px; color: #795e8f; }
+.em-previa-meta span { display: flex; gap: 5px; align-items: center; }
+.em-previa-trilha { padding-top: 13px; border-top: 1px solid #eee5f5; font-size: 13px; color: #795d8f; }
+.em-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
+.em-tags > span { padding: 4px 8px; border-radius: 6px; background: #f1e9f8; color: #795d90; font-size: 13px; max-width: 100%; }
+.em-previa-nota { display: flex; align-items: flex-start; gap: 7px; font-size: 13px; line-height: 1.8; color: #80668f; padding: 13px 3px; }
+.em-previa-nota svg { flex-shrink: 0; margin-top: 2px; }
+@media(max-width: 900px) { .em-layout { grid-template-columns: minmax(0,1fr); gap: 25px; } .em-previa { position: static; } .em-apresentacao { grid-template-columns: minmax(0,1fr) 150px; gap: 24px; } }
+@media(max-width: 480px) {
+ .em-apresentacao { grid-template-columns: minmax(0,1fr) 90px; gap: 12px; }
+ .em-reserva-mascote { align-self: center; }
+ .em-apresentacao h1 { font-size: 25px; }
+ .em-card-titulo { padding: 17px; }
+ .em-campos { padding: 18px 17px; }
+ .em-dupla { gap: 11px; }
+ .em-campos input[readonly] { font-size: 15px; padding-inline: 2px; letter-spacing: -.65px; }
+ .em-campos select:disabled { font-size: 15px; padding-inline: 4px; letter-spacing: -.3px; }
+ .em-aviso { padding: 13px; gap: 9px; }
+ .em-acoes > div { flex-direction: column; }
+ .em-acoes button { width: 100%; }
+}

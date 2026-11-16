@@ -20,6 +20,7 @@ function expirar(token) {
     if (token !== obterToken()) return
     guardarPostAtual(); limpar(true)
 }
+export const invalidarSessao = (token = obterToken()) => expirar(token)
 configurarSessao({ token: obterToken, expirar })
 export function atualizarSessao() {
     const token = obterToken()

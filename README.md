@@ -1,6 +1,11 @@
 # CyberLadies
 Projeto Integrador III
 
+Para a apresentação, abra **http://127.0.0.1:5178**. O ambiente usa banco novo e
+separado, sem alterar a demonstração anterior. Consulte o
+[roteiro, mapa de telas, validações e diferenças contra a main](docs/INTEGRACAO_APRESENTACAO.md).
+Para reabrir neste computador: `.\scripts\Iniciar-Apresentacao.ps1`.
+
 A recuperação dos módulos em memória da main, seus contratos e limitações e os
 conflitos pendentes do CRUD antigo de educadoras estão documentados em
 [backend/CORRECAO_INTEGRACAO.md](backend/CORRECAO_INTEGRACAO.md).
@@ -58,4 +63,16 @@ Prefixo `/api`. Após o login, envie o token em `Authorization: Bearer <token>`.
 
 Publicações e comentários recebem `{"texto":"Minha mensagem"}`. Criações retornam 201. A API diferencia dados inválidos (400), sessão inválida (401), falta de permissão (403), publicação ausente (404) e e-mail duplicado (409).
 
-Esta etapa cobre o perfil usuária e publicações de texto. Rascunhos e moderação ficam para as próximas etapas. Para publicar o projeto, sirva o frontend e encaminhe `/api` ao backend no mesmo domínio.
+Além do CyberTalk, a integração inclui vagas/candidaturas, Academy/progresso,
+certificados, mentorias, perfil e área privada da educadora aprovada. Rascunhos
+são privados e persistentes; publicação editorial, chat e moderação continuam
+indisponíveis. Para publicar o projeto, sirva o frontend e encaminhe `/api` ao
+backend no mesmo domínio.
+
+## Fase 1 — autenticação dos três perfis
+
+A documentação histórica da origem está em [docs/AutenticacaoPerfis.md](docs/AutenticacaoPerfis.md).
+Nesta integração, permanecem os papéis acumuláveis e a solicitação/análise de
+educadora. O cadastro EMPRESA usa a mesma conta e sessão, sem acesso pessoal.
+Use o Flyway V1–V9 e o procedimento de [MIGRACOES.md](backend/MIGRACOES.md);
+não aplique os scripts de autenticação antigos sobre o banco da demonstração.

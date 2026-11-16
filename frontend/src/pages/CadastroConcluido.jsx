@@ -20,8 +20,8 @@ const perfis = {
         texto: 'A atuação como educadora usa sua conta pessoal e passa por análise.',
     },
     empresa: {
-        destino: '/empresa',
-        botao: 'IR PARA A MINHA ÁREA',
+        destino: '/login?perfil=empresa',
+        botao: 'FAZER LOGIN',
         texto: 'Bem-vinda à CyberLadies. Estamos animadas em ter vocês por aqui.'
     },
     

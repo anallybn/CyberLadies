@@ -1,14 +1,15 @@
-import { useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
-import { User, MessageCircle, LogOut, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { User, MessageCircle, LogOut, X, LayoutDashboard, Upload, FileText, Users } from 'lucide-react'
 import { secoes } from './secoes'
 import './MenuPopup.css'
 import { useSessao } from '../hooks/useSessao'
-import { temPapel } from '../services/sessaoService'
+import { temPapel, sair } from '../services/sessaoService'
+import './MenuEducadora.css'
 
 // itens da conta (ficam "em breve" até as páginas existirem)
 const conta = [
-    { id: 'perfil', titulo: 'Perfil', descricao: 'Minha conta', icone: User, cor: 'lilas', rota: null },
+    { id: 'perfil', titulo: 'Perfil', descricao: 'Minha conta', icone: User, cor: 'lilas', rota: '/perfil' },
     { id: 'chat', titulo: 'Chat', descricao: 'Mensagens diretas', icone: MessageCircle, cor: 'verde', rota: null },
 ]
 
@@ -47,11 +48,34 @@ function Item({ item, ativo, aoClicar }) {
     )
 }
 
-export default function MenuPopup({ ativa, onFechar, aoSair, saindo, erro }) {
+export default function MenuPopup({ ativa, onFechar, aoSair, saindo: saindoExterno, erro, confirmarSaida }) {
     const { conta: identidade } = useSessao()
+    const navigate = useNavigate()
+    const [ocupado, setOcupado] = useState(false)
+    const [erroLocal, setErroLocal] = useState('')
+    const saindo = saindoExterno || ocupado
+    const educadora = temPapel(identidade, 'EDUCADORA')
+    async function encerrar() {
+        if (confirmarSaida && !confirmarSaida()) return
+        if (aoSair) { await aoSair(); return }
+        setOcupado(true); setErroLocal('')
+        try { await sair(); onFechar(); navigate('/login', { replace: true }) }
+        catch (falha) { setErroLocal(falha.message) }
+        finally { setOcupado(false) }
+    }
+    function navegar(evento) {
+        if (confirmarSaida && !confirmarSaida()) { evento.preventDefault(); return }
+        onFechar()
+    }
     const dialogo = useRef(null)
     const pessoal = temPapel(identidade, 'USUARIA') || temPapel(identidade, 'EDUCADORA')
-    const itens = [...(pessoal ? secoes : []),
+    const itens = [...(pessoal ? secoes : temPapel(identidade, 'EMPRESA') ? secoes.filter(s => s.id !== 'talk') : []),
+        ...(educadora ? [
+            { id: 'dashboard-educadora', titulo: 'Dashboard', descricao: 'Visão geral', icone: LayoutDashboard, cor: 'lilas', rota: '/educadora/dashboard' },
+            { id: 'enviar', titulo: 'Enviar Material', descricao: 'Novo conteúdo', icone: Upload, cor: 'lilas', rota: '/educadora/enviar-material' },
+            { id: 'materiais', titulo: 'Meus Materiais', descricao: 'Conteúdos publicados e rascunhos', icone: FileText, cor: 'lilas', rota: '/educadora/meus-materiais' },
+            { id: 'alunas', titulo: 'Minhas Alunas', descricao: 'Inscrições e progresso', icone: Users, cor: 'lilas', rota: '/educadora/minhas-alunas' },
+        ] : []),
         ...(temPapel(identidade, 'USUARIA') ? [{ id: 'educadora', titulo: 'Atuar como educadora', descricao: 'Minha solicitação', icone: User, cor: 'lilas', rota: '/educadora' }] : []),
         ...(temPapel(identidade, 'ADMIN') ? [{ id: 'admin', titulo: 'Solicitações', descricao: 'Análise de educadoras', icone: User, cor: 'lilas', rota: '/admin/educadoras' }] : [])]
 
@@ -72,9 +96,9 @@ export default function MenuPopup({ ativa, onFechar, aoSair, saindo, erro }) {
     }, [onFechar])
 
     return (
-        <div className="mp-fundo" onClick={onFechar}>
+        <div className={educadora ? 'mp-fundo me-fundo' : 'mp-fundo'} onClick={onFechar}>
             <div
-                className="mp"
+                className={educadora ? 'mp me' : 'mp'}
                 ref={dialogo}
                 role="dialog"
                 aria-modal="true"
@@ -93,18 +117,18 @@ export default function MenuPopup({ ativa, onFechar, aoSair, saindo, erro }) {
 
                 <nav className="mp-lista">
                     {itens.map((s) => (
-                        <Item key={s.id} item={s} ativo={ativa === s.id} aoClicar={onFechar} />
+                        <Item key={s.id} item={s} ativo={ativa === s.id} aoClicar={navegar} />
                     ))}
 
                     <hr className="mp-divisor" />
 
-                    {conta.map((c) => (
-                        <Item key={c.id} item={c} aoClicar={onFechar} />
+                    {conta.filter(c => c.id !== 'perfil' || pessoal).map((c) => (
+                        <Item key={c.id} item={c.id === 'perfil' && educadora ? { ...c, rota: null } : c} aoClicar={navegar} />
                     ))}
 
                     <hr className="mp-divisor" />
 
-                    <button type="button" className="mp-item" disabled={saindo} onClick={aoSair}>
+                    <button type="button" className="mp-item" disabled={saindo} onClick={encerrar}>
                         <span className="mp-icone mp-icone--rosa">
                             <LogOut size={20} />
                         </span>
@@ -114,6 +138,7 @@ export default function MenuPopup({ ativa, onFechar, aoSair, saindo, erro }) {
                         </span>
                     </button>
                     {erro && <p role="alert">{erro}</p>}
+                    {erroLocal && <p role="alert">{erroLocal}</p>}
                 </nav>
             </div>
         </div>

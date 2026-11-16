@@ -1,129 +1,50 @@
 package CyberLadies.vaga.service;
-
 import CyberLadies.vaga.model.Vaga;
-import org.springframework.stereotype.Service;
-import java.util.ArrayList;
+import CyberLadies.vaga.repository.VagaRepository;
+import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-
-
-@Service 
+import java.util.Locale;
+import java.util.Set;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+@Service
 public class VagaService {
-
-    // Armazena temporariamente as vagas cadastradas.
-    private final List<Vaga> vagas = new ArrayList<>();
-
-    // Gera um identificador único para cada vaga.
-    private final AtomicLong proximoId = new AtomicLong(1);
-
-    // Cadastra uma nova vaga após validar seus dados.
-    public synchronized Vaga cadastrar(Vaga vaga) {
-
-        // Impede o cadastro de uma vaga com dados inválidos.
-        if (!dadosValidos(vaga)) {
-            throw new IllegalArgumentException("Dados da vaga invalidos.");
-        }
-
-        // Gera automaticamente o ID da nova vaga.
-        vaga.setId(proximoId.getAndIncrement());
-
-        // Adiciona a vaga à lista temporária.
-        vagas.add(vaga);
-
-        // Retorna a vaga cadastrada.
-        return vaga;
+    private final VagaRepository repository;
+    public VagaService(VagaRepository repository) { this.repository = repository; }
+    public record Resultado(List<Vaga> vagas, long totalResultados, long vagasDisponiveis, long empresas) {}
+    public Resultado listar(String busca, List<String> niveis, List<String> modalidades,
+            BigDecimal salarioMinimo, boolean paraMaes, boolean pcd, boolean semFormacao) {
+        validar(niveis, Set.of("ESTAGIO","JUNIOR","PLENO","SENIOR"));
+        validar(modalidades, Set.of("REMOTO","HIBRIDO","PRESENCIAL"));
+        if (busca.length() > 150 || salarioMinimo != null &&
+            (salarioMinimo.signum() < 0 || salarioMinimo.compareTo(new BigDecimal("1000000")) > 0))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parâmetros de busca inválidos.");
+        var todas = repository.listar();
+        String termo = normalizar(busca.strip());
+        var filtradas = todas.stream()
+            .filter(v -> termo.isEmpty() || normalizar(v.titulo()+" "+v.empresa()+" "+v.descricao()+" "+v.requisitos()+" "+v.tecnologias()).contains(termo))
+            .filter(v -> niveis.isEmpty() || niveis.contains(v.nivel()))
+            .filter(v -> modalidades.isEmpty() || modalidades.contains(v.modalidade()))
+            .filter(v -> salarioMinimo == null || (v.salarioMaximo() != null ?
+                v.salarioMaximo().compareTo(salarioMinimo) >= 0 :
+                v.salarioMinimo() != null && v.salarioMinimo().compareTo(salarioMinimo) >= 0))
+            .filter(v -> !paraMaes || v.paraMaes()).filter(v -> !pcd || v.pcd())
+            .filter(v -> !semFormacao || v.semFormacao()).toList();
+        return new Resultado(filtradas, filtradas.size(), todas.size(),
+            todas.stream().map(Vaga::empresaId).distinct().count());
     }
-
-
-    // Retorna todas as vagas cadastradas.
-    public synchronized List<Vaga> listarTodos() {
-
-        // Cria uma cópia da lista para proteger os dados originais.
-        return new ArrayList<>(vagas);
+    public Vaga buscarPorId(long id) {
+        if (id <= 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Identificador inválido.");
+        return repository.buscar(id).orElseThrow(() ->
+            new ResponseStatusException(HttpStatus.NOT_FOUND, "Vaga não encontrada ou encerrada."));
     }
-
-
-    // Busca uma vaga pelo seu identificador (ID).
-    public synchronized Vaga buscarPorId(Long id) {
-
-        // Percorre todas as vagas cadastradas.
-        for (Vaga vaga : vagas) {
-
-            // Verifica se o ID da vaga corresponde ao solicitado.
-            if (vaga.getId().equals(id)) {
-
-                // Retorna a vaga encontrada.
-                return vaga;
-            }
-        }
-
-        // Retorna null quando nenhuma vaga é encontrada.
-        return null;
+    private void validar(List<String> valores, Set<String> permitidos) {
+        if (valores.size() > permitidos.size() || !permitidos.containsAll(valores))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Filtro inválido.");
     }
-
-
-    // Atualiza os dados de uma vaga existente.
-    public synchronized Vaga atualizar(Long id, Vaga dadosAtualizados) {
-
-        // Procura a vaga pelo ID informado.
-        Vaga vaga = buscarPorId(id);
-
-        // Verifica se a vaga existe.
-        if (vaga == null) {
-            throw new IllegalArgumentException("Vaga nao encontrada.");
-        }
-
-        // Verifica se os novos dados são válidos.
-        if (!dadosValidos(dadosAtualizados)) {
-            throw new IllegalArgumentException("Dados da vaga invalidos.");
-        }
-
-        // Atualiza os dados, mantendo o ID original.
-        vaga.setEmpresaId(dadosAtualizados.getEmpresaId());
-        vaga.setTitulo(dadosAtualizados.getTitulo());
-        vaga.setDescricao(dadosAtualizados.getDescricao());
-        vaga.setRequisitos(dadosAtualizados.getRequisitos());
-        vaga.setModalidade(dadosAtualizados.getModalidade());
-
-        // Retorna a vaga com os dados atualizados.
-        return vaga;
-    }
-
-    // Exclui uma vaga pelo seu identificador (ID).
-    public synchronized boolean excluir(Long id) {
-
-        // Procura a vaga que será excluída.
-        Vaga vaga = buscarPorId(id);
-
-        // Verifica se a vaga existe.
-        if (vaga == null) {
-            return false;
-        }
-
-        // Remove a vaga da lista.
-        vagas.remove(vaga);
-
-        // Confirma que a exclusão foi realizada.
-        return true;
-    }
-
-    // Verifica se os dados obrigatórios da vaga foram preenchidos.
-    public boolean dadosValidos(Vaga vaga) {
-
-        // Impede a validação de uma vaga inexistente.
-        if (vaga == null) {
-            return false;
-        }
-
-        // Confere os dados necessários para uma vaga.
-        return vaga.getEmpresaId() != null
-                && vaga.getTitulo() != null
-                && !vaga.getTitulo().isBlank()
-                && vaga.getDescricao() != null
-                && !vaga.getDescricao().isBlank()
-                && vaga.getRequisitos() != null
-                && !vaga.getRequisitos().isBlank()
-                && vaga.getModalidade() != null
-                && !vaga.getModalidade().isBlank();
+    private String normalizar(String valor) {
+        return Normalizer.normalize(valor, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
     }
 }

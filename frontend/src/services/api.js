@@ -4,13 +4,13 @@ export function configurarSessao(configuracao) { sessao = configuracao }
 export class ErroApi extends Error {
     constructor(message, status) { super(message); this.name = 'ErroApi'; this.status = status }
 }
-export async function api(caminho, { method = 'GET', dados, binario = false, autenticado = true, signal } = {}) {
+export async function api(caminho, { method = 'GET', dados, binario = false, autenticado = true, signal, headers = {} } = {}) {
     const token = autenticado ? sessao.token() : null
     const multipart = dados instanceof FormData
     let resposta
     try {
-        resposta = await fetch(base + caminho, { method, signal,
-            headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        resposta = await fetch(base + caminho, { method, signal, cache: 'no-store',
+            headers: { ...headers, ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 ...(dados && !multipart ? { 'Content-Type': 'application/json' } : {}) },
             body: multipart ? dados : dados ? JSON.stringify(dados) : undefined,
         })

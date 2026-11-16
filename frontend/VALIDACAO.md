@@ -1,5 +1,18 @@
 # Sessão, educadora e análise administrativa no frontend
 
+## Integração das novas telas para apresentação
+
+Na branch `integracao/telas-apresentacao`, páginas de `origin/main` (`ca4cb29`)
+foram integradas à sessão/papéis existentes, junto com seus módulos de backend.
+Veja o [mapa de telas, roteiro e diferenças de contrato](../docs/INTEGRACAO_APRESENTACAO.md).
+Validação final: 110 testes backend, 8 testes unitários frontend e 8 cenários
+Playwright/Chrome aprovados, sem testes ignorados; build e lint aprovados.
+Os cenários de navegador incluem o percurso completo das novas telas e a
+regressão de CyberTalk/educadora/ADMIN. Capturas desktop/mobile foram inspecionadas.
+Todos os dados de teste usam bancos isolados em 55439; o ambiente de apresentação
+tem outro banco, acessível em http://127.0.0.1:5178. Dados/acessos locais não estão
+nos commits. Os resultados abaixo documentam etapas anteriores.
+
 ## Integração do CyberTalk de origin/main
 
 Integração realizada em `integracao/cybertalk-layout`, a partir do checkpoint
