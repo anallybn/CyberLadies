@@ -72,6 +72,32 @@ CREATE TABLE IF NOT EXISTS cyber_candidatura (
     UNIQUE (usuaria_id,vaga_id)
 );
 CREATE INDEX IF NOT EXISTS cyber_candidatura_vaga_idx ON cyber_candidatura(vaga_id);
+-- Perfil privado: evolução aditiva da conta existente.
+ALTER TABLE talk_usuaria ADD COLUMN IF NOT EXISTS sobre VARCHAR(2000) NOT NULL DEFAULT '';
+ALTER TABLE talk_usuaria ADD COLUMN IF NOT EXISTS formacao VARCHAR(200) NOT NULL DEFAULT '';
+CREATE TABLE IF NOT EXISTS perfil_certificacao (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    usuaria_id BIGINT NOT NULL REFERENCES talk_usuaria(id),
+    nome VARCHAR(160) NOT NULL CHECK (length(trim(nome)) > 0),
+    instituicao VARCHAR(160) NOT NULL CHECK (length(trim(instituicao)) > 0),
+    data DATE NOT NULL
+);
+CREATE INDEX IF NOT EXISTS perfil_certificacao_usuaria_idx ON perfil_certificacao(usuaria_id);
+CREATE TABLE IF NOT EXISTS perfil_experiencia (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    usuaria_id BIGINT NOT NULL REFERENCES talk_usuaria(id),
+    empresa VARCHAR(160) NOT NULL CHECK (length(trim(empresa)) > 0),
+    cargo VARCHAR(160) NOT NULL CHECK (length(trim(cargo)) > 0),
+    inicio DATE NOT NULL,
+    fim DATE,
+    descricao VARCHAR(2000) NOT NULL DEFAULT '',
+    CHECK (fim IS NULL OR fim >= inicio)
+);
+CREATE INDEX IF NOT EXISTS perfil_experiencia_usuaria_idx ON perfil_experiencia(usuaria_id);
+CREATE TABLE IF NOT EXISTS perfil_foto (
+    usuaria_id BIGINT PRIMARY KEY REFERENCES talk_usuaria(id),
+    dados BYTEA NOT NULL CHECK (octet_length(dados) <= 2097152)
+);
 -- CyberAcademy: catálogo administrativo; não contém seed.
 CREATE TABLE IF NOT EXISTS academy_trilha (
  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
