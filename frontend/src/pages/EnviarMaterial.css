@@ -75,3 +75,14 @@
  .em-acoes > div { flex-direction: column; }
  .em-acoes button { width: 100%; }
 }
+
+/* Assinatura do título limitada à apresentação desta página. */
+.em-apresentacao .em-titulo{display:flex;align-items:center;gap:11px;font-family:Poppins,sans-serif;font-weight:700}
+.em-titulo-enviar{color:#29244f}.em-titulo-material{color:#8969ba}
+.em-titulo-icone{display:inline-flex;align-items:center;justify-content:center;flex:0 0 36px;height:36px;border-radius:10px;background:#e9dff5;color:#8969ba;pointer-events:none}
+@media(max-width:480px){.em-apresentacao .em-titulo{gap:8px}.em-titulo-icone{flex-basis:30px;height:30px;border-radius:9px}.em-titulo > span:last-child{min-width:0}}
+/* Mascote inteiro no cabeçalho interno, sem deslocar formulário ou prévia. */
+.em-card-informacoes > .em-card-titulo{position:relative}
+.em-mascote-card{position:absolute;right:13px;bottom:2px;width:145px;height:auto;max-height:76px;object-fit:contain;pointer-events:none;user-select:none}
+@media(min-width:641px) and (max-width:1100px){.em-mascote-card{width:100px;max-height:54px;right:7px;bottom:9px}}
+@media(max-width:640px){.em-mascote-card{display:none}}
