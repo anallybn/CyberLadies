@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { UserRound, CalendarDays } from 'lucide-react'
+import { UserRound, CalendarDays, BookOpen } from 'lucide-react'
 import TopoEducadora from '../components/TopoEducadora'
 import './DashboardEducadora.css'
 
@@ -35,7 +35,7 @@ export default function DashboardEducadora() {
     if (estado.acesso === 401) return <Navigate to="/login?perfil=educadora" replace />
     const dados = estado.dados
     const maximo = Math.max(1, ...(dados?.trilhas || []).map((trilha) => trilha.inscricoes))
-    return <div className="ed-dashboard">
+    return <div className="ed-dashboard ed-painel">
         <TopoEducadora />
         <main className="ed-conteudo">
             {estado.carregando && <p role="status">Carregando seu dashboard…</p>}
@@ -43,7 +43,7 @@ export default function DashboardEducadora() {
             {estado.erro && <div className="ed-estado" role="alert"><p>{estado.erro}</p><button type="button" onClick={() => { setEstado({ carregando: true }); setTentativa((n) => n + 1) }}>Tentar novamente</button></div>}
             {dados && <>
                 <section className="ed-saudacao">
-                    <h1>Bem-vinda, {dados.nome}!</h1>
+                    <h1><span className="ed-boasvindas-icone" aria-hidden="true"><BookOpen size={21} strokeWidth={1.8}/></span><span className="ed-boasvindas-texto"><span className="ed-boasvindas-prefixo">Bem-vinda, </span><span className="ed-boasvindas-nome">{dados.nome}!</span></span></h1>
                     <p>Aqui está um resumo da sua atividade no CyberAcademy.</p>
                     <p className="ed-status">Conta {dados.statusEducadora.toLocaleLowerCase('pt-BR')}. Publicação de conteúdos ainda indisponível.</p>
                 </section>
@@ -54,7 +54,7 @@ export default function DashboardEducadora() {
                         [numero(dados.indicadores.conclusoes), 'Conclusões'],
                         ['Em breve', 'Avaliação média'],
                         ['Em breve', 'Visualizações deste mês'],
-                    ].map(([valor, rotulo]) => <div key={rotulo}><dt>{rotulo}</dt><dd>{valor}</dd></div>)}
+                    ].map(([valor, rotulo]) => <div key={rotulo} className={valor === 'Em breve' ? 'ed-indicador-futuro' : undefined}><dt>{rotulo}</dt><dd>{valor}</dd></div>)}
                 </dl>
                 <section className="ed-secao">
                     <h2>Alunas por trilha</h2>
