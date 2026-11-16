@@ -37,3 +37,9 @@ CREATE TABLE IF NOT EXISTS talk_anexo (
     tipo VARCHAR(80) NOT NULL,
     dados BYTEA NOT NULL
 );
+
+-- CyberVagas: migração aditiva, sem dados de demonstração automáticos.
+CREATE TABLE IF NOT EXISTS cyber_empresa (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome VARCHAR(120) NOT NULL CHECK (length(trim(nome)) > 0)
+);

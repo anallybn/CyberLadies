@@ -1,3 +1,4 @@
+import { limparSessao } from './authService'
 const base = import.meta.env.VITE_API_URL || '/api'
 
 export async function talk(caminho, method = 'GET', dados, binario = false) {
@@ -16,7 +17,7 @@ export async function talk(caminho, method = 'GET', dados, binario = false) {
         throw new Error('Falha de conexão. Tente novamente.')
     }
     if (resposta.status === 401) {
-        sessionStorage.removeItem('token')
+        limparSessao()
         const post = new URLSearchParams(window.location.search).get('post')
         if (post && /^\d+$/.test(post)) sessionStorage.setItem('talk-post', post)
         window.location.replace('/login?perfil=usuaria')

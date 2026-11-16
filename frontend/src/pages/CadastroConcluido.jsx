@@ -15,12 +15,12 @@ const perfis = {
         texto: 'Bem-vinda à CyberLadies. Estamos animadas em ter você aqui.'
     },
     educadora: {
-        destino: '/educadora',
+        destino: '/login?perfil=educadora',
         botao: 'IR PARA A MINHA ÁREA',
         texto: 'Bem-vinda à CyberLadies. Estamos animadas em ter você ensinando com a gente.',
     },
     empresa: {
-        destino: '/empresa',
+        destino: '/login?perfil=empresa',
         botao: 'IR PARA A MINHA ÁREA',
         texto: 'Bem-vinda à CyberLadies. Estamos animadas em ter vocês por aqui.'
     },

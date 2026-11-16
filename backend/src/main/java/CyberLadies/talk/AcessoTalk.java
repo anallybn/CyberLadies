@@ -1,35 +1,26 @@
 package CyberLadies.talk;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
+import CyberLadies.auth.service.AcessoConta;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 @Component
-class AcessoTalk {
-    record Usuaria(long id, String nome, String competencias, boolean membro) {}
+public class AcessoTalk {
+    record Usuaria(long id,String nome,String competencias,boolean membro) {}
     private final JdbcClient db;
-    private final HttpServletRequest request;
-
-    AcessoTalk(JdbcClient db, HttpServletRequest request) {
-        this.db = db;
-        this.request = request;
-    }
-
+    private final AcessoConta acesso;
+    AcessoTalk(JdbcClient db,AcessoConta acesso) { this.db=db; this.acesso=acesso; }
     Usuaria usuaria() {
-        return db.sql("""
-            SELECT u.id,u.nome,u.competencias,u.membro FROM talk_usuaria u
-            JOIN talk_sessao s ON s.usuaria_id=u.id
-            WHERE s.token_hash=? AND s.expira_em > CURRENT_TIMESTAMP
-            """).param(ContaApi.hashBearer(request.getHeader("Authorization")))
-            .query(Usuaria.class).optional()
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sessão expirada."));
+        return db.sql("SELECT id,nome,competencias,membro FROM talk_usuaria WHERE id=?")
+            .param(estudanteId()).query(Usuaria.class).single();
     }
-
+    public long estudanteId() { return acesso.estudante().id(); }
+    public long usuariaId() { return acesso.cyberLadie().id(); }
     Usuaria membro() {
-        var pessoa = usuaria();
-        if (!pessoa.membro()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Entre na comunidade primeiro.");
+        var pessoa=usuaria();
+        if(!pessoa.membro()) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Entre na comunidade primeiro.");
         return pessoa;
     }
 }
