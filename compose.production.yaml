@@ -1,0 +1,57 @@
+# Instalação nova em servidor autorizado; não usa o PostgreSQL pessoal da porta 55439.
+name: cyberladies-producao
+services:
+  banco:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cyberladies_producao
+      POSTGRES_USER: ${DATABASE_USER:-cyberladies_app}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Defina uma senha exclusiva no ambiente do servidor}
+    volumes:
+      - producao_dados:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: jdbc:postgresql://banco:5432/cyberladies_producao
+      DATABASE_USER: ${DATABASE_USER:-cyberladies_app}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Defina DATABASE_PASSWORD}
+      APP_CORS_ORIGINS: ${APP_CORS_ORIGINS:-}
+      SPRING_PROFILES_ACTIVE: production
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75.0
+    depends_on:
+      banco:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, bash, -c, 'echo > /dev/tcp/127.0.0.1/8080']
+      interval: 10s
+      timeout: 3s
+      retries: 30
+  site:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Defina o dominio real com DNS deste servidor}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - certificados_https:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+volumes:
+  producao_dados:
+  certificados_https:
+  caddy_config:

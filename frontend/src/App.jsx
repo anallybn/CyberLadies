@@ -4,6 +4,7 @@ import MeusMateriais from './pages/MeusMateriais'
 import MinhasAlunas from './pages/MinhasAlunas'
 import Vagas from './pages/Vagas'
 import Perfil from './pages/Perfil'
+import PerfilAutora from './pages/PerfilAutora'
 import Academy from './pages/Academy'
 import Trilha from './pages/Trilha'
 import Aula from './pages/Aula'
@@ -45,6 +46,7 @@ export default function App() {
             <Route path= "/cadastro/:perfil" element={<Cadastro />} />
             <Route path= "/cadastro-concluido" element={<CadastroConcluido />} />
             <Route path="/comunidade" element={<RotaProtegida papeis={['USUARIA','EDUCADORA']}><Comunidade /></RotaProtegida>} />
+            <Route path="/comunidade/perfis/:id" element={<RotaProtegida papeis={['USUARIA','EDUCADORA']}><PerfilAutora /></RotaProtegida>} />
             <Route path="/educadora" element={<RotaProtegida papeis={['USUARIA']}><Educadora /></RotaProtegida>} />
             <Route path="/admin/educadoras" element={<RotaProtegida papeis={['ADMIN']}><AdminEducadoras /></RotaProtegida>} />
             <Route path="/admin/educadoras/:id" element={<RotaProtegida papeis={['ADMIN']}><AdminEducadora key={pathname} /></RotaProtegida>} />

@@ -20,7 +20,6 @@ public class DashboardEducadoraController {
     // Não há painel editorial nem API de escrita nesta etapa, mesmo para aprovadas.
     @RequestMapping(value={"/trilhas","/aulas","/publicacoes","/trilhas/**","/aulas/**"},method={RequestMethod.POST,RequestMethod.PUT,RequestMethod.PATCH,RequestMethod.DELETE})
     public void escritaBloqueada() {
-        service.dashboard(); // Autentica e exige o perfil real antes da recusa.
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Publicação indisponível nesta etapa.");
+        service.escritaBloqueada();
     }
 }

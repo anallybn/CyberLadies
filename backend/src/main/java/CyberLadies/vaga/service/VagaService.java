@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class VagaService {
     private final VagaRepository repository;
     public VagaService(VagaRepository repository) { this.repository = repository; }
+    public void bloquearEscrita() { throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Vagas são mantidas somente por carga administrativa."); }
     public record Resultado(List<Vaga> vagas, long totalResultados, long vagasDisponiveis, long empresas) {}
     public Resultado listar(String busca, List<String> niveis, List<String> modalidades,
             BigDecimal salarioMinimo, boolean paraMaes, boolean pcd, boolean semFormacao) {

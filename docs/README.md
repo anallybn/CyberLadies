@@ -22,6 +22,7 @@
 - [Mapa de telas, integração e diferenças de contrato](INTEGRACAO_APRESENTACAO.md).
 - [Validação do frontend](VALIDACAO_FRONTEND.md).
 - [Recursos de acessibilidade e limites da validação](ACESSIBILIDADE.md).
+- [Perfis de autoras no CyberTalk e regras de privacidade](PERFIS_CYBERTALK.md).
 - [Guia do frontend](FRONTEND.md).
 - [Registro histórico da recuperação dos módulos](CORRECAO_INTEGRACAO.md).
 

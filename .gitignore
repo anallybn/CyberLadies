@@ -1,0 +1,10 @@
+# Configuração e dados locais nunca fazem parte da entrega.
+.env
+.env.*
+!.env.example
+**/.vercel/
+.vscode/
+*.dump
+*.backup
+*.log
+*.pid

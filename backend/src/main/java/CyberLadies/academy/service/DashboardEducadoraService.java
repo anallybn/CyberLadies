@@ -20,4 +20,8 @@ public class DashboardEducadoraService {
         return new Dashboard(conta.nome(),conta.statusEducadora(),false,repository.indicadores(conta.id()),
             repository.trilhas(conta.id()),repository.mentorias(conta.id()),repository.materiais(conta.id()));
     }
+    public void escritaBloqueada() {
+        dashboard();
+        throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN,"Publicação indisponível nesta etapa.");
+    }
 }
