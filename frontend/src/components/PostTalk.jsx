@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
 import AnexoTalk from './AnexoTalk'
 import { talk } from '../services/talkApi'
@@ -48,8 +49,9 @@ export default function PostTalk({ post, atualizar, remover }) {
 
     return <article className="cm-cartao cm-post">
         <header className="cm-post__topo">
-            <span className="cm-avatar">{post.autora[0]}</span>
-            <div><strong>{post.autora}</strong><p className="cm-post__info">
+            {post.autoraId ? <Link className="cm-avatar cm-perfil-link" to={'/comunidade/perfis/' + post.autoraId}
+                aria-label={'Ver perfil de ' + post.autora}>{post.autora[0]}</Link> : <span className="cm-avatar">{post.autora[0]}</span>}
+            <div><strong>{post.autoraId ? <Link className="cm-perfil-link" to={'/comunidade/perfis/' + post.autoraId}>{post.autora}</Link> : post.autora}</strong><p className="cm-post__info">
                 {new Date(post.criadoEm).toLocaleString('pt-BR')}
             </p></div>
         </header>

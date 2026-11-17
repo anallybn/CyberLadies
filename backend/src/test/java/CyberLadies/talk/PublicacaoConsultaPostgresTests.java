@@ -91,9 +91,9 @@ class PublicacaoConsultaPostgresTests {
         db.sql("INSERT INTO talk_comentario(post_id,autora_id,texto) VALUES (?,?,'Um'),(?,?,'Dois')")
             .params(id, ana, id, bia).update();
         String resposta = """
-            {"id":%d,"autora":"Ana","texto":"Texto com anexo","criadoEm":"2026-01-02T12:00:00Z",
+            {"id":%d,"autoraId":%d,"autora":"Ana","texto":"Texto com anexo","criadoEm":"2026-01-02T12:00:00Z",
              "propria":true,"curtido":true,"curtidas":2,"comentarios":2,"anexoNome":"foto.png","anexoTipo":"image/png"}
-            """.formatted(id);
+            """.formatted(id, ana);
         mvc.perform(get("/api/posts/{id}", id).header("Authorization", ANA))
             .andExpect(status().isOk()).andExpect(content().json(resposta, JsonCompareMode.STRICT));
         mvc.perform(get("/api/posts").header("Authorization", ANA))
@@ -109,9 +109,9 @@ class PublicacaoConsultaPostgresTests {
     void semAnexoECurtidasOuComentariosMantemNulosEZeros() throws Exception {
         long id = publicar(bia, "Sem anexo", "2026-01-01T12:00:00Z");
         String resposta = """
-            {"id":%d,"autora":"Bia","texto":"Sem anexo","criadoEm":"2026-01-01T12:00:00Z",
+            {"id":%d,"autoraId":%d,"autora":"Bia","texto":"Sem anexo","criadoEm":"2026-01-01T12:00:00Z",
              "propria":false,"curtido":false,"curtidas":0,"comentarios":0,"anexoNome":null,"anexoTipo":null}
-            """.formatted(id);
+            """.formatted(id, bia);
         mvc.perform(get("/api/posts/{id}", id).header("Authorization", ANA))
             .andExpect(status().isOk()).andExpect(content().json(resposta, JsonCompareMode.STRICT));
         mvc.perform(get("/api/posts").header("Authorization", ANA))
