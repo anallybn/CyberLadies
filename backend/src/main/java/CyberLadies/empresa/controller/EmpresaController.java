@@ -11,6 +11,7 @@ import java.util.List;
 
 
 @RestController
+@org.springframework.context.annotation.Profile("!production")
 
 
 @RequestMapping("/api/empresas")

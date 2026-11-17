@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
+@org.springframework.context.annotation.Profile("!production")
 
 @RequestMapping("/api/mentorias")
 public class MentoriaController {

@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus; // Permite retornar HTTP 201.
 import java.util.List; // Permite retornar uma lista de certificados.
 
 @RestController
+@org.springframework.context.annotation.Profile("!production")
 
 @RequestMapping("/api/certificados")
 public class CertificadoController {

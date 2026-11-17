@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List; // Permite retornar uma lista de eventos.
 
 @RestController
+@org.springframework.context.annotation.Profile("!production")
 
 @RequestMapping("/api/agenda")
 public class EventoAgendaController {

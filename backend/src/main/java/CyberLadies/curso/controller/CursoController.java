@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
+@org.springframework.context.annotation.Profile("!production")
 
 // Define o endereço principal da API de cursos.
 @RequestMapping("/api/cursos")

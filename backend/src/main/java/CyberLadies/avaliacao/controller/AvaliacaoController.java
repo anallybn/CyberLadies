@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@org.springframework.context.annotation.Profile("!production")
 
 @RequestMapping("/api/avaliacoes")
 public class AvaliacaoController {
