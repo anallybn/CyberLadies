@@ -1,5 +1,5 @@
+import { API_BASE_URL as base } from './apiUrl.js'
 import { rascunhos } from './rascunhosService'
-const base = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 
 async function consultar(caminho, token, signal, privada = false) {
     const resposta = await fetch(base + caminho, {

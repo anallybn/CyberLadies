@@ -1,5 +1,5 @@
+import { API_BASE_URL as base } from './apiUrl.js'
 import { limparSessao } from './authService'
-const base=(import.meta.env.VITE_API_URL || '/api').replace(/\/$/,'')
 export async function chat(caminho,{method='GET',dados,signal}={}){
  const token=sessionStorage.getItem('token') || ''
  let resposta

@@ -1,4 +1,4 @@
-const base = import.meta.env?.VITE_API_URL || '/api'
+import { API_BASE_URL as base } from './apiUrl.js'
 let sessao = { token: () => null, expirar: () => {} }
 export function configurarSessao(configuracao) { sessao = configuracao }
 export class ErroApi extends Error {

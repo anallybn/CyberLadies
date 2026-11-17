@@ -1,10 +1,10 @@
+import { API_BASE_URL as API } from '../services/apiUrl.js'
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { UserRound, CalendarDays, BookOpen } from 'lucide-react'
 import TopoEducadora from '../components/TopoEducadora'
 import './DashboardEducadora.css'
 
-const API = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 const numero = (valor) => new Intl.NumberFormat('pt-BR').format(valor)
 const data = (valor) => new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(valor))
 

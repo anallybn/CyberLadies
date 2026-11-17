@@ -1,3 +1,4 @@
+import { API_BASE_URL as API } from '../services/apiUrl.js'
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { BookOpen, Check, Clock3, Eye, FileText, Info, Layers, LockKeyhole, Play, Save, Upload } from 'lucide-react'
@@ -8,7 +9,6 @@ import { useRascunho } from '../hooks/useRascunho'
 import { useAlteracoesPendentes } from '../hooks/useAlteracoesPendentes'
 import './EnviarMaterial.css'
 
-const API = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 
 export default function EnviarMaterial() {
     const [estado, setEstado] = useState({ carregando: true })
