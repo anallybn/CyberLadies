@@ -35,7 +35,7 @@ public class DashboardEducadoraRepository {
         return db.sql("""
             SELECT a.id,u.nome aluna,coalesce(d.tema,'Tema não informado') tema,d.inicio,d.fim
             FROM academy_agendamento a JOIN academy_disponibilidade d ON d.id=a.disponibilidade_id
-            JOIN academy_mentora m ON m.id=d.mentora_id JOIN talk_usuaria u ON u.id=a.usuaria_id
+            JOIN academy_mentora m ON m.id=d.mentora_id JOIN conta u ON u.id=a.usuaria_id
             WHERE m.usuaria_id=? AND a.status='CONFIRMADO' AND d.inicio>clock_timestamp()
             ORDER BY d.inicio,a.id LIMIT 5
             """).param(educadora).query(Mentoria.class).list();

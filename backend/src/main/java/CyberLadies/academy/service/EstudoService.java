@@ -2,7 +2,7 @@ package CyberLadies.academy.service;
 
 import CyberLadies.academy.dto.AcademyDados.*;
 import CyberLadies.academy.repository.AcademyRepository;
-import CyberLadies.talk.AcessoTalk;
+import CyberLadies.auth.service.AcessoConta;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -11,12 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class EstudoService {
     private final AcademyRepository repository;
-    private final AcessoTalk acesso;
+    private final AcessoConta acesso;
     private final AcademyService conteudo;
-    public EstudoService(AcademyRepository repository,AcessoTalk acesso,AcademyService conteudo) { this.repository=repository; this.acesso=acesso; this.conteudo=conteudo; }
+    public EstudoService(AcademyRepository repository,AcessoConta acesso,AcademyService conteudo) { this.repository=repository; this.acesso=acesso; this.conteudo=conteudo; }
     @Transactional
     public Progresso inscrever(long trilha) {
-        long usuaria=acesso.estudanteId();
+        long usuaria=acesso.estudante().id();
         conteudo.trilha(trilha);
         repository.bloquearTrilha(trilha);
         var dados=conteudo.trilha(trilha);
@@ -24,20 +24,20 @@ public class EstudoService {
         if (!repository.inscrever(usuaria,trilha)) throw erro(HttpStatus.CONFLICT,"Você já está inscrita nesta trilha.");
         return calcular(usuaria,trilha);
     }
-    public List<Inscricao> inscricoes() { return repository.inscricoes(acesso.estudanteId()); }
+    public List<Inscricao> inscricoes() { return repository.inscricoes(acesso.estudante().id()); }
     public List<Progresso> meusProgressos() {
-        long usuaria=acesso.estudanteId();
+        long usuaria=acesso.estudante().id();
         return repository.inscricoes(usuaria).stream().map(i->calcular(usuaria,i.trilhaId())).toList();
     }
     public Progresso progresso(long trilha) {
-        long usuaria=acesso.estudanteId();
+        long usuaria=acesso.estudante().id();
         conteudo.trilha(trilha);
         exigirInscricao(usuaria,trilha);
         return calcular(usuaria,trilha);
     }
     @Transactional
     public Progresso concluir(long id) {
-        long usuaria=acesso.estudanteId();
+        long usuaria=acesso.estudante().id();
         var aula=conteudo.aula(id).aula();
         exigirInscricao(usuaria,aula.trilhaId());
         repository.bloquearInscricao(usuaria,aula.trilhaId());

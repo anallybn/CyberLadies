@@ -13,6 +13,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.test.context.jdbc.Sql(scripts="/db/fixture-conta-integracao.sql", executionPhase=org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS, config=@org.springframework.test.context.jdbc.SqlConfig(separator="@@@"))
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named="DATABASE_URL", matches="jdbc:postgresql://127\\.0\\.0\\.1:55439/cyberladies_auth_test")
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -31,12 +33,12 @@ class DashboardEducadoraIntegrationTest {
         vincular(trilha,educadora); vincular(extra,educadora);
     }
     long conta(String tipo,String token) {
-        long id=db.sql("INSERT INTO talk_usuaria(nome,email,senha_hash,competencias,tipo) VALUES ('Fixture dashboard',?,'fixture','',?) RETURNING id")
+        long id=db.sql("SELECT fixture_conta_integracao('Fixture dashboard',?,'fixture','',?,false)")
             .params(UUID.randomUUID()+"@example.invalid",tipo).query(Long.class).single();
         if(tipo.equals("EDUCADORA"))
-            db.sql("INSERT INTO auth_educadora(usuaria_id,especialidade,instituicao) VALUES (?,'Teste','Teste')").param(id).update();
-        if(token!=null) db.sql("INSERT INTO talk_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
-            .params(ContaApi.hashBearer(token),id).update();
+            db.sql("INSERT INTO educadora(conta_id,especialidade,instituicao,status) VALUES (?,'Teste','Teste','APROVADA')").param(id).update();
+        if(token!=null) db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
+            .params(CyberLadies.auth.service.Credenciais.hashBearer(token),id).update();
         return id;
     }
     long trilha(String titulo) {
@@ -83,12 +85,12 @@ class DashboardEducadoraIntegrationTest {
         mvc.perform(get("/api/educadora/dashboard")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/educadora/dashboard").header("Authorization",alunaAuth)).andExpect(status().isForbidden());
         mvc.perform(get("/api/educadora/dashboard").header("Authorization",auth))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.statusEducadora").value("PENDENTE"));
+            .andExpect(status().isOk()).andExpect(jsonPath("$.statusEducadora").value("APROVADA"));
         for(String estado:new String[]{"PENDENTE","APROVADA"}) {
-            db.sql("UPDATE auth_educadora SET status=? WHERE usuaria_id=?").params(estado,educadora).update();
+            db.sql("UPDATE educadora SET status=? WHERE conta_id=?").params(estado,educadora).update();
             mvc.perform(post("/api/educadora/trilhas").header("Authorization",auth)).andExpect(status().isForbidden());
             mvc.perform(put("/api/educadora/aulas/1").header("Authorization",auth)).andExpect(status().isForbidden());
-            mvc.perform(get("/api/educadora/dashboard").header("Authorization",auth)).andExpect(jsonPath("$.podePublicar").value(false));
+            if(estado.equals("APROVADA")) mvc.perform(get("/api/educadora/dashboard").header("Authorization",auth)).andExpect(jsonPath("$.podePublicar").value(false)); else mvc.perform(get("/api/educadora/dashboard").header("Authorization",auth)).andExpect(status().isForbidden());
         }
     }
     @Test void somenteMentoriasPropriasConfirmadasFuturasSemEmails() throws Exception {

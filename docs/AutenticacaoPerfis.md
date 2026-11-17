@@ -1,3 +1,5 @@
+> Histórico da origem. Nesta integração, identidade, migrações e alguns contratos foram reconciliados. Use [INTEGRACAO_APRESENTACAO.md](INTEGRACAO_APRESENTACAO.md) para as regras e comandos atuais; não execute os SQLs/perfis antigos contra o banco da demonstração.
+
 # Autenticação dos três perfis — Fase 1
 
 ## Estado da entrega e ativação

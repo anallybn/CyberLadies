@@ -2,7 +2,7 @@ package CyberLadies.perfil.service;
 
 import CyberLadies.perfil.dto.PerfilDados.*;
 import CyberLadies.perfil.repository.PerfilRepository;
-import CyberLadies.talk.AcessoTalk;
+import CyberLadies.auth.service.AcessoConta;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import org.springframework.http.HttpStatus;
@@ -14,51 +14,51 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class PerfilService {
     private final PerfilRepository repository;
-    private final AcessoTalk acesso;
+    private final AcessoConta acesso;
     private final FotoPerfil fotos;
     private final CyberLadies.academy.service.CertificadoAcademyService certificados;
-    public PerfilService(PerfilRepository repository,AcessoTalk acesso,FotoPerfil fotos,CyberLadies.academy.service.CertificadoAcademyService certificados) {
+    public PerfilService(PerfilRepository repository,AcessoConta acesso,FotoPerfil fotos,CyberLadies.academy.service.CertificadoAcademyService certificados) {
         this.repository=repository; this.acesso=acesso; this.fotos=fotos; this.certificados=certificados;
     }
     @Transactional(readOnly=true)
     public Perfil consultar() {
-        long id=acesso.usuariaId();
+        long id=acesso.cyberLadie().id();
         return new Perfil(repository.pessoal(id),repository.certificacoes(id),repository.experiencias(id),repository.participacao(id),certificados.meus());
     }
     @Transactional
     public Pessoal editar(Edicao dados) {
-        long id=acesso.usuariaId();
+        long id=acesso.cyberLadie().id();
         repository.editar(id,dados);
         return repository.pessoal(id);
     }
     public Certificacao adicionarCertificacao(CertificacaoEntrada dados) {
-        long id=acesso.usuariaId(); validarData(dados.data());
+        long id=acesso.cyberLadie().id(); validarData(dados.data());
         return repository.adicionarCertificacao(id,dados);
     }
     public Certificacao editarCertificacao(long id,CertificacaoEntrada dados) {
-        long usuaria=acesso.usuariaId(); validarData(dados.data());
+        long usuaria=acesso.cyberLadie().id(); validarData(dados.data());
         return repository.editarCertificacao(usuaria,id,dados).orElseThrow(this::ausente);
     }
     public void excluirCertificacao(long id) {
-        if (!repository.excluirCertificacao(acesso.usuariaId(),id)) throw ausente();
+        if (!repository.excluirCertificacao(acesso.cyberLadie().id(),id)) throw ausente();
     }
     public Experiencia adicionarExperiencia(ExperienciaEntrada dados) {
-        long id=acesso.usuariaId(); validarExperiencia(dados);
+        long id=acesso.cyberLadie().id(); validarExperiencia(dados);
         return repository.adicionarExperiencia(id,dados);
     }
     public Experiencia editarExperiencia(long id,ExperienciaEntrada dados) {
-        long usuaria=acesso.usuariaId(); validarExperiencia(dados);
+        long usuaria=acesso.cyberLadie().id(); validarExperiencia(dados);
         return repository.editarExperiencia(usuaria,id,dados).orElseThrow(this::ausente);
     }
     public void excluirExperiencia(long id) {
-        if (!repository.excluirExperiencia(acesso.usuariaId(),id)) throw ausente();
+        if (!repository.excluirExperiencia(acesso.cyberLadie().id(),id)) throw ausente();
     }
-    public byte[] foto() { return repository.foto(acesso.usuariaId()).orElseThrow(this::ausente); }
+    public byte[] foto() { return repository.foto(acesso.cyberLadie().id()).orElseThrow(this::ausente); }
     public void salvarFoto(MultipartFile arquivo) {
-        long id=acesso.usuariaId();
+        long id=acesso.cyberLadie().id();
         repository.salvarFoto(id,fotos.normalizar(arquivo));
     }
-    public void excluirFoto() { repository.excluirFoto(acesso.usuariaId()); }
+    public void excluirFoto() { repository.excluirFoto(acesso.cyberLadie().id()); }
     private void validarData(LocalDate data) {
         if (data.isAfter(LocalDate.now(ZoneId.of("America/Sao_Paulo"))))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"A data não pode estar no futuro.");

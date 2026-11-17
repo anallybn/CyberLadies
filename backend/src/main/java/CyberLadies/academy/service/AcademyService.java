@@ -2,7 +2,7 @@ package CyberLadies.academy.service;
 
 import CyberLadies.academy.dto.AcademyDados.*;
 import CyberLadies.academy.repository.AcademyRepository;
-import CyberLadies.talk.AcessoTalk;
+import CyberLadies.auth.service.AcessoConta;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
@@ -14,9 +14,9 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class AcademyService {
     protected final AcademyRepository repository;
-    protected final AcessoTalk acesso;
+    protected final AcessoConta acesso;
     protected final VideoSeguro videos;
-    public AcademyService(AcademyRepository repository,AcessoTalk acesso,VideoSeguro videos) {
+    public AcademyService(AcademyRepository repository,AcessoConta acesso,VideoSeguro videos) {
         this.repository=repository; this.acesso=acesso; this.videos=videos;
     }
     public Catalogo catalogo(String busca,String categoria,String nivel) {
@@ -39,7 +39,7 @@ public class AcademyService {
     }
     public List<Aula> aulas(long trilha) { trilha(trilha); return repository.aulas(trilha); }
     public AulaDetalhe aula(long id) {
-        acesso.estudanteId();
+        acesso.estudante().id();
         positivo(id);
         var aula=repository.aula(id).orElseThrow(()->erro(HttpStatus.NOT_FOUND,"Aula não encontrada."));
         var lista=repository.aulas(aula.trilhaId());

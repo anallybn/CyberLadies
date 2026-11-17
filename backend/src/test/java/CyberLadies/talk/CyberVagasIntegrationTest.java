@@ -14,6 +14,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.test.context.jdbc.Sql(scripts="/db/fixture-conta-integracao.sql", executionPhase=org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS, config=@org.springframework.test.context.jdbc.SqlConfig(separator="@@@"))
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named="DATABASE_URL", matches="jdbc:postgresql://127\\.0\\.0\\.1:55439/cyberladies_auth_test")
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional // Fixtures exclusivamente de teste: revertidas ao final de cada método.
@@ -41,12 +43,12 @@ class CyberVagasIntegrationTest {
     }
 
     long criarConta(String nome) {
-        return db.sql("INSERT INTO talk_usuaria(nome,email,senha_hash,competencias,membro) VALUES (?,?,'fixture','',true) RETURNING id")
+        return db.sql("SELECT fixture_conta_integracao(?,?,'fixture','','CYBERLADIE',true)")
             .params(nome, UUID.randomUUID()+"@example.invalid").query(Long.class).single();
     }
     void sessao(String token, long id) {
-        db.sql("INSERT INTO talk_sessao VALUES (?,?,CURRENT_TIMESTAMP + INTERVAL '1 hour')")
-            .params(ContaApi.hashBearer(token),id).update();
+        db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP + INTERVAL '1 hour')")
+            .params(CyberLadies.auth.service.Credenciais.hashBearer(token),id).update();
     }
     long criarVaga(String nivel, String modalidade, boolean maes, boolean pcd, boolean formacao, int salario) {
         return db.sql("""
@@ -111,7 +113,7 @@ class CyberVagasIntegrationTest {
         mvc.perform(get("/api/candidaturas")).andExpect(status().isUnauthorized());
         mvc.perform(post("/api/candidaturas").header("Authorization","Bearer invalido")
             .contentType(MediaType.APPLICATION_JSON).content(corpo)).andExpect(status().isUnauthorized());
-        db.sql("UPDATE talk_sessao SET expira_em=CURRENT_TIMESTAMP - INTERVAL '1 hour' WHERE usuaria_id=?").param(outra).update();
+        db.sql("UPDATE auth_sessao SET expira_em=CURRENT_TIMESTAMP - INTERVAL '1 hour' WHERE usuaria_id=?").param(outra).update();
         mvc.perform(get("/api/candidaturas").header("Authorization",authOutra)).andExpect(status().isUnauthorized());
         db.sql("UPDATE cyber_vaga SET ativa=false WHERE id=?").param(vaga).update();
         mvc.perform(post("/api/candidaturas").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content(corpo)).andExpect(status().isNotFound());

@@ -17,6 +17,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.test.context.jdbc.Sql(scripts="/db/fixture-conta-integracao.sql", executionPhase=org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS, config=@org.springframework.test.context.jdbc.SqlConfig(separator="@@@"))
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named="DATABASE_URL", matches="jdbc:postgresql://127\\.0\\.0\\.1:55439/cyberladies_auth_test")
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -29,10 +31,10 @@ class AcademyIntegrationTest {
     @BeforeEach void preparar() {
         marcador="academy-fixture-"+UUID.randomUUID();
         usuaria=conta(); outra=conta();
-        db.sql("INSERT INTO talk_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
-            .params(ContaApi.hashBearer(auth),usuaria).update();
-        db.sql("INSERT INTO talk_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
-            .params(ContaApi.hashBearer(outraAuth),outra).update();
+        db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
+            .params(CyberLadies.auth.service.Credenciais.hashBearer(auth),usuaria).update();
+        db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
+            .params(CyberLadies.auth.service.Credenciais.hashBearer(outraAuth),outra).update();
         trilha=db.sql("INSERT INTO academy_trilha(titulo,descricao,categoria,nivel,elegivel_certificado) VALUES (?,?,'FRONTEND','INICIANTE',true) RETURNING id")
             .params(marcador,"Introdução "+marcador).query(Long.class).single();
         aula1=aula(trilha,1,"YOUTUBE","M7lc1UVf-VE");
@@ -40,7 +42,7 @@ class AcademyIntegrationTest {
         mentora=db.sql("INSERT INTO academy_mentora(nome,especialidade) VALUES (?,'Front-end') RETURNING id").param(marcador).query(Long.class).single();
         slot=horario(mentora,OffsetDateTime.now().plusDays(2),90);
     }
-    long conta() { return db.sql("INSERT INTO talk_usuaria(nome,email,senha_hash,competencias) VALUES ('Fixture',?,'fixture','') RETURNING id")
+    long conta() { return db.sql("SELECT fixture_conta_integracao('Fixture',?,'fixture','','CYBERLADIE',false)")
         .param(UUID.randomUUID()+"@example.invalid").query(Long.class).single(); }
     long aula(long trilha,int ordem,String provedor,String video) {
         return db.sql("""
@@ -179,7 +181,7 @@ class AcademyIntegrationTest {
         rejeitarSql("INSERT INTO academy_disponibilidade(mentora_id,inicio,fim) VALUES (?,clock_timestamp()-INTERVAL '1 hour',clock_timestamp())",mentora);
         mvc.perform(post("/api/academy/agendamentos").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON)
             .content("{\"disponibilidadeId\":0}")).andExpect(status().isBadRequest());
-        db.sql("UPDATE talk_sessao SET expira_em=CURRENT_TIMESTAMP-INTERVAL '1 hour' WHERE usuaria_id=?").param(usuaria).update();
+        db.sql("UPDATE auth_sessao SET expira_em=CURRENT_TIMESTAMP-INTERVAL '1 hour' WHERE usuaria_id=?").param(usuaria).update();
         mvc.perform(get("/api/academy/me/progresso").header("Authorization",auth)).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/academy/me/agendamentos").header("Authorization",auth)).andExpect(status().isUnauthorized());
     }

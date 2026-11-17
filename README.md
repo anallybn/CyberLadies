@@ -1,56 +1,48 @@
 # CyberLadies
 Projeto Integrador III
 
+Estrutura e guias: [docs/README.md](docs/README.md). Código por funcionalidade em
+`backend/src` e `frontend/src`; comandos operacionais em `scripts`; testes em
+`backend/src/test` e `frontend/tests`. Dados persistentes ficam fora do repositório.
+
+Para o ambiente local, abra **http://127.0.0.1:5178**. Ele reutiliza sempre o banco
+existente `cyberladies_apresentacao` em `55439`, com armazenamento permanente.
+Consulte os [comandos de iniciar/parar e a validação da persistência](docs/AMBIENTE_LOCAL.md) e o
+[roteiro, mapa de telas, validações e diferenças contra a main](docs/INTEGRACAO_APRESENTACAO.md).
+Para iniciar: `.\scripts\Iniciar-Apresentacao.ps1`. Para parar: `.\scripts\Parar-Apresentacao.ps1`.
+
+A recuperação dos módulos em memória da main, seus contratos e limitações e os
+conflitos pendentes do CRUD antigo de educadoras estão documentados em
+[docs/CORRECAO_INTEGRACAO.md](docs/CORRECAO_INTEGRACAO.md).
+
+A integração de sessão, solicitação de educadora e análise administrativa no
+frontend está descrita em [docs/VALIDACAO_FRONTEND.md](docs/VALIDACAO_FRONTEND.md), incluindo
+as rotas de tela e os testes com PostgreSQL isolado.
+
 ## CyberTalk
+
+A criação operacional de uma conta dedicada ADMIN está documentada em
+[docs/ADMINISTRADOR.md](docs/ADMINISTRADOR.md). Ela não faz parte do cadastro
+público nem é executada ao iniciar a aplicação.
 
 Comunidade do CyberLadies. Nesta primeira etapa, a usuária pode criar uma conta, entrar na comunidade, publicar textos de até 500 caracteres, editar e excluir as próprias publicações, curtir e comentar. As operações usam a API REST em Spring Boot e o PostgreSQL. A adesão é explícita e o servidor verifica a autoria de cada alteração.
 
 ### Executar com Docker Desktop
+Banco novo é inicializado pelo Flyway. Para um volume com tabelas anteriores,
+pare a API e siga primeiro o [procedimento de backup, conferência e adoção](docs/MIGRACOES.md).
+Não habilite baseline automático para contornar a recusa de um banco existente.
+
 Na raiz do repositório, execute `docker compose up` e aguarde a mensagem do Vite. Abra http://localhost:5173/cadastro/usuaria. Para encerrar, use Ctrl+C e `docker compose down`. Posts, comentários e anexos ficam no volume PostgreSQL entre execuções.
 
 O botão **Compartilhar** copia um link para a publicação. Quem abrir precisa entrar e participar da comunidade. Em desenvolvimento, um link localhost só funciona na máquina que hospeda o site. Cada post aceita um arquivo de até 5 MB, com ou sem texto. JPEG e PNG têm visualização e os demais arquivos podem ser baixados.
 
-### Abrir o CyberTalk no Windows sem Docker
+### Executar localmente sem Docker
 
-Use Git Bash no VS Code, JDK 21, PostgreSQL 16 e Node.js 22.12 ou superior. Cada computador usa seu próprio banco local.
+Use Java 21, PostgreSQL e Node.js 22.12 ou superior. No PostgreSQL, crie um banco chamado `cyberladies` e um usuário proprietário. No terminal do backend, defina `DATABASE_USER` e `DATABASE_PASSWORD` com as credenciais desse usuário. Para outro servidor ou banco, defina também `DATABASE_URL` no formato `jdbc:postgresql://host:5432/banco`.
 
-**Preparação inicial.** Baixe o projeto com `git clone https://github.com/anallybn/CyberLadies.git` e abra a pasta CyberLadies no VS Code. Se já possui o projeto, abra a cópia atualizada. No Git Bash, confira `java -version`, `javac -version` e `node -v`. O Java e o compilador devem indicar 21. Se aparecer um Java antigo, defina `JAVA_HOME` para a pasta do JDK 21 instalado e coloque `$JAVA_HOME/bin` no início do `PATH`.
-
-Abra **SQL Shell (psql)** pelo menu Iniciar. Aceite os valores padrão para localhost, banco postgres, porta 5432 e usuário postgres. Digite a senha escolhida na instalação. No prompt `postgres=#`, execute uma linha por vez, apenas na primeira configuração:
-
-```sql
-CREATE USER cyberladies;
-\password cyberladies
-CREATE DATABASE cyberladies OWNER cyberladies;
-```
-
-O comando `\password` pede a nova senha duas vezes. Guarde-a para o terminal do backend.
-
-**Terminal 1 — backend.** Abra um Git Bash na pasta do projeto e execute:
-
-```bash
-cd "$(git rev-parse --show-toplevel)/backend" && export DATABASE_USER=cyberladies
-```
-
-Cole a próxima linha sozinha. Quando solicitado, digite a senha do usuário do banco e pressione Enter. A senha fica oculta.
-
-```bash
-read -rs -p "Senha do banco cyberladies: " DATABASE_PASSWORD && export DATABASE_PASSWORD && echo && bash mvnw spring-boot:run
-```
-
-Aguarde `Started CyberladiesApplication`. Mantenha o terminal aberto. O backend usa a porta 8080 e cria as tabelas. Para usar outro banco, configure `DATABASE_URL` com um endereço JDBC PostgreSQL.
-
-**Terminal 2 — site.** Abra um segundo Git Bash no VS Code:
-
-```bash
-cd "$(git rev-parse --show-toplevel)/frontend" && npm ci && VITE_API_URL= npm run dev
-```
-
-Deixe o valor de `VITE_API_URL` vazio, como no comando. O frontend usa o caminho padrão `/api` e o Vite encaminha a requisição ao Spring Boot. No Git Bash do Windows, definir explicitamente a variável como `/api` pode transformá-la em um caminho de arquivo.
-
-Abra o endereço **Local** exibido pelo Vite e acesse `/cadastro/usuaria`. Crie uma conta do site, entre e clique em **Participar da comunidade**. Publique com um anexo, comente e atualize a página para conferir a persistência. Teste também editar, compartilhar e excluir a publicação.
-
-**Para reabrir depois de fechar o VS Code**, abra a mesma pasta e repita os dois terminais. O banco já estará criado. Pode omitir `npm ci` se as dependências continuarem instaladas e o arquivo de lock estiver igual.
+1. Na pasta `backend`, execute `bash mvnw spring-boot:run` (PowerShell: `.\mvnw.cmd spring-boot:run`). Flyway cria as tabelas em um banco vazio e o aplicativo escuta na porta 8080. Para um banco existente, siga antes o [procedimento de adoção](docs/MIGRACOES.md).
+2. Em outro terminal, na pasta `frontend`, execute `npm ci` e `npm run dev`. Abra a URL exibida pelo Vite. O proxy local encaminha `/api` ao backend. Remova configurações antigas de `VITE_API_URL`.
+3. Abra `/cadastro/usuaria`, crie a conta, faça login e clique em **Participar da comunidade**. Publique um texto, recarregue a página, edite e exclua. Para testar permissões, use uma segunda conta em uma janela privativa.
 
 ### Contrato da API
 
@@ -61,6 +53,12 @@ Prefixo `/api`. Após o login, envie o token em `Authorization: Bearer <token>`.
 | POST | /auth/cadastro/usuaria | Cadastro com nome, email, senha e competencias opcional |
 | POST | /auth/login | Recebe email e senha, devolve token |
 | DELETE | /auth/sessao | Encerra a sessão |
+| GET | /auth/me | ID e papéis da conta autenticada, sem credenciais |
+| POST | /educadora/solicitacao | Solicita atuação com especialidade e instituição; inicia PENDENTE |
+| GET | /educadora/solicitacao | Consulta a solicitação da própria conta e seu status |
+| GET | /admin/educadoras/solicitacoes | ADMIN lista solicitações com filtro e paginação |
+| GET | /admin/educadoras/solicitacoes/{contaId} | ADMIN consulta uma solicitação |
+| POST | /admin/educadoras/solicitacoes/{contaId}/decisao | ADMIN aprova ou rejeita uma solicitação pendente |
 | GET | /usuaria | Perfil e situação de adesão |
 | PUT | /comunidade/adesao | Participar da comunidade |
 | GET, POST | /posts | Listar ou publicar |
@@ -70,11 +68,16 @@ Prefixo `/api`. Após o login, envie o token em `Authorization: Bearer <token>`.
 
 Publicações e comentários recebem `{"texto":"Minha mensagem"}`. Criações retornam 201. A API diferencia dados inválidos (400), sessão inválida (401), falta de permissão (403), publicação ausente (404) e e-mail duplicado (409).
 
-Esta etapa cobre o perfil usuária e publicações de texto. Rascunhos e moderação ficam para as próximas etapas. Para publicar o projeto, sirva o frontend e encaminhe `/api` ao backend no mesmo domínio.
+Além do CyberTalk, a integração inclui vagas/candidaturas, Academy/progresso,
+certificados, mentorias, perfil, Chat por vínculos autorizados e área privada da
+educadora aprovada. Rascunhos são privados e persistentes; publicação editorial
+e moderação continuam indisponíveis. Para publicar o projeto, sirva o frontend e encaminhe `/api` ao
+backend no mesmo domínio.
 
 ## Fase 1 — autenticação dos três perfis
 
-A evolução de cadastro/login está descrita em [docs/AutenticacaoPerfis.md](docs/AutenticacaoPerfis.md).
-A migração é explícita e não é aplicada automaticamente ao banco existente.
-Antes de reiniciar a API com esta versão, siga o procedimento de backup, confirmação
-e migração. Para revisão sem alterar o principal, use a instância isolada em 5175.
+A documentação histórica da origem está em [docs/AutenticacaoPerfis.md](docs/AutenticacaoPerfis.md).
+Nesta integração, permanecem os papéis acumuláveis e a solicitação/análise de
+educadora. O cadastro EMPRESA usa a mesma conta e sessão, sem acesso pessoal.
+Use o Flyway V1–V10 e o procedimento de [MIGRACOES.md](docs/MIGRACOES.md);
+não aplique os scripts de autenticação antigos sobre o banco da demonstração.

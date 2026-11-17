@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.test.context.jdbc.Sql(scripts="/db/fixture-conta-integracao.sql", executionPhase=org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS, config=@org.springframework.test.context.jdbc.SqlConfig(separator="@@@"))
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named="DATABASE_URL", matches="jdbc:postgresql://127\\.0\\.0\\.1:55439/cyberladies_auth_test")
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -34,11 +36,11 @@ class PerfilIntegrationTest {
         usuaria=conta("Titular");
         outra=conta("Outra");
         for (var credencial : new Object[][]{{auth,usuaria},{authOutra,outra}})
-            db.sql("INSERT INTO talk_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
-                .params(ContaApi.hashBearer((String)credencial[0]),credencial[1]).update();
+            db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
+                .params(CyberLadies.auth.service.Credenciais.hashBearer((String)credencial[0]),credencial[1]).update();
     }
     long conta(String nome) {
-        return db.sql("INSERT INTO talk_usuaria(nome,email,senha_hash,competencias) VALUES (?,?,'fixture','Java') RETURNING id")
+        return db.sql("SELECT fixture_conta_integracao(?,?,'fixture','Java','CYBERLADIE',false)")
             .params(nome,UUID.randomUUID()+"@example.invalid").query(Long.class).single();
     }
     @Test void edicaoPersistidaSemAdesaoOuExposicaoDeSegredos() throws Exception {
@@ -54,9 +56,9 @@ class PerfilIntegrationTest {
         mvc.perform(get("/api/perfil").header("Authorization",auth))
             .andExpect(jsonPath("$.pessoal.sobre").value("Minha trajetória"))
             .andExpect(jsonPath("$.pessoal.formacao").value("ADS"));
-        assertThat(db.sql("SELECT nome FROM talk_usuaria WHERE id=?").param(outra).query(String.class).single()).isEqualTo("Outra");
-        assertThat(db.sql("SELECT email FROM talk_usuaria WHERE id=?").param(usuaria).query(String.class).single()).endsWith("@example.invalid");
-        assertThat(db.sql("SELECT membro FROM talk_usuaria WHERE id=?").param(usuaria).query(Boolean.class).single()).isFalse();
+        assertThat(db.sql("SELECT nome FROM conta WHERE id=?").param(outra).query(String.class).single()).isEqualTo("Outra");
+        assertThat(db.sql("SELECT email FROM conta WHERE id=?").param(usuaria).query(String.class).single()).endsWith("@example.invalid");
+        assertThat(db.sql("SELECT EXISTS(SELECT 1 FROM talk_participacao WHERE conta_id=?)").param(usuaria).query(Boolean.class).single()).isFalse();
     }
     @Test void crudDeCertificacoesEAutoria() throws Exception {
         mvc.perform(post("/api/perfil/certificacoes").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content(certificado))
@@ -98,7 +100,7 @@ class PerfilIntegrationTest {
             .content(certificado.replace("2025-01-01",LocalDate.now().plusYears(1).toString()))).andExpect(status().isBadRequest());
         mvc.perform(post("/api/perfil/experiencias").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON)
             .content(experiencia.replace("null","\"2023-01-01\""))).andExpect(status().isBadRequest());
-        db.sql("UPDATE talk_sessao SET expira_em=CURRENT_TIMESTAMP-INTERVAL '1 hour' WHERE usuaria_id=?").param(outra).update();
+        db.sql("UPDATE auth_sessao SET expira_em=CURRENT_TIMESTAMP-INTERVAL '1 hour' WHERE usuaria_id=?").param(outra).update();
         mvc.perform(get("/api/perfil").header("Authorization",authOutra)).andExpect(status().isUnauthorized());
     }
     byte[] imagem(String tipo) throws Exception {

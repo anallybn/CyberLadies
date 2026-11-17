@@ -13,21 +13,21 @@ public class ChatRepository {
  }
  public List<Contexto> contextos(long conta,int limite,int offset){
   return db.sql("""
-   SELECT x.chave,x.tipo,x.titulo,u.nome participante,u.tipo perfil FROM chat_contexto x
-   JOIN talk_usuaria u ON u.id=CASE WHEN x.aluna_id=:conta THEN x.responsavel_id ELSE x.aluna_id END
+   SELECT x.chave,x.tipo,x.titulo,u.nome participante,CASE WHEN EXISTS(SELECT 1 FROM conta_papel cp WHERE cp.conta_id=u.id AND cp.papel='EMPRESA') THEN 'EMPRESA' WHEN EXISTS(SELECT 1 FROM conta_papel cp WHERE cp.conta_id=u.id AND cp.papel='EDUCADORA') THEN 'EDUCADORA' ELSE 'CYBERLADIE' END perfil FROM chat_contexto x
+   JOIN conta u ON u.id=CASE WHEN x.aluna_id=:conta THEN x.responsavel_id ELSE x.aluna_id END
    WHERE :conta IN(x.aluna_id,x.responsavel_id) AND x.aberto AND x.aprovada
    ORDER BY x.tipo,x.chave LIMIT :limite OFFSET :offset
    """).param("conta",conta).param("limite",limite).param("offset",offset).query(Contexto.class).list();
  }
  private static final String RESUMO="""
-  SELECT c.id,c.tipo,x.titulo,u.nome participante,u.tipo perfil,(x.aberto AND x.aprovada) pode_enviar,
+  SELECT c.id,c.tipo,x.titulo,u.nome participante,CASE WHEN EXISTS(SELECT 1 FROM conta_papel cp WHERE cp.conta_id=u.id AND cp.papel='EMPRESA') THEN 'EMPRESA' WHEN EXISTS(SELECT 1 FROM conta_papel cp WHERE cp.conta_id=u.id AND cp.papel='EDUCADORA') THEN 'EDUCADORA' ELSE 'CYBERLADIE' END perfil,(x.aberto AND x.aprovada) pode_enviar,
    CASE WHEN NOT x.aprovada THEN 'A Educadora precisa estar aprovada para trocar mensagens.'
     WHEN NOT x.aberto THEN 'Contexto encerrado. O histórico continua disponível.' ELSE '' END motivo_bloqueio,
    (SELECT count(*) FROM chat_mensagem m WHERE m.conversa_id=c.id AND m.autora_id<>:conta
     AND m.sequencia>coalesce(l.ultima_seq,0)) nao_lidas,c.atividade_em
   FROM chat_conversa c JOIN chat_participante p ON p.conversa_id=c.id AND p.conta_id=:conta
   JOIN chat_contexto x ON x.chave=c.contexto_chave AND x.aluna_id=c.aluna_id AND x.responsavel_id=c.responsavel_id
-  JOIN talk_usuaria u ON u.id=CASE WHEN c.aluna_id=:conta THEN c.responsavel_id ELSE c.aluna_id END
+  JOIN conta u ON u.id=CASE WHEN c.aluna_id=:conta THEN c.responsavel_id ELSE c.aluna_id END
   JOIN chat_leitura l ON l.conversa_id=c.id AND l.conta_id=:conta
   WHERE (:conta=c.aluna_id OR x.aprovada)
   """;

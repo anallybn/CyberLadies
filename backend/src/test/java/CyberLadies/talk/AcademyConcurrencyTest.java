@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 // Fixtures com commit para transações concorrentes: somente em banco de teste explícito.
+@org.springframework.test.context.jdbc.Sql(scripts="/db/fixture-conta-integracao.sql", executionPhase=org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS, config=@org.springframework.test.context.jdbc.SqlConfig(separator="@@@"))
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named="DATABASE_URL", matches="jdbc:postgresql://127\\.0\\.0\\.1:55439/cyberladies_auth_test")
 @SpringBootTest
 class AcademyConcurrencyTest {
     @Autowired JdbcClient db;
@@ -28,7 +30,7 @@ class AcademyConcurrencyTest {
             "Concorrência requer banco isolado cyberladies_academy_* ou cyberladies_auth_*; nenhuma fixture será criada no principal.");
     }
     long conta() {
-        return db.sql("INSERT INTO talk_usuaria(nome,email,senha_hash,competencias) VALUES ('Fixture concorrência',?,'fixture','') RETURNING id")
+        return db.sql("SELECT fixture_conta_integracao('Fixture concorrência',?,'fixture','','CYBERLADIE',false)")
             .param(UUID.randomUUID()+"@example.invalid").query(Long.class).single();
     }
     long mentora() {

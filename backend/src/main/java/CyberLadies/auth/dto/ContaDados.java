@@ -5,7 +5,7 @@ import jakarta.validation.constraints.*;
 
 public final class ContaDados {
     private ContaDados() {}
-    public enum Tipo { CYBERLADIE, EDUCADORA, EMPRESA }
+    public enum Tipo { CYBERLADIE, EDUCADORA, EMPRESA, ADMIN }
     // O cliente não pode enviar tipo, status, permissões ou campos fora do contrato.
     public interface Estrita {
         @JsonAnySetter

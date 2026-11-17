@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import ContaContext from '../context/contaContext'
 import { consultarConta } from '../services/authService'
+import { useSessao } from '../hooks/useSessao'
 
 export default function ContaProvider({ children }) {
     const { pathname } = useLocation()
+    useSessao()
     const token = sessionStorage.getItem('token')
     const [tentativa, setTentativa] = useState(0)
     const [estado, setEstado] = useState({})
@@ -14,10 +16,6 @@ export default function ContaProvider({ children }) {
         const controle = new AbortController()
         consultarConta(controle.signal).then((conta) => {
             if (controle.signal.aborted || sessionStorage.getItem('token') !== token) return
-            // Cache de compatibilidade para telas antigas; o menu usa somente a resposta abaixo.
-            sessionStorage.setItem('perfil', conta.perfil)
-            if (conta.statusEducadora) sessionStorage.setItem('statusEducadora', conta.statusEducadora)
-            else sessionStorage.removeItem('statusEducadora')
             setEstado({ chave, conta })
         }).catch((erro) => {
             if (erro.name !== 'AbortError' && !controle.signal.aborted)

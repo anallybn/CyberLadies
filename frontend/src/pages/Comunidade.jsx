@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import icone from '../assets/icone.svg'
 import Circuitos from '../components/Circuitos'
 import TopoLogado from '../components/TopoLogado'
 import PostTalk from '../components/PostTalk'
 import { talk } from '../services/talkApi'
+import { sair as encerrarSessao } from '../services/sessaoService'
 import { carregarComunidade, publicarPost } from '../services/comunidadeService'
 import './Comunidade.css'
 
@@ -31,13 +32,8 @@ export default function Comunidade() {
     const [publicando, setPublicando] = useState(false)
     const [aviso, setAviso] = useState('')
     const [erroPublicacao, setErroPublicacao] = useState(null)
-    const [aba, setAba] = useState('todos')
-
-    // Controle da adesão automática
-    const adesaoIniciada = useRef(false)
-    const [aderindo, setAderindo] = useState(false)
-    const [erroAdesao, setErroAdesao] = useState(null)
-    const [tentativaAdesao, setTentativaAdesao] = useState(0)
+    const aba = 'todos'
+    const navigate = useNavigate()
 
     // Carrega os dados da comunidade
     useEffect(() => {
@@ -73,46 +69,12 @@ export default function Comunidade() {
         setTentativa((t) => t + 1)
     }
 
-    // Adesão automática ao CyberTalk
-    useEffect(() => {
-        if (
-            carregando ||
-            erro ||
-            !dados ||
-            dados.usuaria?.membro !== false ||
-            adesaoIniciada.current
-        ) {
-            return
-        }
-
-        adesaoIniciada.current = true
-        setAderindo(true)
-        setErroAdesao(null)
-
-        async function participarAutomaticamente() {
-            try {
-                await talk('/comunidade/adesao', 'PUT')
-
-                // Recarrega a comunidade após a adesão
-                setCarregando(true)
-                setTentativa((t) => t + 1)
-            } catch (falha) {
-                setErroAdesao(
-                    falha.message ||
-                    'Não foi possível acessar a comunidade.'
-                )
-            } finally {
-                setAderindo(false)
-            }
-        }
-
-        participarAutomaticamente()
-    }, [carregando, erro, dados, tentativaAdesao])
-
-    function tentarAdesaoNovamente() {
-        adesaoIniciada.current = false
-        setErroAdesao(null)
-        setTentativaAdesao((t) => t + 1)
+    async function aderir() {
+        setPublicando(true)
+        setErroPublicacao(null)
+        try { await talk('/comunidade/adesao', 'PUT'); tentarDeNovo() }
+        catch (falha) { setErroPublicacao(falha.message) }
+        finally { setPublicando(false) }
     }
 
     // Criar publicação
@@ -147,10 +109,8 @@ export default function Comunidade() {
     // Encerrar sessão
     async function sair() {
         try {
-            await talk('/auth/sessao', 'DELETE')
-
-            sessionStorage.removeItem('token')
-            window.location.replace('/login?perfil=usuaria')
+            await encerrarSessao()
+            navigate('/login', { replace: true })
         } catch (falha) {
             setErroPublicacao(falha.message)
         }
@@ -164,11 +124,7 @@ export default function Comunidade() {
     const sugestoes = dados?.sugestoes ?? []
     const eventos = dados?.eventos ?? []
 
-    // Filtrar publicações por perfil
-    const postsVisiveis =
-        aba === 'todos'
-            ? posts
-            : posts.filter((p) => p.perfil === aba)
+    const postsVisiveis = posts
 
     return (
         <div className="cm">
@@ -204,34 +160,17 @@ export default function Comunidade() {
                 </div>
             )}
 
-            {/* Adesão automática, sem botão de participação */}
             {!carregando &&
                 !erro &&
                 dados &&
                 !usuaria?.membro && (
                     <section className="cm-estado">
-                        {erroAdesao ? (
-                            <>
-                                <p role="alert">{erroAdesao}</p>
-
-                                <button
-                                    type="button"
-                                    className="cm-botao"
-                                    onClick={tentarAdesaoNovamente}
-                                >
-                                    Tentar novamente
-                                </button>
-                            </>
-                        ) : (
-                            <div role="status">
-                                <span className="cm-spinner" />
-                                <p>
-                                    {aderindo
-                                        ? 'Preparando seu acesso ao CyberTalk...'
-                                        : 'Carregando CyberTalk...'}
-                                </p>
-                            </div>
-                        )}
+                        <h1>CyberTalk</h1>
+                        <p>Participe para publicar, curtir e comentar.</p>
+                        <button type="button" className="cm-botao" disabled={publicando} onClick={aderir}>
+                            {publicando ? 'Participando...' : 'Participar da comunidade'}
+                        </button>
+                        {erroPublicacao && <p role="alert">{erroPublicacao}</p>}
                     </section>
                 )}
 
@@ -242,6 +181,7 @@ export default function Comunidade() {
                 usuaria?.membro && (
                     <div className="cm-grade">
                         <main className="cm-feed">
+                            <header className="cm-talk-topo"><h1>CyberTalk</h1></header>
 
                             {postId && (
                                 <Link to="/comunidade">
@@ -337,9 +277,8 @@ export default function Comunidade() {
                                                     ? 'ativa'
                                                     : ''
                                             }
-                                            onClick={() =>
-                                                setAba(a.id)
-                                            }
+                                            disabled={a.id !== 'todos'}
+                                            title={a.id !== 'todos' ? 'Em breve' : undefined}
                                         >
                                             {a.rotulo}
                                         </button>

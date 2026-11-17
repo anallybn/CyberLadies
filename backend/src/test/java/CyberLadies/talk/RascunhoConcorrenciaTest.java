@@ -11,23 +11,25 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
+@org.springframework.test.context.jdbc.Sql(scripts="/db/fixture-conta-integracao.sql", executionPhase=org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS, config=@org.springframework.test.context.jdbc.SqlConfig(separator="@@@"))
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named="DATABASE_URL", matches="jdbc:postgresql://127\\.0\\.0\\.1:55439/cyberladies_auth_test")
 @SpringBootTest @AutoConfigureMockMvc
 class RascunhoConcorrenciaTest {
     @Autowired MockMvc mvc; @Autowired JdbcClient db;
     long dona; String auth; String caminho="/api/educadora/materiais/rascunhos";
     @BeforeEach void preparar() {
-        assertThat(db.sql("SELECT current_database()").query(String.class).single()).isEqualTo("cyberladies_auth_restore_5958ab52de");
-        dona=db.sql("INSERT INTO talk_usuaria(nome,email,senha_hash,competencias,tipo) VALUES ('Fixture concorrência privada',?,'fixture','','EDUCADORA') RETURNING id")
+        assertThat(db.sql("SELECT current_database()").query(String.class).single()).isEqualTo("cyberladies_auth_test");
+        dona=db.sql("SELECT fixture_conta_integracao('Fixture concorrência privada',?,'fixture','','EDUCADORA',false)")
             .param(UUID.randomUUID()+"@example.invalid").query(Long.class).single();
-        db.sql("INSERT INTO auth_educadora(usuaria_id,especialidade,instituicao) VALUES (?,'Teste','Teste')").param(dona).update();
+        db.sql("INSERT INTO educadora(conta_id,especialidade,instituicao,status) VALUES (?,'Teste','Teste','APROVADA')").param(dona).update();
         auth="Bearer "+UUID.randomUUID().toString().replace("-","").repeat(2);
-        db.sql("INSERT INTO talk_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')").params(ContaApi.hashBearer(auth),dona).update();
+        db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')").params(CyberLadies.auth.service.Credenciais.hashBearer(auth),dona).update();
     }
     @AfterEach void limpar() {
         db.sql("DELETE FROM academy_material_rascunho WHERE educadora_id=?").param(dona).update();
-        db.sql("DELETE FROM talk_sessao WHERE usuaria_id=?").param(dona).update();
-        db.sql("DELETE FROM auth_educadora WHERE usuaria_id=?").param(dona).update();
-        db.sql("DELETE FROM talk_usuaria WHERE id=?").param(dona).update();
+        db.sql("DELETE FROM auth_sessao WHERE usuaria_id=?").param(dona).update();
+        db.sql("DELETE FROM educadora WHERE conta_id=?").param(dona).update();
+        db.sql("DELETE FROM conta WHERE id=?").param(dona).update();
     }
     @Test void duasCriacoesSimultaneasProduzemUmUnicoRegistro() throws Exception {
         String chave=UUID.randomUUID().toString(); var inicio=new CountDownLatch(1);

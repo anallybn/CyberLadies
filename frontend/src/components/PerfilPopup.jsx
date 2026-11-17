@@ -73,6 +73,8 @@ export default function PerfilPopup({ onFechar, onEscolher, onLogin }) {
                             type="button"
                             className="perfil__card"
                             onClick={() => onEscolher?.(p.id)}
+                            disabled={p.id === 'empresa'}
+                            title={p.id === 'empresa' ? 'Em breve' : undefined}
                             >
                               <span className={`perfil__icone perfil__icone--${p.cor}`}>
                                 <Icone size={22} />

@@ -11,30 +11,32 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.test.context.jdbc.Sql(scripts="/db/fixture-conta-integracao.sql", executionPhase=org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS, config=@org.springframework.test.context.jdbc.SqlConfig(separator="@@@"))
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named="DATABASE_URL", matches="jdbc:postgresql://127\\.0\\.0\\.1:55439/cyberladies_auth_test")
 @SpringBootTest @AutoConfigureMockMvc @Transactional
 class AlunasIntegrationTest {
     @Autowired MockMvc mvc; @Autowired JdbcClient db;
     String base="/api/educadora/alunas",auth="Bearer "+"b".repeat(64),outroAuth="Bearer "+"c".repeat(64),pendenteAuth="Bearer "+"d".repeat(64),alunaAuth="Bearer "+"e".repeat(64),empresaAuth="Bearer "+"f".repeat(64);
     long dona,outra,pendente,ana,bia,semProgresso,trilha,extra,alheia,aula1,aula2,extra1,extra2;
     @BeforeEach void preparar(){
-        assertThat(db.sql("SELECT current_database()").query(String.class).single()).isEqualTo("cyberladies_auth_restore_5958ab52de");
+        assertThat(db.sql("SELECT current_database()").query(String.class).single()).isEqualTo("cyberladies_auth_test");
         dona=conta("EDUCADORA",auth,true);outra=conta("EDUCADORA",outroAuth,true);pendente=conta("EDUCADORA",pendenteAuth,false);
         ana=conta("CYBERLADIE",alunaAuth,false);bia=conta("CYBERLADIE",null,false);semProgresso=conta("CYBERLADIE",null,false);conta("EMPRESA",empresaAuth,false);
-        db.sql("UPDATE talk_usuaria SET nome='Ana Teste' WHERE id=?").param(ana).update();
-        db.sql("UPDATE talk_usuaria SET nome='Bia Teste' WHERE id=?").param(bia).update();
-        db.sql("UPDATE talk_usuaria SET nome='Sem Progresso' WHERE id=?").param(semProgresso).update();
+        db.sql("UPDATE conta SET nome='Ana Teste' WHERE id=?").param(ana).update();
+        db.sql("UPDATE conta SET nome='Bia Teste' WHERE id=?").param(bia).update();
+        db.sql("UPDATE conta SET nome='Sem Progresso' WHERE id=?").param(semProgresso).update();
         trilha=trilha(dona);extra=trilha(dona);alheia=trilha(outra);
         aula1=aula(trilha,1);aula2=aula(trilha,2);extra1=aula(extra,1);extra2=aula(extra,2);aula(alheia,1);
         inscrever(ana,trilha);inscrever(bia,trilha);inscrever(semProgresso,trilha);inscrever(ana,extra);inscrever(bia,alheia);
         concluir(ana,trilha,aula1);concluir(ana,trilha,aula2);concluir(bia,trilha,aula1);concluir(ana,extra,extra1);
     }
     long conta(String tipo,String token,boolean aprovada){
-        long id=db.sql("INSERT INTO talk_usuaria(nome,email,senha_hash,competencias,tipo) VALUES ('Fixture alunas',?,'fixture','privado',?) RETURNING id").params(UUID.randomUUID()+"@example.invalid",tipo).query(Long.class).single();
+        long id=db.sql("SELECT fixture_conta_integracao('Fixture alunas',?,'fixture','privado',?,false)").params(UUID.randomUUID()+"@example.invalid",tipo).query(Long.class).single();
         if(tipo.equals("EDUCADORA")){
-            db.sql("INSERT INTO auth_educadora(usuaria_id,especialidade,instituicao) VALUES (?,'Teste','Teste')").param(id).update();
-            if(aprovada)db.sql("UPDATE auth_educadora SET status='APROVADA' WHERE usuaria_id=?").param(id).update();
+            db.sql("INSERT INTO educadora(conta_id,especialidade,instituicao) VALUES (?,'Teste','Teste')").param(id).update();
+            if(aprovada)db.sql("UPDATE educadora SET status='APROVADA' WHERE conta_id=?").param(id).update();
         }
-        if(token!=null)db.sql("INSERT INTO talk_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')").params(ContaApi.hashBearer(token),id).update();
+        if(token!=null)db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')").params(CyberLadies.auth.service.Credenciais.hashBearer(token),id).update();
         return id;
     }
     long trilha(long autora){
@@ -82,11 +84,11 @@ class AlunasIntegrationTest {
         }
         mvc.perform(get(base)).andExpect(status().isUnauthorized());
         mvc.perform(get(detalhe(ana,trilha))).andExpect(status().isUnauthorized());
-        db.sql("UPDATE auth_educadora SET status='PENDENTE' WHERE usuaria_id=?").param(dona).update();
+        db.sql("UPDATE educadora SET status='PENDENTE' WHERE conta_id=?").param(dona).update();
         mvc.perform(get(detalhe(ana,trilha)).header("Authorization",auth)).andExpect(status().isForbidden());
-        // O status não remove os acessos já existentes.
-        mvc.perform(get("/api/educadora/dashboard").header("Authorization",auth)).andExpect(status().isOk());
-        mvc.perform(get("/api/educadora/materiais/rascunhos").header("Authorization",auth)).andExpect(status().isOk());
+        // Acesso privado de pendentes ainda não foi autorizado nesta integração.
+        mvc.perform(get("/api/educadora/dashboard").header("Authorization",auth)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/educadora/materiais/rascunhos").header("Authorization",auth)).andExpect(status().isForbidden());
     }
     @Test void dadosMinimosSemPerfilPrivadoOuMetadadosDoVideo()throws Exception{
         String lista=mvc.perform(get(base).header("Authorization",auth)).andReturn().getResponse().getContentAsString();

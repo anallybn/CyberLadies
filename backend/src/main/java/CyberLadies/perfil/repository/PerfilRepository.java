@@ -12,15 +12,16 @@ public class PerfilRepository {
     public PerfilRepository(JdbcClient db) { this.db=db; }
     public Pessoal pessoal(long usuaria) {
         return db.sql("""
-            SELECT id,nome,email,competencias,sobre,formacao,
+            SELECT u.id,u.nome,u.email,p.competencias,u.sobre,u.formacao,
             EXISTS(SELECT 1 FROM perfil_foto WHERE usuaria_id=u.id) AS tem_foto
-            FROM talk_usuaria u WHERE id=?
+            FROM conta u JOIN usuaria p ON p.conta_id=u.id WHERE u.id=?
             """).param(usuaria).query(Pessoal.class).single();
     }
     public void editar(long usuaria, Edicao dados) {
-        db.sql("UPDATE talk_usuaria SET nome=?,sobre=?,formacao=?,competencias=? WHERE id=?")
+        db.sql("UPDATE conta SET nome=?,sobre=?,formacao=? WHERE id=?")
             .params(dados.nome().strip(),dados.sobre().strip(),dados.formacao().strip(),
-                dados.competencias().strip(),usuaria).update();
+                usuaria).update();
+        db.sql("UPDATE usuaria SET competencias=? WHERE conta_id=?").params(dados.competencias().strip(),usuaria).update();
     }
     public Participacao participacao(long usuaria) {
         return db.sql("""

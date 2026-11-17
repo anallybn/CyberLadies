@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, AtSign, Lock, Eye, EyeOff } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Circuitos from '../components/Circuitos'
 import gatinho from '../assets/gatinho-login.png'
-import { login } from '../services/authService';
+import { entrar, destinoAposLogin } from '../services/sessaoService'
 import './Login.css'
 
 export default function Login() {
@@ -49,17 +49,10 @@ export default function Login() {
 
         setCarregando(true)
         try {
-            const { token, perfil: perfilAutenticado } = await login(email.trim(), senha)
-            sessionStorage.setItem('token', token)
-            const post = sessionStorage.getItem('talk-post')
-            sessionStorage.removeItem('talk-post')
+            const conta = await entrar(email.trim(), senha)
             const retorno = params.get('retorno')
-            const destinoVaga = retorno && (retorno === '/chat' || retorno === '/perfil' || /^\/academy(?:\/(?:mentorias|trilhas\/[1-9]\d*|aulas\/[1-9]\d*|certificados\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}))?$/.test(retorno) || /^\/vagas(?:\?vaga=[1-9]\d*)?$/.test(retorno)) ? retorno : null
-            if (perfilAutenticado === 'EDUCADORA' || perfilAutenticado === 'EMPRESA') {
-                navigate(retorno === '/chat' ? '/chat' : perfilAutenticado === 'EDUCADORA' ? '/educadora/dashboard' : '/vagas', { replace: true })
-                return
-            }
-            navigate(destinoVaga || (post ? '/comunidade?post=' + encodeURIComponent(post) : '/comunidade'), { replace: true })
+            const seguro = retorno && /^\/(academy|vagas|perfil|chat)(\/|\?|$)/.test(retorno) && !retorno.includes('\\')
+            navigate(conta.papeis.includes('ADMIN') ? '/admin/educadoras' : seguro ? retorno : conta.papeis.includes('EMPRESA') ? '/vagas' : destinoAposLogin(conta, params.get('post')), { replace: true })
         } catch (erro) {
             setMensagem({ tipo: 'erro', texto: erro.message })
         } finally {
@@ -90,6 +83,8 @@ export default function Login() {
                             
                             <h1 className="login__titulo">Bem-vinda de volta!</h1>
                             <p className="login__subtitulo">Entre para continuar sua jornada na tech</p>
+                            {params.get('motivo') === 'sessao-expirada' && <p role="status">Sua sessão expirou. Entre novamente para continuar.</p>}
+                            {perfil === 'educadora' && <p>Entre com sua conta pessoal. Na comunidade, acesse “Atuar como educadora”.</p>}
 
                             <form className="login__form" onSubmit={aoEnviar} noValidate>
                                 <div className="campo">

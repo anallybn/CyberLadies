@@ -12,6 +12,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.test.context.jdbc.Sql(scripts="/db/fixture-conta-integracao.sql", executionPhase=org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS, config=@org.springframework.test.context.jdbc.SqlConfig(separator="@@@"))
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named="DATABASE_URL", matches="jdbc:postgresql://127\\.0\\.0\\.1:55439/cyberladies_auth_test")
 @SpringBootTest @AutoConfigureMockMvc @Transactional
 class RascunhoIntegrationTest {
     @Autowired MockMvc mvc; @Autowired JdbcClient db;
@@ -19,15 +21,15 @@ class RascunhoIntegrationTest {
     String auth="Bearer "+"7".repeat(64),outraAuth="Bearer "+"8".repeat(64),alunaAuth="Bearer "+"9".repeat(64),empresaAuth="Bearer "+"a".repeat(64);
     long dona,outra,trilha,alheia;
     @BeforeEach void preparar() {
-        assertThat(db.sql("SELECT current_database()").query(String.class).single()).isEqualTo("cyberladies_auth_restore_5958ab52de");
+        assertThat(db.sql("SELECT current_database()").query(String.class).single()).isEqualTo("cyberladies_auth_test");
         dona=conta("EDUCADORA",auth);outra=conta("EDUCADORA",outraAuth);conta("CYBERLADIE",alunaAuth);conta("EMPRESA",empresaAuth);
         trilha=trilha(dona);alheia=trilha(outra);
     }
     long conta(String tipo,String auth) {
-        long id=db.sql("INSERT INTO talk_usuaria(nome,email,senha_hash,competencias,tipo) VALUES ('Fixture rascunhos',?,'fixture','',?) RETURNING id")
+        long id=db.sql("SELECT fixture_conta_integracao('Fixture rascunhos',?,'fixture','',?,false)")
             .params(UUID.randomUUID()+"@example.invalid",tipo).query(Long.class).single();
-        if(tipo.equals("EDUCADORA"))db.sql("INSERT INTO auth_educadora(usuaria_id,especialidade,instituicao) VALUES (?,'Teste','Teste')").param(id).update();
-        db.sql("INSERT INTO talk_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')").params(ContaApi.hashBearer(auth),id).update();
+        if(tipo.equals("EDUCADORA"))db.sql("INSERT INTO educadora(conta_id,especialidade,instituicao,status) VALUES (?,'Teste','Teste','APROVADA')").param(id).update();
+        db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')").params(CyberLadies.auth.service.Credenciais.hashBearer(auth),id).update();
         return id;
     }
     long trilha(long autora) {
@@ -48,7 +50,7 @@ class RascunhoIntegrationTest {
             .andExpect(status().isOk()).andExpect(jsonPath("$.revisao").value(2)).andExpect(jsonPath("$.tags.length()").value(1));
         mvc.perform(get(caminho).header("Authorization",auth)).andExpect(jsonPath("$[0].titulo").value("Editado"))
             .andExpect(jsonPath("$[0].descricao").doesNotExist()).andExpect(jsonPath("$[0].videoId").doesNotExist());
-        assertThat(db.sql("SELECT status FROM auth_educadora WHERE usuaria_id=?").param(dona).query(String.class).single()).isEqualTo("PENDENTE");
+        assertThat(db.sql("SELECT status FROM educadora WHERE conta_id=?").param(dona).query(String.class).single()).isEqualTo("APROVADA");
     }
     @Test void isolamentoEPerfisBloqueados() throws Exception {
         String uuid=id(criar("{\"titulo\":\"Privado\"}",UUID.randomUUID().toString()));

@@ -14,7 +14,7 @@ public class AlunasRepository {
            (SELECT count(*) FROM academy_aula a WHERE a.trilha_id=t.id) total_aulas,
            (SELECT count(*) FROM academy_conclusao c WHERE c.usuaria_id=i.usuaria_id AND c.trilha_id=t.id) aulas_concluidas
           FROM academy_autoria p JOIN academy_trilha t ON t.id=p.trilha_id
-          JOIN academy_inscricao i ON i.trilha_id=t.id JOIN talk_usuaria u ON u.id=i.usuaria_id
+          JOIN academy_inscricao i ON i.trilha_id=t.id JOIN conta u ON u.id=i.usuaria_id
           WHERE p.educadora_id=:dona
         ), progresso AS (
           SELECT *,CASE WHEN total_aulas>0 THEN (100*aulas_concluidas/total_aulas)::integer ELSE 0 END percentual

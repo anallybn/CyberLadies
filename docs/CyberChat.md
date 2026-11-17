@@ -1,3 +1,13 @@
+# Integração atual
+
+O CyberChat publicado na main foi preservado e reconciliado com a identidade
+`conta`, papéis acumuláveis e aprovação atual. Use Flyway V10 e os comandos de
+[AMBIENTE_LOCAL.md](AMBIENTE_LOCAL.md); o SQL avulso e os destinos específicos da
+documentação de origem abaixo são históricos. Não executar esses scripts antigos
+diretamente no banco fixo. A suíte concorrente usa `cyberladies_auth_chat_test`.
+
+---
+
 # CyberChat — mensagens privadas por contexto
 
 ## Acesso manual

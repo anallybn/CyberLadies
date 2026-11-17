@@ -14,7 +14,9 @@ import CyberLadies.auth.service.Credenciais;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-@SpringBootTest @AutoConfigureMockMvc @Transactional
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named="DATABASE_URL",matches="jdbc:postgresql://127\\.0\\.0\\.1:55439/cyberladies_auth_test")
+@org.springframework.test.context.jdbc.Sql(scripts="/db/fixture-conta-integracao.sql",executionPhase=org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS,config=@org.springframework.test.context.jdbc.SqlConfig(separator="@@@"))
+@SpringBootTest(properties="spring.datasource.url=jdbc:postgresql://127.0.0.1:55439/cyberladies_auth_chat_test") @AutoConfigureMockMvc @Transactional
 class ChatIntegrationTest {
  @Autowired MockMvc mvc;@Autowired JdbcClient db;
  long aluna,educadora,empresa,estranha,trilha,mentoria,candidatura;
@@ -22,42 +24,41 @@ class ChatIntegrationTest {
  final String base="/api/chat/conversas";
  long conta(String tipo){
   String hash=Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8().encode("TesteCyberChat123!");
-  long id=db.sql("INSERT INTO talk_usuaria(nome,email,senha_hash,competencias,tipo) VALUES (?, ?,?,'',?) RETURNING id")
+  long id=db.sql("SELECT fixture_conta_integracao(?,?,?,'',?,false)")
    .params("Chat fixture "+tipo,"chat-fixture-"+UUID.randomUUID()+"@example.invalid",hash,tipo).query(Long.class).single();
   if(tipo.equals("EDUCADORA")){
-   db.sql("INSERT INTO auth_educadora VALUES (?,'Teste','Teste','PENDENTE')").param(id).update();
-   db.sql("UPDATE auth_educadora SET status='APROVADA' WHERE usuaria_id=?").param(id).update();
+   db.sql("INSERT INTO educadora(conta_id,especialidade,instituicao,status) VALUES (?,'Teste','Teste','PENDENTE')").param(id).update();
+   db.sql("UPDATE educadora SET status='APROVADA' WHERE conta_id=?").param(id).update();
   }
   if(tipo.equals("EMPRESA")){
    long e=db.sql("INSERT INTO cyber_empresa(nome) VALUES ('Chat fixture empresa') RETURNING id").query(Long.class).single();
    // Identificação exclusivamente sintética em cópia descartável.
    String cnpj=String.format("%014d",id);
-   db.sql("INSERT INTO auth_empresa VALUES (?,?,?,'Teste')").params(id,e,cnpj).update();
+   db.sql("INSERT INTO conta_empresa VALUES (?,?,?,'Teste')").params(id,e,cnpj).update();
   }
   return id;
  }
  String sessao(long id){
   String token=Credenciais.token();
-  db.sql("INSERT INTO talk_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '8 hours')").params(Credenciais.hash(token),id).update();
+  db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '8 hours')").params(Credenciais.hash(token),id).update();
   return "Bearer "+token;
  }
  @BeforeEach void preparar(){
-  assertThat(db.sql("SELECT current_database()").query(String.class).single()).isEqualTo("cyberladies_auth_chat_935de7fe96");
+  assertThat(db.sql("SELECT current_database()").query(String.class).single()).isEqualTo("cyberladies_auth_chat_test");
   aluna=conta("CYBERLADIE");educadora=conta("EDUCADORA");empresa=conta("EMPRESA");estranha=conta("CYBERLADIE");
   alunaAuth=sessao(aluna);educadoraAuth=sessao(educadora);empresaAuth=sessao(empresa);estranhaAuth=sessao(estranha);
   trilha=db.sql("INSERT INTO academy_trilha(titulo,descricao,categoria,nivel) VALUES ('Trilha chat teste','Teste','DADOS','INICIANTE') RETURNING id").query(Long.class).single();
   db.sql("INSERT INTO academy_autoria(trilha_id,educadora_id) VALUES (?,?)").params(trilha,educadora).update();
-  // Copia apenas metadados de aula existente; não inventa vídeo ou reproduz conteúdo.
+  // Metadados sintéticos exclusivos de teste; nenhum vídeo é reproduzido.
   db.sql("""
    INSERT INTO academy_aula(trilha_id,titulo,descricao,ordem,duracao_minutos,video_provedor,video_id,uso_autorizado)
-   SELECT ?,'Aula chat teste','Teste',1,duracao_minutos,video_provedor,video_id,uso_autorizado
-   FROM academy_aula ORDER BY id LIMIT 1
+   VALUES (?,'Aula chat teste','Teste',1,15,'YOUTUBE','M7lc1UVf-VE',true)
    """).param(trilha).update();
   db.sql("INSERT INTO academy_inscricao VALUES (?,?,CURRENT_TIMESTAMP)").params(aluna,trilha).update();
   long mentora=db.sql("INSERT INTO academy_mentora(usuaria_id,nome,especialidade) VALUES (?,'Chat fixture mentora','Teste') RETURNING id").param(educadora).query(Long.class).single();
   long slot=db.sql("INSERT INTO academy_disponibilidade(mentora_id,inicio,fim,tema) VALUES (?,clock_timestamp()+INTERVAL '10 days',clock_timestamp()+INTERVAL '10 days 1 hour','Mentoria chat teste') RETURNING id").param(mentora).query(Long.class).single();
   mentoria=db.sql("INSERT INTO academy_agendamento(usuaria_id,disponibilidade_id) VALUES (?,?) RETURNING id").params(aluna,slot).query(Long.class).single();
-  long vaga=db.sql("INSERT INTO cyber_vaga(empresa_id,titulo,descricao) SELECT empresa_id,'Vaga chat teste','Teste' FROM auth_empresa WHERE usuaria_id=? RETURNING id").param(empresa).query(Long.class).single();
+  long vaga=db.sql("INSERT INTO cyber_vaga(empresa_id,titulo,descricao) SELECT empresa_id,'Vaga chat teste','Teste' FROM conta_empresa WHERE conta_id=? RETURNING id").param(empresa).query(Long.class).single();
   candidatura=db.sql("INSERT INTO cyber_candidatura(usuaria_id,vaga_id) VALUES (?,?) RETURNING id").params(aluna,vaga).query(Long.class).single();
   chaveTrilha="TRILHA:"+aluna+":"+trilha;chaveMentoria="MENTORIA:"+mentoria;chaveCandidatura="CANDIDATURA:"+candidatura;
  }
@@ -94,7 +95,7 @@ class ChatIntegrationTest {
  @Test void pendenteERevogacaoBloqueiamEducadoraSemApagarHistoricoDaAluna()throws Exception{
   String id=criar(alunaAuth,chaveTrilha);
   enviar(alunaAuth,id,"Mensagem preservada",UUID.randomUUID()).andExpect(status().isOk());
-  db.sql("UPDATE auth_educadora SET status='PENDENTE' WHERE usuaria_id=?").param(educadora).update();
+  db.sql("UPDATE educadora SET status='PENDENTE' WHERE conta_id=?").param(educadora).update();
   mvc.perform(get("/api/chat/contextos").header("Authorization",educadoraAuth)).andExpect(jsonPath("$.itens").isEmpty());
   mvc.perform(get(base).header("Authorization",educadoraAuth)).andExpect(jsonPath("$.itens").isEmpty());
   mvc.perform(get(base+"/"+id+"/mensagens").header("Authorization",educadoraAuth)).andExpect(status().isNotFound());
@@ -175,7 +176,7 @@ class ChatIntegrationTest {
   ExecutorService pool=Executors.newFixedThreadPool(2);CountDownLatch travou=new CountDownLatch(1),liberar=new CountDownLatch(1);
   try{
    var revogar=pool.submit(()->new org.springframework.transaction.support.TransactionTemplate(transacoes).execute(s->{
-    db.sql("UPDATE auth_educadora SET status='PENDENTE' WHERE usuaria_id=?").param(educadora).update();travou.countDown();
+    db.sql("UPDATE educadora SET status='PENDENTE' WHERE conta_id=?").param(educadora).update();travou.countDown();
     try{if(!liberar.await(10,TimeUnit.SECONDS))throw new IllegalStateException("Tempo de teste esgotado");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new IllegalStateException(e);}
     return true;
    }));

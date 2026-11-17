@@ -76,7 +76,7 @@ public class AcademyRepository {
             .param(id).query(Horario.class).optional();
     }
     public void bloquearReserva(long usuaria,long mentora,long horario) {
-        db.sql("SELECT id FROM talk_usuaria WHERE id=? FOR UPDATE").param(usuaria).query(Long.class).single();
+        db.sql("SELECT id FROM conta WHERE id=? FOR UPDATE").param(usuaria).query(Long.class).single();
         db.sql("SELECT id FROM academy_mentora WHERE id=? FOR UPDATE").param(mentora).query(Long.class).single();
         db.sql("SELECT id FROM academy_disponibilidade WHERE id=? FOR UPDATE").param(horario).query(Long.class).single();
     }

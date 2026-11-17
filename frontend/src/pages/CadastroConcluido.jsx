@@ -10,18 +10,18 @@ import './CadastroConcluido.css'
 //ajustar destinos com o back
 const perfis = {
     usuaria: {
-        destino: '/comunidade',
-        botao: 'ENTRAR NA COMUNIDADE',
+        destino: '/login',
+        botao: 'FAZER LOGIN',
         texto: 'Bem-vinda à CyberLadies. Estamos animadas em ter você aqui.'
     },
     educadora: {
-        destino: '/login?perfil=educadora',
-        botao: 'IR PARA A MINHA ÁREA',
-        texto: 'Bem-vinda à CyberLadies. Estamos animadas em ter você ensinando com a gente.',
+        destino: '/cadastro/educadora',
+        botao: 'VER COMO SOLICITAR',
+        texto: 'A atuação como educadora usa sua conta pessoal e passa por análise.',
     },
     empresa: {
         destino: '/login?perfil=empresa',
-        botao: 'IR PARA A MINHA ÁREA',
+        botao: 'FAZER LOGIN',
         texto: 'Bem-vinda à CyberLadies. Estamos animadas em ter vocês por aqui.'
     },
     
