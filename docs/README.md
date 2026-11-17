@@ -21,6 +21,7 @@
 - [Fluxo de análise de educadoras](ANALISE_EDUCADORAS.md).
 - [Mapa de telas, integração e diferenças de contrato](INTEGRACAO_APRESENTACAO.md).
 - [Validação do frontend](VALIDACAO_FRONTEND.md).
+- [Recursos de acessibilidade e limites da validação](ACESSIBILIDADE.md).
 - [Guia do frontend](FRONTEND.md).
 - [Registro histórico da recuperação dos módulos](CORRECAO_INTEGRACAO.md).
 
