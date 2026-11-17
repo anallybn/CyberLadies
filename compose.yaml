@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: cyberladies
       POSTGRES_USER: cyberladies
-      POSTGRES_PASSWORD: desenvolvimento-local
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Defina DATABASE_PASSWORD no arquivo .env local}
     volumes:
       - dados:/var/lib/postgresql/data
     healthcheck:
@@ -22,7 +22,7 @@ services:
     environment:
       DATABASE_URL: jdbc:postgresql://banco:5432/cyberladies
       DATABASE_USER: cyberladies
-      DATABASE_PASSWORD: desenvolvimento-local
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Defina DATABASE_PASSWORD no arquivo .env local}
     command: ["mvn", "spring-boot:run"]
     depends_on:
       banco:

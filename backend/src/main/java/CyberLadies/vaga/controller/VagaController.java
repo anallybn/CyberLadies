@@ -25,6 +25,6 @@ public class VagaController {
     public Vaga buscar(@PathVariable long id) { return service.buscarPorId(id); }
     @RequestMapping(path={"","/{id}"}, method={RequestMethod.POST,RequestMethod.PUT,RequestMethod.PATCH,RequestMethod.DELETE})
     public void bloquearEscrita() {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vagas são mantidas somente por carga administrativa.");
+        service.bloquearEscrita();
     }
 }

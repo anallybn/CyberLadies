@@ -1,0 +1,15 @@
+.git
+.vscode
+.agents
+.codex
+.aws
+**/node_modules
+**/target
+**/dist
+**/test-results
+**/playwright-report
+**/.vercel
+**/.env*
+**/*.dump
+**/*.backup
+**/*.log
