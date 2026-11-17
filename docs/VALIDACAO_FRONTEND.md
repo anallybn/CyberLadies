@@ -1,10 +1,25 @@
 # Sessão, educadora e análise administrativa no frontend
 
+## Fechamento da navegação e proteção de educadora
+
+Após incorporar a main `4dfaba7`: **124 testes backend, 8 unitários frontend e
+9 cenários Playwright/Chrome aprovados**, sem falhas, erros ou ignorados.
+Build, lint e empacotamento aprovados. O novo cenário verifica as quatro rotas
+de educadora, link no topo/menu após aprovação, papéis USUARIA + EDUCADORA,
+recusa para usuária sem EDUCADORA e consulta da solicitação pendente/rejeitada.
+Os cenários existentes continuam cobrindo ADMIN, login e CyberTalk. O percurso
+completo também verifica persistência do Chat publicado na main.
+
+As APIs foram verificadas diretamente: pendentes, rejeitadas e contas sem papel
+não acessam dashboard; aprovação não libera publicação editorial. Os testes
+usaram exclusivamente bancos automatizados, com Chat em banco próprio
+`cyberladies_auth_chat_test`. Os resultados seguintes são históricos.
+
 ## Integração das novas telas para apresentação
 
 Na branch `integracao/telas-apresentacao`, páginas de `origin/main` (`ca4cb29`)
 foram integradas à sessão/papéis existentes, junto com seus módulos de backend.
-Veja o [mapa de telas, roteiro e diferenças de contrato](../docs/INTEGRACAO_APRESENTACAO.md).
+Veja o [mapa de telas, roteiro e diferenças de contrato](INTEGRACAO_APRESENTACAO.md).
 Validação final: 110 testes backend, 8 testes unitários frontend e 8 cenários
 Playwright/Chrome aprovados, sem testes ignorados; build e lint aprovados.
 Os cenários de navegador incluem o percurso completo das novas telas e a
@@ -23,7 +38,7 @@ específica da perda dessas funcionalidades. A correção em
 `correcao/preservar-modulos-main` recupera nove módulos sem alterar seus contratos
 ou armazenamento; os conflitos de educadora permanecem para revisão prévia.
 A autenticação atual e Flyway continuam preservados. Consulte
-[a revisão e validação da correção](../backend/CORRECAO_INTEGRACAO.md).
+[a revisão e validação da correção](CORRECAO_INTEGRACAO.md).
 
 O feed e a coluna lateral, os cartões, os estilos de publicação, edição e
 comentários e o menu popup mantêm o desenho da colega. O menu consulta os papéis
@@ -74,7 +89,7 @@ coexistir. As proteções de tela não substituem a autorização do backend.
 ADMIN é direcionado à área administrativa após login; contas pessoais continuam
 na comunidade. O menu oferece o acesso à solicitação de educadora. O cadastro
 de administrador não é público; o comando operacional continua documentado em
-`backend/ADMINISTRADOR.md`. As telas de empresas e cursos não foram implementadas;
+`docs/ADMINISTRADOR.md`. As telas de empresas e cursos não foram implementadas;
 suas APIs em memória foram recuperadas da main nesta correção e não integram a sessão.
 
 A solicitação rejeitada mostra o motivo e não oferece reenvio. Uma solicitação
@@ -157,7 +172,7 @@ Capturas desktop/celular ficam em `test-results/`, ignorado pelo Git.
 
 Ao terminar, encerre a API e a instância PostgreSQL de teste, sem parar os
 serviços do ambiente atual. A regressão backend pode ser executada nos bancos
-isolados próprios, conforme `backend/MIGRACOES.md`.
+isolados próprios, conforme `docs/MIGRACOES.md`.
 
 ## Resultados anteriores à integração de layout
 
@@ -169,4 +184,4 @@ isolados próprios, conforme `backend/MIGRACOES.md`.
 
 Não houve teste em Safari/Firefox nem ensaio Docker nessa etapa. Esses resultados
 são históricos; os resultados atuais e as limitações da recuperação do backend
-estão em [CORRECAO_INTEGRACAO.md](../backend/CORRECAO_INTEGRACAO.md).
+estão em [CORRECAO_INTEGRACAO.md](CORRECAO_INTEGRACAO.md).

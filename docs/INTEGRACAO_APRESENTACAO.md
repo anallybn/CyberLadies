@@ -1,5 +1,42 @@
 # Integração das telas para apresentação
 
+## Fechamento e atualização da main (16/11/2026)
+
+O checkpoint `315460c` preservou o ambiente persistente e a operação protegida do
+ADMIN. O novo fetch encontrou `4dfaba7` na main: foram incorporados também
+`b3c30be` (CyberChat), `8c3f019` (dashboard) e `4dfaba7` (Enviar Material), preservando
+os estilos da colega. O Chat é funcionalidade já publicada na origem, adaptada
+à identidade atual e ao Flyway V10, sem ampliar suas operações ou permissões.
+
+O topo agora oferece **Painel da educadora** somente para contas com EDUCADORA
+e aprovação retornada pelo servidor. O menu oferece as quatro telas existentes
+sob a mesma condição. As rotas dashboard, enviar-material, meus-materiais e
+minhas-alunas exigem papel e aprovação, aceitando USUARIA + EDUCADORA; a API
+continua impondo as mesmas restrições. Pendentes e rejeitadas mantêm acesso a
+**Minha solicitação**, ao status e ao motivo, sem obter acesso à área aprovada.
+Parâmetros de URL não concedem papel ou aprovação.
+
+A documentação foi agrupada em `docs`, com referências atualizadas. O script
+temporário de movimentação em target foi inspecionado e não foi repetido nem
+incluído nos commits. Não houve movimentação de pacotes Java, migrações antigas,
+armazenamento persistente, credenciais ou configurações pessoais.
+
+Fechamento validado: **124 testes backend, 8 unitários frontend e 9 cenários
+Playwright/Chrome**, todos aprovados e sem ignorados; lint, build e pacote backend
+aprovados. Os cenários incluem login, ADMIN, CyberTalk, os quatro perfis de acesso
+à educadora, solicitação pendente/rejeitada, múltiplos papéis e Chat persistente.
+
+A V10 foi ensaiada numa cópia automatizada recuperada do backup do banco fixo;
+os dados de todas as tabelas preexistentes e sequências permaneceram equivalentes.
+Backups e evidência ficam na pasta local permanente, fora do Git. Os bancos de
+teste são distintos do banco de apresentação; a suíte concorrente de Chat usa
+`cyberladies_auth_chat_test` para não interferir nas fixtures das demais suítes.
+
+Os registros seguintes descrevem as etapas anteriores; **Chat deixou de ser
+indisponível na main**. O restante das limitações editoriais permanece: sem
+publicação de materiais, envio de PDF/MP4, arquivamento/exclusão de rascunhos ou
+reanálise de educadoras. Nenhum módulo da main foi omitido silenciosamente.
+
 ## Estado inicial e origem
 
 Checkpoint local `15796f5` em `correcao/preservar-modulos-main`: contém a
@@ -148,7 +185,7 @@ que não foram ampliadas nem escondidas como novos percursos de apresentação.
 Documentos e scripts de validação importados da origem foram preservados como
 históricos, com aviso. Não executar o perfil antigo auth-validacao nem os SQLs
 avulsos sobre esta integração. Os comandos atuais estão neste documento e em
-frontend/VALIDACAO.md; `schema.sql` não voltou como inicializador.
+docs/VALIDACAO_FRONTEND.md; `schema.sql` não voltou como inicializador.
 
 ## Ambiente local e preservação da demonstração
 

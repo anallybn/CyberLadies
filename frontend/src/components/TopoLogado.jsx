@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSessao } from '../hooks/useSessao'
+import { useConta } from '../hooks/useConta'
 import { sair, temPapel } from '../services/sessaoService'
 import { UserRound } from 'lucide-react'
 import icone from '../assets/icone.svg'
@@ -11,6 +12,7 @@ import './TopoLogado.css'
 // topo das páginas de dentro do site (depois do login)
 export default function TopoLogado({ ativa, inicial }) {
     const { conta } = useSessao()
+    const { conta: detalhes } = useConta()
     const [menuAberto, setMenuAberto] = useState(false)
     const navigate = useNavigate()
     const [erro, setErro] = useState('')
@@ -18,6 +20,7 @@ export default function TopoLogado({ ativa, inicial }) {
     const pessoal = temPapel(conta, 'USUARIA') || temPapel(conta, 'EDUCADORA')
     const empresa = temPapel(conta, 'EMPRESA')
     const admin = temPapel(conta, 'ADMIN')
+    const educadoraAprovada = temPapel(conta, 'EDUCADORA') && detalhes?.statusEducadora === 'APROVADA'
     async function encerrar() {
         setSaindo(true); setErro('')
         try { await sair(); navigate('/login', { replace: true }) }
@@ -54,7 +57,8 @@ export default function TopoLogado({ ativa, inicial }) {
                         </button>
                     )
                 )}
-                {temPapel(conta, 'USUARIA') && <Link to="/educadora" className={`topo-logado__link ${ativa === 'educadora' ? 'ativa' : ''}`}>Atuar como educadora</Link>}
+                {educadoraAprovada && <Link to="/educadora/dashboard" className="topo-logado__link">Painel da educadora</Link>}
+                {temPapel(conta, 'USUARIA') && <Link to="/educadora" className={`topo-logado__link ${ativa === 'educadora' ? 'ativa' : ''}`}>{temPapel(conta, 'EDUCADORA') ? 'Minha solicitação' : 'Atuar como educadora'}</Link>}
                 {admin && <Link to="/admin/educadoras" className={`topo-logado__link ${ativa === 'admin' ? 'ativa' : ''}`}>Solicitações</Link>}
             </nav>
             {conta && <button type="button" className="topo-logado__link" disabled={saindo} onClick={encerrar}>{saindo ? 'Saindo...' : 'Sair'}</button>}

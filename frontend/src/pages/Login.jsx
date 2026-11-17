@@ -51,8 +51,8 @@ export default function Login() {
         try {
             const conta = await entrar(email.trim(), senha)
             const retorno = params.get('retorno')
-            const seguro = retorno && /^\/(academy|vagas|perfil)(\/|\?|$)/.test(retorno) && !retorno.includes('\\')
-            navigate(conta.papeis.includes('EMPRESA') ? '/vagas' : seguro ? retorno : destinoAposLogin(conta, params.get('post')), { replace: true })
+            const seguro = retorno && /^\/(academy|vagas|perfil|chat)(\/|\?|$)/.test(retorno) && !retorno.includes('\\')
+            navigate(conta.papeis.includes('ADMIN') ? '/admin/educadoras' : seguro ? retorno : conta.papeis.includes('EMPRESA') ? '/vagas' : destinoAposLogin(conta, params.get('post')), { replace: true })
         } catch (erro) {
             setMensagem({ tipo: 'erro', texto: erro.message })
         } finally {

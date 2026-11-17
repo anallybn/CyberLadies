@@ -4,7 +4,7 @@
 > A integração posterior das novas telas incorpora os contratos seguros e
 > persistentes de vagas/candidaturas da main, conforme decisão recebida, e mantém
 > os outros sete módulos em memória. O estado atual, validações e roteiro estão
-> em [INTEGRACAO_APRESENTACAO.md](../docs/INTEGRACAO_APRESENTACAO.md).
+> em [INTEGRACAO_APRESENTACAO.md](INTEGRACAO_APRESENTACAO.md).
 
 ## Base e preservação do trabalho
 
@@ -133,4 +133,4 @@ Para repetir os testes backend, preparar bancos novos conforme `MIGRACOES.md`,
 definir DATABASE_URL para `jdbc:postgresql://127.0.0.1:55439/cyberladies_auth_test`,
 DATABASE_USER/DATABASE_PASSWORD do cluster descartável e MIGRATION_TESTS=true;
 executar `mvn test`. Nunca apontar a suíte ao banco atual. Para Playwright seguir
-`frontend/VALIDACAO.md` e usar outro banco novo `cyberladies_frontend_e2e`.
+`docs/VALIDACAO_FRONTEND.md` e usar outro banco novo `cyberladies_frontend_e2e`.

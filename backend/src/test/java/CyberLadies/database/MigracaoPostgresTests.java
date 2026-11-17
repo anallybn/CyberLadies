@@ -45,7 +45,7 @@ class MigracaoPostgresTests {
         assertThrows(IllegalStateException.class, () -> adotar(VAZIO, "--adotar=" + VAZIO));
         try (var contexto = iniciar(VAZIO); var conexao = conectar(VAZIO)) {
             assertEquals("SQL", historico(conexao).getFirst().get(0));
-            assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9"), historico(conexao).stream().map(linha -> linha.get(1)).toList());
+            assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"), historico(conexao).stream().map(linha -> linha.get(1)).toList());
             inserirDados(conexao, true);
             conferirAplicacao(contexto);
         }
@@ -92,7 +92,7 @@ class MigracaoPostgresTests {
         assertEquals(antes, dados(LEGADO));
         try (var c = conectar(LEGADO)) {
             assertEquals(historicoV1, historico(c).getFirst());
-            assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9"), historico(c).stream().map(linha -> linha.get(1)).toList());
+            assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"), historico(c).stream().map(linha -> linha.get(1)).toList());
             conferirEstruturaV2(c);
         }
         try (var contexto = iniciar(LEGADO)) { conferirAplicacao(contexto); }
@@ -113,7 +113,7 @@ class MigracaoPostgresTests {
         try (var contexto = iniciar(NA_V1); var c = conectar(NA_V1)) {
             assertEquals(antes, dados(NA_V1));
             assertEquals(historicoAntes.getFirst(), historico(c).getFirst());
-            assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9"), historico(c).stream().map(linha -> linha.get(1)).toList());
+            assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"), historico(c).stream().map(linha -> linha.get(1)).toList());
             conferirEstruturaV2(c);
             conferirAplicacao(contexto);
             assertEquals("5", consultar(c, "SELECT id::text FROM conta WHERE email='bia@example.com'").getFirst().getFirst());
@@ -131,7 +131,7 @@ class MigracaoPostgresTests {
         assertEquals("3", consultar(c, "SELECT count(*)::text FROM usuaria").getFirst().getFirst());
         assertEquals(List.of(List.of("1", "USUARIA"), List.of("2", "USUARIA"), List.of("3", "USUARIA")),
             consultar(c, "SELECT conta_id::text,papel FROM conta_papel ORDER BY conta_id,papel"));
-        assertEquals("17", consultar(c, "SELECT count(*)::text FROM pg_constraint WHERE contype='f' AND confrelid='public.conta'::regclass").getFirst().getFirst());
+        assertEquals("20", consultar(c, "SELECT count(*)::text FROM pg_constraint WHERE contype='f' AND confrelid='public.conta'::regclass").getFirst().getFirst());
         assertThrows(java.sql.SQLException.class, () -> {
             try (var s = c.createStatement()) { s.executeUpdate("INSERT INTO talk_participacao VALUES (999999)"); }
         });

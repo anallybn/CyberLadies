@@ -69,11 +69,11 @@ export default function EnviarMaterial() {
                 <section className="em-apresentacao">
                     <div>
                         <Link className="em-voltar" to="/educadora/dashboard">Painel da educadora <span aria-hidden="true">/</span></Link>
-                        <h1>Enviar Material</h1>
+                        <h1 className="em-titulo"><span className="em-titulo-icone" aria-hidden="true"><BookOpen size={21} strokeWidth={1.8}/></span><span><span className="em-titulo-enviar">Enviar</span> <span className="em-titulo-material">Material</span></span></h1>
                         <p>Transforme seu conhecimento em novas possibilidades.</p>
                         <span className="em-etiqueta"><FileText size={13} aria-hidden="true" /> Seu espaço de criação</span>
                     </div>
-                    <div className="em-reserva-mascote" aria-hidden="true"><img src={mascoteEducadora} alt="" className="em-mascote" /></div>
+
                 </section>
                 <div className="em-aviso em-aprovacao" role="status">
                     <Info size={18} aria-hidden="true" />
@@ -84,8 +84,8 @@ export default function EnviarMaterial() {
                 {edicao.carregando && <p role="status" className="em-aviso">{edicao.erroCarga || 'Carregando rascunho…'}{edicao.erroCarga && <button type="button" onClick={edicao.recarregar}>Tentar novamente</button>}</p>}
                 <div className="em-layout">
                     <form className="em-formulario" inert={edicao.carregando || undefined} onSubmit={(evento) => { evento.preventDefault(); edicao.salvar() }}>
-                        <section className="em-card" aria-labelledby="em-informacoes">
-                            <header className="em-card-titulo"><span><FileText size={18} /></span><div><h2 id="em-informacoes">Informações do material</h2><p>Comece pelo que você quer ensinar.</p></div></header>
+                        <section className="em-card em-card-informacoes" aria-labelledby="em-informacoes">
+                            <header className="em-card-titulo"><img src={mascoteEducadora} alt="" aria-hidden="true" className="em-mascote-card" /><span><FileText size={18} /></span><div><h2 id="em-informacoes">Informações do material</h2><p>Comece pelo que você quer ensinar.</p></div></header>
                             <div className="em-campos">
                                 <label htmlFor="em-titulo">Título do material<input id="em-titulo" name="titulo" aria-required="true" aria-describedby="em-salvar-feedback" value={campos.titulo} onChange={atualizar} maxLength={160} placeholder="Dê um título ao seu conteúdo" /></label>
                                 <label htmlFor="em-descricao">Descrição<textarea id="em-descricao" name="descricao" value={campos.descricao} onChange={atualizar} maxLength={5000} rows={4} placeholder="Conte o que a aluna poderá aprender" /><small>{campos.descricao.length}/5000 caracteres</small></label>

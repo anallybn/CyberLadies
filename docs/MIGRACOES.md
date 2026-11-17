@@ -454,9 +454,16 @@ por restauração do backup em outro banco; não editar histórico ou migraçõe
 
 Não executar o schema.sql ou os scripts avulsos da autenticação da origem como
 alternativa ao Flyway. Detalhes, alterações de contrato aprovadas e limitações
-estão em [INTEGRACAO_APRESENTACAO.md](../docs/INTEGRACAO_APRESENTACAO.md).
+estão em [INTEGRACAO_APRESENTACAO.md](INTEGRACAO_APRESENTACAO.md).
 
 ## Referências
+
+A integração da main `4dfaba7` acrescenta V10 para o CyberChat já existente na
+origem, usando `conta`, `conta_empresa`, papéis e aprovação atuais. V1–V9 não foram
+reescritas. Antes da atualização local, um backup completo do banco fixo foi
+recuperado numa cópia automatizada; a V10 foi aplicada nessa cópia e os dados
+preexistentes e sequências foram comparados. Backup e evidência ficam fora do
+repositório. O armazenamento persistente não é movido por essa atualização.
 
 - [Inicialização de banco no Spring Boot](https://docs.spring.io/spring-boot/how-to/data-initialization.html)
 - [Baseline explícito do Flyway](https://documentation.red-gate.com/flyway/reference/commands/baseline)

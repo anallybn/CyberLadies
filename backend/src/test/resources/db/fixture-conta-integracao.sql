@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION fixture_conta_integracao(
 RETURNS BIGINT LANGUAGE plpgsql AS $$
 DECLARE nova BIGINT;
 BEGIN
- IF current_database()<>'cyberladies_auth_test' THEN RAISE EXCEPTION 'Fixture exige banco isolado.'; END IF;
+ IF current_database() NOT IN ('cyberladies_auth_test','cyberladies_auth_chat_test') THEN RAISE EXCEPTION 'Fixture exige banco isolado.'; END IF;
  INSERT INTO conta(nome,email,senha_hash) VALUES (nome_fixture,email_fixture,hash_fixture) RETURNING id INTO nova;
  IF tipo_fixture IN ('CYBERLADIE','EDUCADORA') THEN
   INSERT INTO usuaria VALUES (nova,competencias_fixture);

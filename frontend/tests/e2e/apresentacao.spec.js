@@ -77,6 +77,15 @@ test('percurso salvo de vagas, perfil, estudo, certificado e mentoria', async ({
     await expect(page.getByRole('heading', { name: 'Certificado da plataforma' })).toBeVisible()
     await page.screenshot({ path: 'test-results/apresentacao-certificado.png', fullPage: true })
 
+    await page.goto('/chat')
+    await page.getByRole('button', { name: 'Nova conversa', exact: true }).click()
+    await page.getByRole('button', { name: new RegExp(educadora.nome) }).click()
+    await page.getByRole('textbox', { name: 'Escrever mensagem', exact: true }).fill('Mensagem persistente ' + marca)
+    await page.getByRole('button', { name: 'Enviar', exact: true }).click()
+    await expect(page.getByText('Mensagem persistente ' + marca, { exact: true })).toBeVisible()
+    await page.reload()
+    await expect(page.getByText('Mensagem persistente ' + marca, { exact: true })).toBeVisible()
+
     await page.goto('/academy/mentorias')
     await page.getByRole('combobox', { name: 'Mentora', exact: true }).selectOption(String(mentora))
     await expect(page.getByRole('combobox', { name: 'Horário (Brasília)', exact: true })).toBeVisible()
@@ -116,4 +125,55 @@ test('percurso salvo de vagas, perfil, estudo, certificado e mentoria', async ({
     await page.setViewportSize({ width: 390, height: 844 })
     await page.screenshot({ path: 'test-results/apresentacao-materiais-mobile.png', fullPage: true })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})
+
+test('menu e rotas exigem aprovação e preservam USUARIA com EDUCADORA', async ({ page, request }) => {
+    const pessoa = await conta(request)
+    await login(page, pessoa)
+    await page.goto('/educadora/dashboard')
+    await expect(page.getByRole('heading', { name: 'Acesso negado' })).toBeVisible()
+    expect((await request.get('/api/educadora/dashboard', { headers: pessoa.headers })).status()).toBe(403)
+    expect((await request.post('/api/educadora/solicitacao', { headers: pessoa.headers,
+        data: { especialidade: 'Java', instituicao: 'Teste de navegação' } })).status()).toBe(201)
+    await login(page, pessoa)
+    await expect(page.getByRole('link', { name: 'Minha solicitação', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Painel da educadora', exact: true })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Abrir menu da conta' }).click()
+    await expect(page.getByRole('dialog').getByRole('link', { name: /Dashboard/ })).toHaveCount(0)
+    await page.keyboard.press('Escape')
+    for (const rota of ['dashboard', 'enviar-material', 'meus-materiais', 'minhas-alunas']) {
+        await page.goto('/educadora/' + rota + '?perfil=EDUCADORA&status=APROVADA')
+        await expect(page.getByRole('heading', { name: 'Aprovação necessária' })).toBeVisible()
+    }
+    expect((await request.get('/api/educadora/dashboard', { headers: pessoa.headers })).status()).toBe(403)
+    const admin = await conta(request)
+    sql(`BEGIN; DELETE FROM usuaria WHERE conta_id=${admin.id}; DELETE FROM conta_papel WHERE conta_id=${admin.id}; INSERT INTO conta_papel VALUES (${admin.id},'ADMIN'); COMMIT;`)
+    expect((await request.post('/api/admin/educadoras/solicitacoes/' + pessoa.id + '/decisao', {
+        headers: admin.headers, data: { status: 'APROVADA' },
+    })).status()).toBe(200)
+    await page.goto('/comunidade')
+    await page.getByRole('link', { name: 'Painel da educadora', exact: true }).click()
+    await expect(page).toHaveURL(/\/educadora\/dashboard$/)
+    await expect(page.getByRole('heading', { name: new RegExp(pessoa.nome) })).toBeVisible()
+    await page.getByRole('button', { name: 'Abrir menu da conta' }).click()
+    await expect(page.getByRole('dialog').getByRole('link', { name: /Meus Materiais/ })).toBeVisible()
+    await page.getByRole('dialog').getByRole('link', { name: /Meus Materiais/ }).click()
+    await expect(page).toHaveURL(/\/educadora\/meus-materiais$/)
+    await expect(page.getByRole('heading', { name: 'Meus Materiais' })).toBeVisible()
+    const identidade = await (await request.get('/api/auth/me', { headers: pessoa.headers })).json()
+    expect(identidade.papeis.sort()).toEqual(['EDUCADORA', 'USUARIA'])
+    expect((await request.post('/api/educadora/publicacoes', { headers: pessoa.headers, data: {} })).status()).toBe(403)
+    const rejeitada = await conta(request)
+    expect((await request.post('/api/educadora/solicitacao', { headers: rejeitada.headers,
+        data: { especialidade: 'Java', instituicao: 'Teste de rejeição' } })).status()).toBe(201)
+    expect((await request.post('/api/admin/educadoras/solicitacoes/' + rejeitada.id + '/decisao', {
+        headers: admin.headers, data: { status: 'REJEITADA', motivo: 'Documentação insuficiente para este teste.' },
+    })).status()).toBe(200)
+    await login(page, rejeitada)
+    await page.getByRole('link', { name: 'Minha solicitação', exact: true }).click()
+    await expect(page.getByText('Rejeitada', { exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Painel da educadora', exact: true })).toHaveCount(0)
+    await page.goto('/educadora/dashboard')
+    await expect(page.getByRole('heading', { name: 'Aprovação necessária' })).toBeVisible()
+    expect((await request.get('/api/educadora/dashboard', { headers: rejeitada.headers })).status()).toBe(403)
 })

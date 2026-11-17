@@ -157,7 +157,7 @@ try {
         await writeFile(join(tmpdir(),'meus-materiais-'+width+'.png'),Buffer.from(shot.data,'base64'))
         await click('.ed-menu-botao');await waitFor("!!document.querySelector('.me')")
         assert.equal(await evaluate("document.querySelector('.me .mp-item--ativo').getAttribute('href')"),'/educadora/meus-materiais')
-        assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),2)
+        assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),1)
         await click('.mp-fechar')
         console.log('PASS Meus Materiais '+width+'px: grade, filtros, fontes, menu e sem overflow')
     }

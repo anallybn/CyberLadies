@@ -115,7 +115,7 @@ try {
             assert.equal(await evaluate("document.querySelector('.mp-tag').textContent.trim()"),tipo==='CYBERLADIE'?'USUÁRIA':tipo)
             assert.equal(await evaluate("!!document.querySelector('.me')"),tipo==='EDUCADORA')
             if(tipo==='EDUCADORA') {
-                assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),2)
+                assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),1)
                 assert.ok(await evaluate("!!document.querySelector('.me a[href=\"/educadora/dashboard\"]') && !!document.querySelector('.me a[href=\"/educadora/enviar-material\"]')"))
                 for(const width of [390,768,1440]) {
                     await cdp('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<600})

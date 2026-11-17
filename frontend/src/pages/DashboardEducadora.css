@@ -95,3 +95,43 @@
  .ed-tabela th,.ed-tabela td { padding: 12px 6px; }
  .ed-vazio { font-size: 10px; padding: 18px 8px; }
 }
+
+/* Refinamento exclusivo do Dashboard; cabeçalho e telas irmãs preservados. */
+.ed-painel .ed-saudacao h1{display:flex;align-items:flex-start;gap:12px;font-size:26px;line-height:1.4;font-weight:700;letter-spacing:-.4px;margin-bottom:9px}
+.ed-painel .ed-boasvindas-icone{display:inline-flex;align-items:center;justify-content:center;flex:0 0 37px;height:37px;border-radius:11px;background:#e9dff5;color:#8969ba;pointer-events:none}
+.ed-painel .ed-boasvindas-texto{min-width:0;overflow-wrap:anywhere}
+.ed-painel .ed-boasvindas-prefixo{color:#29244f}.ed-painel .ed-boasvindas-nome{color:#8969ba}
+.ed-painel .ed-saudacao > p{font-size:15px;line-height:1.75;color:#746084}
+.ed-painel .ed-saudacao .ed-status{font-size:13px;line-height:1.65;color:#79618f;padding:6px 11px}
+.ed-painel .ed-indicadores dt{font-size:14px;line-height:1.6;color:#79658a;overflow-wrap:anywhere}
+.ed-painel .ed-indicadores dd{font-size:26px}
+.ed-painel .ed-indicadores > .ed-indicador-futuro{padding-top:10px;padding-bottom:11px}
+.ed-painel .ed-indicador-futuro dd{font-size:20px;line-height:1.5;font-weight:600;letter-spacing:0}
+.ed-painel .ed-secao h2{font-size:19px;line-height:1.5}
+.ed-painel .ed-grafico li{font-size:14px;line-height:1.6}
+.ed-painel .ed-mentorias strong{font-size:15px}
+.ed-painel .ed-mentorias li span:not(.ed-aluna-avatar),.ed-painel .ed-mentorias time{font-size:14px;line-height:1.6;color:#79658a}
+.ed-painel .ed-mentorias time small,.ed-painel .ed-fuso{font-size:13px;line-height:1.6;color:#826d93}
+.ed-painel .ed-tabela{font-size:14px;line-height:1.6}
+.ed-painel .ed-tabela th{color:#79618e}
+.ed-painel .ed-vazio{font-size:15px;line-height:1.8;padding:24px 18px;color:#826b96}
+.ed-painel .ed-estado,.ed-painel .ed-conteudo > p[role=status]{font-size:15px;line-height:1.75}
+@media(min-width:641px) and (max-width:900px){.ed-painel .ed-indicadores{grid-template-columns:repeat(6,minmax(0,1fr))}.ed-painel .ed-indicadores > div{grid-column:span 2}.ed-painel .ed-indicadores > div:nth-child(4){grid-column:2/span 2}.ed-painel .ed-indicadores > div:nth-child(5){grid-column:4/span 2}}
+@media(max-width:640px){
+ .ed-painel .ed-saudacao h1{font-size:23px;gap:10px}
+ .ed-painel .ed-boasvindas-icone{flex-basis:32px;height:32px;border-radius:9px}
+ .ed-painel .ed-saudacao > p{font-size:14px}
+ .ed-painel .ed-saudacao .ed-status{font-size:13px}
+ .ed-painel .ed-indicadores{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .ed-painel .ed-indicadores > div{grid-column:span 2;padding:11px 12px}
+ .ed-painel .ed-indicadores > div:last-child{grid-column:2/span 2}
+ .ed-painel .ed-indicadores dd{font-size:24px}
+ .ed-painel .ed-indicador-futuro dd{font-size:18px}
+ .ed-painel .ed-indicadores > .ed-indicador-futuro{padding-top:9px;padding-bottom:9px}
+ .ed-painel .ed-secao h2{font-size:18px}
+ .ed-painel .ed-vazio{font-size:14px;padding:21px 12px}
+ .ed-painel .ed-mentorias .ed-vazio{flex-direction:column;gap:10px}
+ .ed-painel .ed-mentorias li{flex-wrap:wrap}
+ .ed-painel .ed-mentorias time{white-space:normal}
+}
+@media(max-width:640px){.ed-painel .ed-tabela:has(td[colspan]){min-width:0;table-layout:fixed}.ed-painel .ed-tabela:has(td[colspan]) th{overflow-wrap:anywhere}.ed-painel .ed-tabela:has(td[colspan]) .ed-vazio{overflow-wrap:anywhere}}

@@ -4,13 +4,14 @@ import { User, MessageCircle, LogOut, X, LayoutDashboard, Upload, FileText, User
 import { secoes } from './secoes'
 import './MenuPopup.css'
 import { useSessao } from '../hooks/useSessao'
+import { useConta } from '../hooks/useConta'
 import { temPapel, sair } from '../services/sessaoService'
 import './MenuEducadora.css'
 
 // itens da conta (ficam "em breve" até as páginas existirem)
 const conta = [
     { id: 'perfil', titulo: 'Perfil', descricao: 'Minha conta', icone: User, cor: 'lilas', rota: '/perfil' },
-    { id: 'chat', titulo: 'Chat', descricao: 'Mensagens diretas', icone: MessageCircle, cor: 'verde', rota: null },
+    { id: 'chat', titulo: 'Chat', descricao: 'Mensagens diretas', icone: MessageCircle, cor: 'verde', rota: '/chat' },
 ]
 
 function Item({ item, ativo, aoClicar }) {
@@ -50,11 +51,13 @@ function Item({ item, ativo, aoClicar }) {
 
 export default function MenuPopup({ ativa, onFechar, aoSair, saindo: saindoExterno, erro, confirmarSaida }) {
     const { conta: identidade } = useSessao()
+    const { conta: detalhes } = useConta()
     const navigate = useNavigate()
     const [ocupado, setOcupado] = useState(false)
     const [erroLocal, setErroLocal] = useState('')
     const saindo = saindoExterno || ocupado
     const educadora = temPapel(identidade, 'EDUCADORA')
+    const educadoraAprovada = educadora && detalhes?.statusEducadora === 'APROVADA'
     async function encerrar() {
         if (confirmarSaida && !confirmarSaida()) return
         if (aoSair) { await aoSair(); return }
@@ -70,13 +73,13 @@ export default function MenuPopup({ ativa, onFechar, aoSair, saindo: saindoExter
     const dialogo = useRef(null)
     const pessoal = temPapel(identidade, 'USUARIA') || temPapel(identidade, 'EDUCADORA')
     const itens = [...(pessoal ? secoes : temPapel(identidade, 'EMPRESA') ? secoes.filter(s => s.id !== 'talk') : []),
-        ...(educadora ? [
+        ...(educadoraAprovada ? [
             { id: 'dashboard-educadora', titulo: 'Dashboard', descricao: 'Visão geral', icone: LayoutDashboard, cor: 'lilas', rota: '/educadora/dashboard' },
             { id: 'enviar', titulo: 'Enviar Material', descricao: 'Novo conteúdo', icone: Upload, cor: 'lilas', rota: '/educadora/enviar-material' },
             { id: 'materiais', titulo: 'Meus Materiais', descricao: 'Conteúdos publicados e rascunhos', icone: FileText, cor: 'lilas', rota: '/educadora/meus-materiais' },
             { id: 'alunas', titulo: 'Minhas Alunas', descricao: 'Inscrições e progresso', icone: Users, cor: 'lilas', rota: '/educadora/minhas-alunas' },
         ] : []),
-        ...(temPapel(identidade, 'USUARIA') ? [{ id: 'educadora', titulo: 'Atuar como educadora', descricao: 'Minha solicitação', icone: User, cor: 'lilas', rota: '/educadora' }] : []),
+        ...(temPapel(identidade, 'USUARIA') ? [{ id: 'educadora', titulo: educadora ? 'Minha solicitação' : 'Atuar como educadora', descricao: 'Solicitação de atuação', icone: User, cor: 'lilas', rota: '/educadora' }] : []),
         ...(temPapel(identidade, 'ADMIN') ? [{ id: 'admin', titulo: 'Solicitações', descricao: 'Análise de educadoras', icone: User, cor: 'lilas', rota: '/admin/educadoras' }] : [])]
 
     useEffect(() => {

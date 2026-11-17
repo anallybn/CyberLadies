@@ -81,7 +81,7 @@ O ambiente foi deixado **iniciado** ao terminar.
 
 ## Bancos de testes
 
-`cyberladies_auth_test`, `cyberladies_frontend_e2e` e os bancos
+`cyberladies_auth_test`, `cyberladies_auth_chat_test`, `cyberladies_frontend_e2e` e os bancos
 `cyberladies_migracao_*` continuam separados para testes automatizados. As
 fixtures e rotinas destrutivas de teste não devem apontar para
 `cyberladies_apresentacao`. Não há criação de outro banco de demonstração durante
