@@ -61,7 +61,7 @@ export default function TopoLogado({ ativa, inicial }) {
                 {temPapel(conta, 'USUARIA') && <Link to="/educadora" className={`topo-logado__link ${ativa === 'educadora' ? 'ativa' : ''}`}>{temPapel(conta, 'EDUCADORA') ? 'Minha solicitação' : 'Atuar como educadora'}</Link>}
                 {admin && <Link to="/admin/educadoras" className={`topo-logado__link ${ativa === 'admin' ? 'ativa' : ''}`}>Solicitações</Link>}
             </nav>
-            {conta && <button type="button" className="topo-logado__link" disabled={saindo} onClick={encerrar}>{saindo ? 'Saindo...' : 'Sair'}</button>}
+            {conta && ativa !== 'talk' && <button type="button" className="topo-logado__link" disabled={saindo} onClick={encerrar}>{saindo ? 'Saindo...' : 'Sair'}</button>}
             {erro && <p role="alert" className="topo-logado__erro">{erro}</p>}
             <button type="button" className="topo-logado__avatar" onClick={() => setMenuAberto(true)} aria-label="Abrir menu da conta" aria-haspopup="dialog" aria-expanded={menuAberto}>
                 {inicial || <UserRound size={18} />}

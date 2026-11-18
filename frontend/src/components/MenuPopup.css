@@ -119,11 +119,11 @@
     border-radius: 12px;
 }
 
-.mp-icone--azul    { background: #dcdcfb; color: #4a4fa8; }
-.mp-icone--celeste { background: #d9e8fb; color: #3b6fb0; }
-.mp-icone--rosa    { background: #fbdde7; color: #c04c78; }
+.mp-icone--azul    { background: #ebe3fb; color: #4a4fa8; }
+.mp-icone--celeste { background: #ebe3fb; color: #3b6fb0; }
+.mp-icone--rosa    { background: #ebe3fb; color: #c04c78; }
 .mp-icone--lilas   { background: #ebe3fb; color: #6a4fb0; }
-.mp-icone--verde   { background: #d3f3e4; color: #2f9468; }
+.mp-icone--verde   { background: #ebe3fb; color: #2f9468; }
 
 .mp-texto {
     display: flex;

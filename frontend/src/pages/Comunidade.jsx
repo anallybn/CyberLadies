@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import icone from '../assets/icone.svg'
 import Circuitos from '../components/Circuitos'
 import TopoLogado from '../components/TopoLogado'
 import PostTalk from '../components/PostTalk'
 import { talk } from '../services/talkApi'
-import { sair as encerrarSessao } from '../services/sessaoService'
 import { carregarComunidade, publicarPost } from '../services/comunidadeService'
 import './Comunidade.css'
 
@@ -33,7 +32,6 @@ export default function Comunidade() {
     const [aviso, setAviso] = useState('')
     const [erroPublicacao, setErroPublicacao] = useState(null)
     const aba = 'todos'
-    const navigate = useNavigate()
 
     // Carrega os dados da comunidade
     useEffect(() => {
@@ -103,16 +101,6 @@ export default function Comunidade() {
             setErroPublicacao(falha.message)
         } finally {
             setPublicando(false)
-        }
-    }
-
-    // Encerrar sessão
-    async function sair() {
-        try {
-            await encerrarSessao()
-            navigate('/login', { replace: true })
-        } catch (falha) {
-            setErroPublicacao(falha.message)
         }
     }
 
@@ -453,15 +441,6 @@ export default function Comunidade() {
                                     </ul>
                                 )}
                             </section>
-
-                            {/* Sair */}
-                            <button
-                                type="button"
-                                className="cm-botao cm-botao--contorno"
-                                onClick={sair}
-                            >
-                                Sair
-                            </button>
                         </aside>
                     </div>
                 )}

@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar'
 import Circuitos from '../components/Circuitos'
 import gatinho from '../assets/gatinho_sorrindo.png'
 import { cadastrar } from "../services/authService"
+import { entrar, obterToken } from '../services/sessaoService'
+import { talk } from '../services/talkApi'
 import { perfis } from "./cadastro/perfis"
 import './Login.css'
 import './Cadastro.css'
@@ -76,8 +78,29 @@ export default function Cadastro() {
 
         setCarregando(true)
         try {
-            await cadastrar(perfil, dados)   // TODO: reativar quando o back-end existir
-            navigate(`/cadastro-concluido?perfil=${perfil}`)
+            await cadastrar(perfil, dados)
+            if (perfil !== 'usuaria') {
+                navigate(`/cadastro-concluido?perfil=${perfil}`)
+                return
+            }
+
+            try {
+                await entrar(dados.email, dados.senha)
+            } catch {
+                navigate('/cadastro-concluido?perfil=usuaria', { state: { falha: 'login' } })
+                return
+            }
+
+            try {
+                await talk('/comunidade/adesao', 'PUT')
+            } catch {
+                navigate('/cadastro-concluido?perfil=usuaria', {
+                    state: { falha: obterToken() ? 'adesao' : 'sessao' },
+                })
+                return
+            }
+
+            navigate('/comunidade', { replace: true })
         } catch (erro) {
             setMensagem({ tipo: 'erro', texto: erro.message })
         } finally {

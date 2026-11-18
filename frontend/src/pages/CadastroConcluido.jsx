@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Check, Sparkle, ArrowRight } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Circuitos from '../components/Circuitos'
@@ -30,7 +30,22 @@ const perfis = {
 export default function CadastroConcluido() {  //educadoratroConcluido() {
     const navigate = useNavigate()
     const [params] = useSearchParams()
-    const dados = perfis[params.get('perfil')] || perfis.usuaria  
+    const { state } = useLocation()
+    const perfil = params.get('perfil')
+    let dados = perfis[perfil] || perfis.usuaria
+
+    if (perfil === 'usuaria' && state?.falha === 'adesao') {
+        dados = {
+            destino: '/comunidade',
+            botao: 'IR PARA O CYBERTALK',
+            texto: 'Sua conta foi criada. A adesão automática falhou. Abra o CyberTalk e clique em Participar da comunidade.',
+        }
+    } else if (perfil === 'usuaria' && (state?.falha === 'login' || state?.falha === 'sessao')) {
+        dados = {
+            ...dados,
+            texto: 'Sua conta foi criada. Entre com seu e-mail e senha para acessar o CyberTalk e participar da comunidade.',
+        }
+    }
     
     return (
         <div className="login concluido">
