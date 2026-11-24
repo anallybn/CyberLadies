@@ -99,7 +99,7 @@ try {
         await writeFile(join(tmpdir(),'cyberladies-dashboard-'+width+'.png'),Buffer.from(screenshot.data,'base64'))
         console.log('PASS layout '+width+'px: sem transbordamento horizontal')
     }
-    await click('.ed-topo > button')
+    await click('.topo-logado__avatar')
     await waitFor("!!document.querySelector('.mp')")
     assert.equal(await evaluate("Array.from(document.querySelectorAll('.mp a')).filter(a=>a.getAttribute('href').startsWith('/educadora')).length"),4)
     assert.equal(await evaluate("Array.from(document.querySelectorAll('.mp button:disabled')).filter(b=>b.innerText.includes('Em breve')).length"),1)
@@ -119,7 +119,7 @@ try {
     }
     await cdp('Page.navigate',{url:base+'/educadora/dashboard'})
     await waitFor("!!document.querySelector('.ed-indicadores')")
-    await click('.ed-avatar')
+    await click('.topo-logado__avatar')
     await evaluate("Array.from(document.querySelectorAll('.mp button')).find(b=>b.innerText.includes('Sair')).click()")
     await waitFor("location.pathname==='/' && !sessionStorage.getItem('token')")
     await cdp('Page.navigate',{url:base+'/educadora/dashboard'})

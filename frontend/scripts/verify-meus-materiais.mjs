@@ -155,7 +155,7 @@ try {
         assert.equal(colunas,width===1440?3:width===768?2:1)
         const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true})
         await writeFile(join(tmpdir(),'meus-materiais-'+width+'.png'),Buffer.from(shot.data,'base64'))
-        await click('.ed-menu-botao');await waitFor("!!document.querySelector('.me')")
+        await click('.topo-logado__avatar');await waitFor("!!document.querySelector('.me')")
         assert.equal(await evaluate("document.querySelector('.me .mp-item--ativo').getAttribute('href')"),'/educadora/meus-materiais')
         assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),1)
         await click('.mp-fechar')
@@ -185,7 +185,7 @@ try {
         assert.ok(conta)
         await cdp('Page.reload');await pause(350)
         await waitFor("document.querySelector('.mm-estado h2')?.textContent.includes('exclusivo')")
-        await click('.ed-avatar');await waitFor("!!document.querySelector('.mp-tag')")
+        await click('.topo-logado__avatar');await waitFor("!!document.querySelector('.mp-tag')")
         assert.equal(await evaluate("!!document.querySelector('.me')"),false)
         await click('.mp-fechar')
     }

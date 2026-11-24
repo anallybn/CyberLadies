@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { User, MessageCircle, LogOut, X, LayoutDashboard, Upload, FileText, Users } from 'lucide-react'
-import { secoes } from './secoes'
+import { User, MessageCircle, LogOut, X } from 'lucide-react'
+import { secoes, secoesEducadora } from './secoes'
 import './MenuPopup.css'
 import { useSessao } from '../hooks/useSessao'
 import { useConta } from '../hooks/useConta'
@@ -49,22 +49,20 @@ function Item({ item, ativo, aoClicar }) {
     )
 }
 
-export default function MenuPopup({ ativa, onFechar, aoSair, saindo: saindoExterno, erro, confirmarSaida }) {
+export default function MenuPopup({ ativa, onFechar, confirmarSaida }) {
     const { conta: identidade } = useSessao()
     const { conta: detalhes } = useConta()
     const navigate = useNavigate()
-    const [ocupado, setOcupado] = useState(false)
+    const [saindo, setSaindo] = useState(false)
     const [erroLocal, setErroLocal] = useState('')
-    const saindo = saindoExterno || ocupado
     const educadora = temPapel(identidade, 'EDUCADORA')
     const educadoraAprovada = educadora && detalhes?.statusEducadora === 'APROVADA'
     async function encerrar() {
         if (confirmarSaida && !confirmarSaida()) return
-        if (aoSair) { await aoSair(); return }
-        setOcupado(true); setErroLocal('')
+        setSaindo(true); setErroLocal('')
         try { await sair(); onFechar(); navigate('/login', { replace: true }) }
         catch (falha) { setErroLocal(falha.message) }
-        finally { setOcupado(false) }
+        finally { setSaindo(false) }
     }
     function navegar(evento) {
         if (confirmarSaida && !confirmarSaida()) { evento.preventDefault(); return }
@@ -73,12 +71,7 @@ export default function MenuPopup({ ativa, onFechar, aoSair, saindo: saindoExter
     const dialogo = useRef(null)
     const pessoal = temPapel(identidade, 'USUARIA') || temPapel(identidade, 'EDUCADORA')
     const itens = [...(pessoal ? secoes : temPapel(identidade, 'EMPRESA') ? secoes.filter(s => s.id !== 'talk') : []),
-        ...(educadoraAprovada ? [
-            { id: 'dashboard-educadora', titulo: 'Dashboard', descricao: 'Visão geral', icone: LayoutDashboard, cor: 'lilas', rota: '/educadora/dashboard' },
-            { id: 'enviar', titulo: 'Enviar Material', descricao: 'Novo conteúdo', icone: Upload, cor: 'lilas', rota: '/educadora/enviar-material' },
-            { id: 'materiais', titulo: 'Meus Materiais', descricao: 'Conteúdos publicados e rascunhos', icone: FileText, cor: 'lilas', rota: '/educadora/meus-materiais' },
-            { id: 'alunas', titulo: 'Minhas Alunas', descricao: 'Inscrições e progresso', icone: Users, cor: 'lilas', rota: '/educadora/minhas-alunas' },
-        ] : []),
+        ...(educadoraAprovada ? secoesEducadora : []),
         ...(temPapel(identidade, 'USUARIA') ? [{ id: 'educadora', titulo: educadora ? 'Minha solicitação' : 'Atuar como educadora', descricao: 'Solicitação de atuação', icone: User, cor: 'lilas', rota: '/educadora' }] : []),
         ...(temPapel(identidade, 'ADMIN') ? [{ id: 'admin', titulo: 'Solicitações', descricao: 'Análise de educadoras', icone: User, cor: 'lilas', rota: '/admin/educadoras' }] : [])]
 
@@ -140,7 +133,6 @@ export default function MenuPopup({ ativa, onFechar, aoSair, saindo: saindoExter
                             <small>Encerrar sessão</small>
                         </span>
                     </button>
-                    {erro && <p role="alert">{erro}</p>}
                     {erroLocal && <p role="alert">{erroLocal}</p>}
                 </nav>
             </div>

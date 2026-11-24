@@ -2,7 +2,7 @@ import { API_BASE_URL as API } from '../services/apiUrl.js'
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { BookOpen, Check, Clock3, Eye, FileText, Info, Layers, LockKeyhole, Play, Save, Upload } from 'lucide-react'
-import TopoEducadora from '../components/TopoEducadora'
+import TopoLogado from '../components/TopoLogado'
 import { academy, CATEGORIAS, NIVEIS } from '../services/academyService'
 import mascoteEducadora from '../assets/gatinho-educadora-minimalista.png'
 import { useRascunho } from '../hooks/useRascunho'
@@ -60,7 +60,7 @@ export default function EnviarMaterial() {
     const estadoTrilha = !campos.trilha ? 'Selecione uma trilha' : metadados?.erro ? 'Indisponível' : 'Carregando…'
 
     return <div className="ed-dashboard em-pagina">
-        <TopoEducadora ativa="enviar" confirmarSaida={confirmarSaida} />
+        <TopoLogado ativa="enviar" confirmarSaida={confirmarSaida} />
         <main className="ed-conteudo em-conteudo">
             {estado.carregando && <p role="status" className="em-aviso">Carregando sua conta…</p>}
             {estado.acesso === 403 && <section className="em-card ed-estado" role="alert"><h1>Acesso exclusivo da Educadora</h1><p>Esta conta não possui acesso à área da Educadora.</p><Link to="/academy">Acessar CyberAcademy</Link></section>}

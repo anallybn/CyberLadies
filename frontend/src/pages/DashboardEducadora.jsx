@@ -2,7 +2,7 @@ import { API_BASE_URL as API } from '../services/apiUrl.js'
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { UserRound, CalendarDays, BookOpen } from 'lucide-react'
-import TopoEducadora from '../components/TopoEducadora'
+import TopoLogado from '../components/TopoLogado'
 import './DashboardEducadora.css'
 
 const numero = (valor) => new Intl.NumberFormat('pt-BR').format(valor)
@@ -36,7 +36,7 @@ export default function DashboardEducadora() {
     const dados = estado.dados
     const maximo = Math.max(1, ...(dados?.trilhas || []).map((trilha) => trilha.inscricoes))
     return <div className="ed-dashboard ed-painel">
-        <TopoEducadora />
+        <TopoLogado ativa="dashboard-educadora" />
         <main className="ed-conteudo">
             {estado.carregando && <p role="status">Carregando seu dashboard…</p>}
             {estado.acesso === 403 && <div className="ed-estado" role="alert"><h1>Acesso exclusivo da Educadora</h1><p>Esta conta não possui acesso a este dashboard.</p><Link to="/academy">Acessar CyberAcademy</Link></div>}

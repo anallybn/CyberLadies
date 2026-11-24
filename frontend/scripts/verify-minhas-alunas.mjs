@@ -158,7 +158,7 @@ try {
         await writeFile(join(tmpdir(),'progresso-aluna-'+width+'.png'),Buffer.from(fotoDetalhe.data,'base64'))
         await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27})
         await waitFor("!document.querySelector('.ma-dialogo')")
-        await click('.ed-menu-botao');await waitFor("!!document.querySelector('.me')")
+        await click('.topo-logado__avatar');await waitFor("!!document.querySelector('.me')")
         assert.equal(await evaluate("document.querySelector('.me .mp-item--ativo').getAttribute('href')"),'/educadora/minhas-alunas')
         assert.equal(await evaluate("document.querySelectorAll('.me button:disabled').length"),1)
         await click('.mp-fechar')

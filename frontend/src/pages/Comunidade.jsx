@@ -118,7 +118,7 @@ export default function Comunidade() {
 
     return (
         <div className="cm">
-            <TopoLogado ativa="talk" inicial={inicial} />
+            <TopoLogado ativa="talk" />
             <Circuitos />
 
             {/* Carregamento inicial */}

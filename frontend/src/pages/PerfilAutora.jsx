@@ -22,7 +22,7 @@ function Conteudo({ id, pagina }) {
     useEffect(() => { if (carregado) titulo.current?.focus() }, [carregado])
     function recarregar() { setDados(null); setErro(null); setTentativa(v => v + 1) }
     const listagem = dados?.publicacoes
-    return <AreaConta titulo="Perfil no CyberTalk" ativa="comunidade">
+    return <AreaConta titulo="Perfil no CyberTalk" ativa="talk">
         <Link to="/comunidade">← Voltar ao CyberTalk</Link>
         <div className="pf cm-feed">
             {erro ? <section className="pf-cartao">

@@ -180,7 +180,7 @@ export default function Perfil() {
     }
 
     return <div className="pf">
-        <TopoLogado ativa="perfil" inicial={dados?.pessoal.nome?.[0]} /><Circuitos />
+        <TopoLogado ativa="perfil" /><Circuitos />
         <main className="pf-conteudo" aria-busy={carregando || ocupado}>
             {carregando ? <div className="pf-estado" role="status">Carregando seu perfil…</div> : erro ? <div className="pf-estado">
                 <p role="alert">{erro}</p><button className="pf-botao" onClick={() => { setCarregando(true); setTentativa((t) => t + 1) }}>Tentar novamente</button>
