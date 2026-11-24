@@ -207,7 +207,7 @@ try {
     assert.equal((await apiRascunho('/'+id1)).dados.revisao,4)
 
     // Ir para Novo Material limpa os campos, sem duplicar o registro anterior.
-    await click('.ed-topo-nav .ativa')
+    await click('.topo-logado__nav [aria-current="page"]')
     await waitFor("!location.search && document.querySelector('#em-titulo')?.value===''")
     await fill('#em-titulo','Criação com resposta perdida')
     perder='POST'

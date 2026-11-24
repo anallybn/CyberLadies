@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { Archive, BookOpen, Clock3, Eye, FileText, FileVideo, Layers, Plus, Search, SearchX } from 'lucide-react'
-import TopoEducadora from '../components/TopoEducadora'
+import TopoLogado from '../components/TopoLogado'
 import { useConta } from '../hooks/useConta'
 import { consultarMeusMateriais, filtrarMateriais } from '../services/educadoraMateriaisService'
 import { CATEGORIAS, NIVEIS, duracao } from '../services/academyService'
@@ -43,7 +43,7 @@ export default function MeusMateriais() {
     function limpar() { setBusca(''); setStatus('TODOS'); setTrilha('') }
 
     return <div className="ed-dashboard mm-pagina">
-        <TopoEducadora ativa="materiais" />
+        <TopoLogado ativa="materiais" />
         <main className="ed-conteudo mm-conteudo">
             <header className="mm-apresentacao">
                 <h1>Meus Materiais</h1>

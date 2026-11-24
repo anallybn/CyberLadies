@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, MessageCircle, Plus, Search, Sparkles, X } from 'lucide-react'
 import TopoLogado from '../components/TopoLogado'
-import TopoEducadora from '../components/TopoEducadora'
 import ChatConversa from '../components/chat/ChatConversa'
 import { useConta } from '../hooks/useConta'
 import { useChatLista } from '../hooks/useChat'
@@ -46,7 +45,7 @@ function ConteudoChat({conta}){
  function abrir(conversa){setParametros({conversa});setNova(false);atualizar()}
  if(lista.status===401)return <Navigate to="/login?retorno=%2Fchat" replace />
  return <>
-  {conta.perfil==='EDUCADORA'?<TopoEducadora ativa="chat"/>:<TopoLogado ativa="chat"/>}
+  <TopoLogado ativa="chat"/>
   <main className="cc-conteudo">
    <header className="cc-apresentacao"><div><span className="cc-etiqueta">CONEXÕES COM PROPÓSITO</span><h1 className="cc-titulo" aria-label="CyberChat"><span className="cc-titulo-icone" aria-hidden="true"><MessageCircle size={20} strokeWidth={1.8}/></span><span><span className="cc-titulo-cyber">Cyber</span><span className="cc-titulo-chat">Chat</span></span><Sparkles className="cc-titulo-brilho" size={16} strokeWidth={1.5} aria-hidden="true"/></h1><p>Aprendizagem e oportunidades, uma conversa de cada vez.</p></div><button className="cc-nova" type="button" onClick={()=>setNova(v=>!v)}><Plus size={18}/>Nova conversa</button></header>
    {conta.perfil==='EDUCADORA'&&conta.statusEducadora!=='APROVADA'&&<p className="cc-alerta" role="status">O chat com alunas estará disponível após a aprovação da sua conta.</p>}

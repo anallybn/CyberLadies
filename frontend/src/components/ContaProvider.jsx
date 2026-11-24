@@ -16,7 +16,7 @@ export default function ContaProvider({ children }) {
         const controle = new AbortController()
         consultarConta(controle.signal).then((conta) => {
             if (controle.signal.aborted || sessionStorage.getItem('token') !== token) return
-            setEstado({ chave, conta })
+            setEstado({ chave, token, conta })
         }).catch((erro) => {
             if (erro.name !== 'AbortError' && !controle.signal.aborted)
                 setEstado({ chave, erro: erro.message, expirada: erro.status === 401 })
@@ -26,6 +26,7 @@ export default function ContaProvider({ children }) {
     const atual = estado.chave === chave
     const valor = {
         conta: token && atual ? estado.conta : null,
+        ultimaContaConfirmada: token && token === estado.token ? estado.conta : null,
         carregando: !!token && !atual,
         erro: token && atual ? estado.erro : null,
         expirada: !token && !!estado.expirada,

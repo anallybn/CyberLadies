@@ -119,12 +119,12 @@ try {
         await cdp('Page.navigate',{url:base+'/login?perfil='+(perfil==='empresa'?'usuaria':'empresa')+'&retorno=%2Fperfil'})
         await fill('#email',email); await fill('#senha',senha)
         await evaluate("document.querySelector('.login__form').requestSubmit()")
-        await waitFor("location.pathname==="+JSON.stringify(destinoLogin)+" && !!document.querySelector('.topo-logado, .ed-topo')")
+        await waitFor("location.pathname==="+JSON.stringify(destinoLogin)+" && !!document.querySelector('.topo-logado')")
         const atual=await minhaConta()
         assert.equal(atual.status,200); assert.equal(atual.conta.perfil,tipo)
         assert.equal(await evaluate("sessionStorage.getItem('perfil')"),tipo)
         if(tipo==='EDUCADORA') assert.equal(atual.conta.statusEducadora,'PENDENTE')
-        await click('.topo-logado__avatar, .ed-avatar')
+        await click('.topo-logado__avatar')
         await waitFor("!!document.querySelector('.mp-tag')")
         assert.ok(await evaluate("document.querySelector('.mp-tag').innerText.includes("+JSON.stringify(tipo==='CYBERLADIE'?'USUÁRIA':tipo)+")"))
         await click('.mp-fechar')
@@ -137,7 +137,7 @@ try {
         }
         console.log('PASS '+tipo+': popup e formulário existentes, cadastro persistente, login por perfil real, layout 390/768/1440 e privilégios protegidos')
         if(perfil!=='empresa') {
-            await click('.topo-logado__avatar, .ed-avatar')
+            await click('.topo-logado__avatar')
             await evaluate("Array.from(document.querySelectorAll('.mp button')).find(b=>b.innerText.includes('Sair')).click()")
             await waitFor("location.pathname==='/' && !sessionStorage.getItem('token') && !sessionStorage.getItem('perfil')")
             console.log('PASS logout '+tipo)
@@ -153,7 +153,7 @@ try {
     }
     assert.ok(pronta,'API temporária não ficou pronta dentro de 180 segundos')
     await cdp('Page.reload'); await pause(400)
-    await waitFor("!!document.querySelector('.topo-logado, .ed-topo')")
+    await waitFor("!!document.querySelector('.topo-logado')")
     const depois=await minhaConta()
     assert.equal(depois.status,200); assert.equal(depois.conta.id,antes.id); assert.equal(depois.conta.perfil,'EMPRESA')
     for(const conta of contas) {

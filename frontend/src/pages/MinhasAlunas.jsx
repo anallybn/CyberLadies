@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { BookOpen, Eye, Info, Search, SearchX, Users, X } from 'lucide-react'
-import TopoEducadora from '../components/TopoEducadora'
+import TopoLogado from '../components/TopoLogado'
 import { useConta } from '../hooks/useConta'
 import { consultarAlunas } from '../services/alunasService'
 import './MinhasAlunas.css'
@@ -61,7 +61,7 @@ export default function MinhasAlunas(){
     const restrita=(conta&&!aprovada)||acesso===403
     const carregandoLista=!restrita&&!erro&&(carregando||!dados)
     function limpar(){setBusca('');setStatus('TODAS');setTrilha('')}
-    return <div className="ed-dashboard ma-pagina"><TopoEducadora ativa="alunas" />
+    return <div className="ed-dashboard ma-pagina"><TopoLogado ativa="alunas" />
         <main className="ed-conteudo ma-conteudo">
             <header className="ma-apresentacao"><h1>Minhas Alunas</h1><p>Acompanhe o progresso das alunas nos seus materiais.</p></header>
             {restrita?<section className="ma-estado" role="status"><Info size={30} aria-hidden="true" /><h2>{conta?.perfil==='EDUCADORA'?'Acompanhamento disponível após aprovação':'Acesso exclusivo da Educadora'}</h2><p>{conta?.perfil==='EDUCADORA'?'Sua conta precisa estar aprovada para consultar dados de inscrições e progresso das alunas. Seus acessos atuais continuam disponíveis.':'Somente Educadoras aprovadas podem consultar esta área.'}</p></section>:<>
