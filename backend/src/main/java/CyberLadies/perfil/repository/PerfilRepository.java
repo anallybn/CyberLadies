@@ -45,17 +45,43 @@ public class PerfilRepository {
         return db.sql("SELECT cnpj,area_atuacao FROM conta_empresa WHERE conta_id=?")
             .param(conta).query(DadosEmpresa.class).optional();
     }
-    public List<Certificacao> certificacoes(long usuaria) {
-        return db.sql("SELECT id,nome,instituicao,data FROM perfil_certificacao WHERE usuaria_id=? ORDER BY data DESC,id DESC")
-            .param(usuaria).query(Certificacao.class).list();
+    private static final String CONSULTA_CERTIFICACOES = """
+        SELECT c.id,c.nome,c.instituicao,c.data,p.nome AS nome_pdf
+        FROM perfil_certificacao c LEFT JOIN perfil_certificacao_pdf p ON p.certificacao_id=c.id
+        WHERE c.usuaria_id=:titular
+        """;
+
+    public List<Certificacao> certificacoes(long titular) {
+        return db.sql(CONSULTA_CERTIFICACOES + " ORDER BY c.data DESC,c.id DESC")
+            .param("titular",titular).query(Certificacao.class).list();
     }
-    public Certificacao adicionarCertificacao(long usuaria, CertificacaoEntrada dados) {
-        return db.sql("INSERT INTO perfil_certificacao(usuaria_id,nome,instituicao,data) VALUES (?,?,?,?) RETURNING id,nome,instituicao,data")
-            .params(usuaria,dados.nome().strip(),dados.instituicao().strip(),dados.data()).query(Certificacao.class).single();
+    public Certificacao certificacao(long titular, long id) {
+        return db.sql(CONSULTA_CERTIFICACOES + " AND c.id=:id")
+            .param("titular",titular).param("id",id).query(Certificacao.class).single();
     }
-    public Optional<Certificacao> editarCertificacao(long usuaria, long id, CertificacaoEntrada dados) {
-        return db.sql("UPDATE perfil_certificacao SET nome=?,instituicao=?,data=? WHERE id=? AND usuaria_id=? RETURNING id,nome,instituicao,data")
-            .params(dados.nome().strip(),dados.instituicao().strip(),dados.data(),id,usuaria).query(Certificacao.class).optional();
+    public long adicionarCertificacao(long titular, CertificacaoEntrada dados) {
+        return db.sql("INSERT INTO perfil_certificacao(usuaria_id,nome,instituicao,data) VALUES (?,?,?,?) RETURNING id")
+            .params(titular,dados.nome().strip(),dados.instituicao().strip(),dados.data()).query(Long.class).single();
+    }
+    public boolean editarCertificacao(long titular, long id, CertificacaoEntrada dados) {
+        return db.sql("UPDATE perfil_certificacao SET nome=?,instituicao=?,data=? WHERE id=? AND usuaria_id=?")
+            .params(dados.nome().strip(),dados.instituicao().strip(),dados.data(),id,titular).update()==1;
+    }
+    public Optional<ArquivoPdf> pdfCertificacao(long titular, long id) {
+        return db.sql("""
+            SELECT p.nome,p.dados FROM perfil_certificacao_pdf p JOIN perfil_certificacao c ON c.id=p.certificacao_id
+            WHERE c.id=? AND c.usuaria_id=?
+            """).params(id,titular).query(ArquivoPdf.class).optional();
+    }
+    // Usados na mesma transação que insere ou atualiza a certificação do titular.
+    public void salvarPdfCertificacao(long id, ArquivoPdf pdf) {
+        db.sql("""
+            INSERT INTO perfil_certificacao_pdf(certificacao_id,nome,dados) VALUES (?,?,?)
+            ON CONFLICT (certificacao_id) DO UPDATE SET nome=EXCLUDED.nome,dados=EXCLUDED.dados
+            """).params(id,pdf.nome(),pdf.dados()).update();
+    }
+    public void removerPdfCertificacao(long id) {
+        db.sql("DELETE FROM perfil_certificacao_pdf WHERE certificacao_id=?").param(id).update();
     }
     public boolean excluirCertificacao(long usuaria, long id) {
         return db.sql("DELETE FROM perfil_certificacao WHERE id=? AND usuaria_id=?").params(id,usuaria).update()==1;

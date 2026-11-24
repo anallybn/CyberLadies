@@ -47,6 +47,12 @@
 .pf-form input,.pf-form textarea { width: 100%; min-width: 0; padding: .8rem; border: 1px solid #bca7da; border-radius: 12px; background: #fff; color: inherit; font: inherit; }
 .pf-form textarea { resize: vertical; }
 .pf-periodo { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.pf-certificado-pdf { display: grid; gap: .5rem; margin-top: .65rem; }
+.pf-certificado-nome { display: flex; align-items: center; gap: .4rem; overflow-wrap: anywhere; }
+.pf-certificado-nome svg { flex-shrink: 0; color: #695092; }
+.pf-certificado-pdf .pf-secundario { padding-inline: .75rem; }
+.pf-form .pf-remover-pdf { flex-direction: row; align-items: flex-start; }
+.pf-form .pf-remover-pdf input { width: auto; margin-top: .2rem; accent-color: #695092; }
 .pf-editor-registro { padding: 1.25rem; margin: 1rem 0; border-radius: 16px; background: #eee7fa; }
 .pf-mensagem { padding: 1rem; border: 1px solid #6b9077; background: #f0fff4; color: #245637; border-radius: 16px; }
 .pf-erro { color: #8b2944; }

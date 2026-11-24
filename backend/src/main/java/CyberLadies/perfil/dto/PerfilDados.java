@@ -15,7 +15,8 @@ public final class PerfilDados {
     public record ExperienciaEntrada(@NotBlank @Size(max=160) String empresa,
         @NotBlank @Size(max=160) String cargo, @NotNull LocalDate inicio,
         LocalDate fim, @NotNull @Size(max=2000) String descricao) {}
-    public record Certificacao(long id, String nome, String instituicao, LocalDate data) {}
+    public record Certificacao(long id, String nome, String instituicao, LocalDate data, String nomePdf) {}
+    public record ArquivoPdf(String nome, byte[] dados) {}
     public record Experiencia(long id, String empresa, String cargo, LocalDate inicio,
         LocalDate fim, String descricao) {}
     public record Pessoal(long id, String nome, String email, String competencias,

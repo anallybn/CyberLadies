@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { UserRound, Award, BriefcaseBusiness, Pencil, Plus, Trash2, MessageSquare, ShieldCheck } from 'lucide-react'
+import { UserRound, Award, BriefcaseBusiness, Pencil, Plus, Trash2, MessageSquare, ShieldCheck, FileText, Eye, Download } from 'lucide-react'
 import TopoLogado from '../components/TopoLogado'
 import Circuitos from '../components/Circuitos'
-import { carregarPerfil, salvarPerfil, carregarFoto, enviarFoto, removerFoto, salvarRegistro, excluirRegistro } from '../services/perfilService'
+import { carregarPerfil, salvarPerfil, carregarFoto, enviarFoto, removerFoto, salvarRegistro, excluirRegistro, salvarCertificacao, carregarCertificacaoPdf } from '../services/perfilService'
 import './Perfil.css'
 
 const TIPO_PERFIL = { EDUCADORA: 'Educadora', EMPRESA: 'Empresa', ADMIN: 'Administradora' }
@@ -35,21 +35,96 @@ function EditorPessoal({ pessoa, dadosProfissionais, ocupado, salvar, cancelar }
     </form>
 }
 
+const LIMITE_PDF = 5 * 1024 * 1024
+
+function AnexoCertificacao({ item }) {
+    const [ocupado, setOcupado] = useState(false)
+    const [erro, setErro] = useState('')
+
+    async function abrir(baixar) {
+        setErro('')
+        const aba = baixar ? null : window.open('about:blank', '_blank')
+        if (!baixar && !aba) {
+            setErro('Permita abrir uma nova aba ou use Baixar PDF.')
+            return
+        }
+        if (aba) aba.opener = null
+        setOcupado(true)
+        try {
+            const arquivo = await carregarCertificacaoPdf(item.id, baixar)
+            if (aba?.closed) return
+            const url = URL.createObjectURL(arquivo)
+            if (aba) {
+                aba.location.replace(url)
+            } else {
+                const link = document.createElement('a')
+                link.href = url
+                link.download = item.nomePdf
+                document.body.append(link)
+                link.click()
+                link.remove()
+            }
+            setTimeout(() => URL.revokeObjectURL(url), 60_000)
+        } catch (falha) {
+            aba?.close()
+            setErro(falha.message)
+        } finally {
+            setOcupado(false)
+        }
+    }
+
+    return <div className="pf-certificado-pdf">
+        <small className="pf-certificado-nome"><FileText size={16} aria-hidden="true" /> {item.nomePdf}</small>
+        <div className="pf-acoes">
+            <button type="button" className="pf-secundario" disabled={ocupado} onClick={() => abrir(false)}
+                aria-label={'Visualizar PDF de ' + item.nome}><Eye size={16} aria-hidden="true" />Visualizar</button>
+            <button type="button" className="pf-secundario" disabled={ocupado} onClick={() => abrir(true)}
+                aria-label={'Baixar PDF de ' + item.nome}><Download size={16} aria-hidden="true" />Baixar</button>
+        </div>
+        {erro && <p role="alert" className="pf-erro">{erro}</p>}
+    </div>
+}
+
 function EditorRegistro({ tipo, registro, ocupado, salvar, cancelar }) {
     const certificacao = tipo === 'certificacoes'
     const [valores, setValores] = useState(registro || (certificacao ?
         { nome: '', instituicao: '', data: '' } : { empresa: '', cargo: '', inicio: '', fim: '', descricao: '' }))
     const [erro, setErro] = useState('')
+    const [arquivo, setArquivo] = useState(null)
+    const [erroPdf, setErroPdf] = useState('')
+    const [removerPdf, setRemoverPdf] = useState(false)
+    const campoPdf = useRef(null)
     const mudar = (chave, valor) => setValores((atual) => ({ ...atual, [chave]: valor }))
+
+    function selecionarPdf(evento) {
+        const selecionado = evento.target.files?.[0]
+        if (!selecionado) return
+        setRemoverPdf(false)
+        if (!/\.pdf$/i.test(selecionado.name) || !selecionado.size || selecionado.size > LIMITE_PDF) {
+            evento.target.value = ''
+            setArquivo(null)
+            setErroPdf('Escolha um arquivo PDF de até 5 MB.')
+            return
+        }
+        setArquivo(selecionado)
+        setErroPdf('')
+    }
+
+    function limparSelecaoPdf() {
+        campoPdf.current.value = ''
+        setArquivo(null)
+        setErroPdf('')
+    }
     const obrigatorios = certificacao ? ['nome', 'instituicao', 'data'] : ['empresa', 'cargo', 'inicio']
     const invalido = obrigatorios.some((chave) => !String(valores[chave] || '').trim()) ||
         (!certificacao && valores.fim && valores.fim < valores.inicio)
     function enviar(evento) {
         evento.preventDefault()
+        if (erroPdf) return
         if (invalido) { setErro('Preencha os campos obrigatórios e confira o período.'); return }
         const dados = certificacao ? { nome: valores.nome.trim(), instituicao: valores.instituicao.trim(), data: valores.data } :
             { empresa: valores.empresa.trim(), cargo: valores.cargo.trim(), inicio: valores.inicio, fim: valores.fim || null, descricao: valores.descricao.trim() }
-        salvar(dados)
+        salvar(dados, arquivo, removerPdf)
     }
     return <form className="pf-form pf-editor-registro" onSubmit={enviar}>
         <fieldset disabled={ocupado}>
@@ -58,6 +133,21 @@ function EditorRegistro({ tipo, registro, ocupado, salvar, cancelar }) {
                 <label>Nome da certificação<input autoFocus name="nome" required maxLength={160} value={valores.nome} onChange={(e) => mudar('nome', e.target.value)} /></label>
                 <label>Instituição<input name="instituicao" required maxLength={160} value={valores.instituicao} onChange={(e) => mudar('instituicao', e.target.value)} /></label>
                 <label>Data de emissão<input name="data" type="date" required max={hoje()} value={valores.data} onChange={(e) => mudar('data', e.target.value)} /></label>
+                <label>Anexar certificado (PDF)
+                    <input ref={campoPdf} type="file" accept=".pdf,application/pdf" onChange={selecionarPdf} />
+                </label>
+                <small>Opcional. Limite de 5 MB.</small>
+                {arquivo && <small role="status" className="pf-certificado-nome">
+                    <FileText size={16} aria-hidden="true" />{arquivo.name}
+                </small>}
+                {erroPdf && <p role="alert" className="pf-erro">{erroPdf}</p>}
+                {(arquivo || erroPdf) && <div className="pf-acoes">
+                    <button type="button" className="pf-secundario" onClick={limparSelecaoPdf}>Limpar seleção</button>
+                </div>}
+                {registro?.nomePdf && !arquivo && <label className="pf-remover-pdf">
+                    <input type="checkbox" checked={removerPdf} onChange={(e) => setRemoverPdf(e.target.checked)} />
+                    <span>Remover PDF atual ({registro.nomePdf})</span>
+                </label>}
             </> : <>
                 <label>Empresa<input autoFocus name="empresa" required maxLength={160} value={valores.empresa} onChange={(e) => mudar('empresa', e.target.value)} /></label>
                 <label>Cargo<input name="cargo" required maxLength={160} value={valores.cargo} onChange={(e) => mudar('cargo', e.target.value)} /></label>
@@ -69,7 +159,7 @@ function EditorRegistro({ tipo, registro, ocupado, salvar, cancelar }) {
                 <label>Descrição<textarea name="descricao" rows={4} maxLength={2000} value={valores.descricao} onChange={(e) => mudar('descricao', e.target.value)} /></label>
             </>}
             {erro && <p role="alert" className="pf-erro">{erro}</p>}
-            <div className="pf-acoes"><button className="pf-botao" disabled={!!invalido} type="submit">{ocupado ? 'Salvando…' : 'Salvar registro'}</button>
+            <div className="pf-acoes"><button className="pf-botao" disabled={!!invalido || !!erroPdf} type="submit">{ocupado ? 'Salvando…' : 'Salvar registro'}</button>
                 <button className="pf-secundario" type="button" onClick={cancelar}>Cancelar</button></div>
         </fieldset>
     </form>
@@ -144,8 +234,12 @@ export default function Perfil() {
     async function salvarPessoal(valores) {
         if (await executar(() => salvarPerfil(valores), 'Dados pessoais atualizados.')) setEditor(null)
     }
-    async function salvarItem(valores) {
-        if (await executar(() => salvarRegistro(editor.tipo, editor.registro?.id, valores), 'Registro salvo.')) setEditor(null)
+    async function salvarItem(valores, arquivo, removerPdf) {
+        const id = editor.registro?.id
+        const operacao = editor.tipo === 'certificacoes'
+            ? () => salvarCertificacao(id, valores, arquivo, removerPdf)
+            : () => salvarRegistro(editor.tipo, id, valores)
+        if (await executar(operacao, 'Registro salvo.')) setEditor(null)
     }
     async function excluirItem() {
         if (await executar(() => excluirRegistro(exclusao.tipo, exclusao.id), 'Registro excluído.')) setExclusao(null)
@@ -176,7 +270,9 @@ export default function Perfil() {
                 <ul className="pf-lista">{lista.map((item) => <li key={item.id}>
                     <div className="pf-registro-texto"><h3>{item.nome || item.cargo}</h3><p>{item.instituicao || item.empresa}</p>
                         <small>{tipo === 'certificacoes' ? dataLegivel(item.data) : dataLegivel(item.inicio) + ' – ' + (item.fim ? dataLegivel(item.fim) : 'Atual')}</small>
-                        {item.descricao && <p className="pf-texto">{item.descricao}</p>}</div>
+                        {item.descricao && <p className="pf-texto">{item.descricao}</p>}
+                        {tipo === 'certificacoes' && item.nomePdf && <AnexoCertificacao item={item} />}
+                    </div>
                     <div className="pf-registro-acoes">
                         <button type="button" className="pf-icone-botao" aria-label={'Editar ' + (item.nome || item.cargo)} disabled={ocupado || editor !== null} onClick={() => abrirEditor(tipo, item)}><Pencil size={17} /></button>
                         <button type="button" className="pf-icone-botao" aria-label={'Excluir ' + (item.nome || item.cargo)} disabled={ocupado || editor !== null} onClick={() => setExclusao({ tipo, id: item.id, nome: item.nome || item.cargo })}><Trash2 size={17} /></button>
@@ -234,8 +330,8 @@ export default function Perfil() {
                         </dl>
                     </>}
                 </section>
+                {secaoRegistros('certificacoes', 'Certificações', Award)}
                 {dados.dadosProfissionais && <>
-                    {secaoRegistros('certificacoes', 'Certificações', Award)}
                     <section className="pf-cartao" aria-labelledby="pf-certificados-plataforma">
                         <h2 id="pf-certificados-plataforma"><Award size={21} aria-hidden="true" />Certificados da plataforma</h2>
                         {!dados.certificadosPlataforma?.length ? <p className="pf-vazio">Conclua uma trilha elegível do CyberAcademy para receber seu certificado.</p> :
