@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { BookOpen, Check, Clock3, Eye, FileText, Info, Layers, LockKeyhole, Play, Save, Upload } from 'lucide-react'
 import TopoLogado from '../components/TopoLogado'
+import TituloEducadora from '../components/TituloEducadora'
 import { academy, CATEGORIAS, NIVEIS } from '../services/academyService'
 import mascoteEducadora from '../assets/gatinho-educadora-minimalista.png'
 import { useRascunho } from '../hooks/useRascunho'
@@ -69,8 +70,8 @@ export default function EnviarMaterial() {
                 <section className="em-apresentacao">
                     <div>
                         <Link className="em-voltar" to="/educadora/dashboard">Painel da educadora <span aria-hidden="true">/</span></Link>
-                        <h1 className="em-titulo"><span className="em-titulo-icone" aria-hidden="true"><BookOpen size={21} strokeWidth={1.8}/></span><span><span className="em-titulo-enviar">Enviar</span> <span className="em-titulo-material">Material</span></span></h1>
-                        <p>Transforme seu conhecimento em novas possibilidades.</p>
+                        <TituloEducadora icone={BookOpen} inicio="Enviar" destaque="Material"
+                            subtitulo="Transforme seu conhecimento em novas possibilidades." />
                         <span className="em-etiqueta"><FileText size={13} aria-hidden="true" /> Seu espaço de criação</span>
                     </div>
 

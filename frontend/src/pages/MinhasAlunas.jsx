@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { BookOpen, Eye, Info, Search, SearchX, Users, X } from 'lucide-react'
 import TopoLogado from '../components/TopoLogado'
+import TituloEducadora from '../components/TituloEducadora'
 import { useConta } from '../hooks/useConta'
 import { consultarAlunas } from '../services/alunasService'
 import './MinhasAlunas.css'
@@ -63,7 +64,10 @@ export default function MinhasAlunas(){
     function limpar(){setBusca('');setStatus('TODAS');setTrilha('')}
     return <div className="ed-dashboard ma-pagina"><TopoLogado ativa="alunas" />
         <main className="ed-conteudo ma-conteudo">
-            <header className="ma-apresentacao"><h1>Minhas Alunas</h1><p>Acompanhe o progresso das alunas nos seus materiais.</p></header>
+            <header className="ma-apresentacao">
+                <TituloEducadora icone={Users} inicio="Minhas" destaque="Alunas"
+                    subtitulo="Acompanhe o progresso das alunas nos seus materiais." />
+            </header>
             {restrita?<section className="ma-estado" role="status"><Info size={30} aria-hidden="true" /><h2>{conta?.perfil==='EDUCADORA'?'Acompanhamento disponível após aprovação':'Acesso exclusivo da Educadora'}</h2><p>{conta?.perfil==='EDUCADORA'?'Sua conta precisa estar aprovada para consultar dados de inscrições e progresso das alunas. Seus acessos atuais continuam disponíveis.':'Somente Educadoras aprovadas podem consultar esta área.'}</p></section>:<>
                 <div className="ma-pesquisa"><Search size={18} aria-hidden="true" /><label className="ma-sr" htmlFor="ma-busca">Buscar aluna por nome</label><input id="ma-busca" type="search" maxLength={160} value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Buscar aluna..." /></div>
                 <dl className="ma-indicadores">{[

@@ -1,7 +1,5 @@
 /* Exclusivo da página Minhas Alunas. Reutiliza o fundo e o cabeçalho existentes. */
 .ma-conteudo { max-width:1240px; padding-top:38px; }
-.ma-apresentacao h1 { font-size:28px; color:#554370; letter-spacing:-.5px; line-height:1.3; margin-bottom:7px; }
-.ma-apresentacao p { font-size:14px; color:#806c92; line-height:1.7; }
 .ma-pesquisa { display:flex; align-items:center; gap:10px; max-width:900px; padding:0 13px; margin:23px 0 18px; border:1px solid #b9a6cf; border-radius:8px; background:#fff; color:#8a739f; }
 .ma-pesquisa input { width:100%; min-width:0; padding:12px 0; border:0; background:transparent; font:inherit; font-size:16px; color:#645078; }
 .ma-pesquisa input::placeholder { color:#8d789f; opacity:1; }
@@ -48,7 +46,6 @@
 @media(max-width:1000px) { .ma-indicadores { grid-template-columns:repeat(2,minmax(0,1fr)); } .ma-tabela { min-width:730px; } }
 @media(max-width:580px) {
  .ma-conteudo { padding-top:27px; }
- .ma-apresentacao h1 { font-size:25px; }
  .ma-indicadores { gap:12px; }
  .ma-indicadores > div { padding:11px; }
  .ma-filtros label { width:100%; margin-left:0; }
