@@ -1,4 +1,8 @@
 .cm {
+    --cm-botao-fundo: #8065A3;
+    --cm-botao-hover: #70568F;
+    --cm-botao-desabilitado-fundo: #DCD2EC;
+    --cm-botao-desabilitado-texto: #66577D;
     position: relative;
     min-height: 100vh;
     overflow: hidden;
@@ -194,12 +198,16 @@
     padding: 0.4rem 0.9rem;
     border: none;
     border-radius: 10px;
-    background: var(--azul-escuro);
+    background: var(--cm-botao-fundo);
     color: #fff;
     font: inherit;
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
+}
+
+.cm-publicar input[type="file"]:not(:disabled)::file-selector-button:hover {
+    background: var(--cm-botao-hover);
 }
 
 .cm-erro {
@@ -290,9 +298,14 @@
 }
 
 .cm-abas button.ativa {
-    background: var(--azul-escuro);
-    border-color: var(--azul-escuro);
+    background: var(--cm-botao-fundo);
+    border-color: var(--cm-botao-fundo);
     color: #fff;
+}
+
+.cm-abas button.ativa:hover:not(:disabled) {
+    background: var(--cm-botao-hover);
+    border-color: var(--cm-botao-hover);
 }
 
 /* posts */
@@ -464,6 +477,20 @@
     cursor: not-allowed;
 }
 
+:is(.cm-feed, .cm > .cm-estado) .cm-botao:not(.cm-botao--contorno) {
+    background: var(--cm-botao-fundo);
+}
+
+:is(.cm-feed, .cm > .cm-estado) .cm-botao:hover:not(:disabled) {
+    background: var(--cm-botao-hover);
+}
+
+:is(.cm-feed, .cm > .cm-estado) .cm-botao:disabled:not(.cm-botao--contorno) {
+    background: var(--cm-botao-desabilitado-fundo);
+    color: var(--cm-botao-desabilitado-texto);
+    opacity: 1;
+}
+
 .cm-botao--cheio {
     width: 100%;
     height: 42px;
@@ -606,8 +633,8 @@
     width: 16px;
     height: 16px;
     border-width: 2px;
-    border-color: rgba(255, 255, 255, 0.35);
-    border-top-color: #ffffff;
+    border-color: color-mix(in srgb, currentColor 35%, transparent);
+    border-top-color: currentColor;
 }
 
 @media (max-width: 480px) {
