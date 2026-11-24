@@ -72,7 +72,6 @@ export default function MenuPopup({ ativa, onFechar, confirmarSaida }) {
     const dialogo = useRef(null)
     const usuaria = temPapel(identidade, 'USUARIA')
     const pessoal = usuaria || educadora
-    const podeAcessarPerfil = usuaria && !educadora
     const itens = [...(pessoal ? secoes : temPapel(identidade, 'EMPRESA') ? secoes.filter(s => s.id !== 'talk') : []),
         ...(educadoraAprovada ? secoesEducadora : []),
         ...(usuaria ? [{ id: 'educadora', titulo: educadora ? 'Minha solicitação' : 'Atuar como educadora', descricao: 'Solicitação de atuação', icone: User, cor: 'lilas', rota: '/educadora' }] : []),
@@ -121,7 +120,7 @@ export default function MenuPopup({ ativa, onFechar, confirmarSaida }) {
 
                     <hr className="mp-divisor" />
 
-                    {conta.filter(c => c.id !== 'perfil' || podeAcessarPerfil).map((c) => (
+                    {conta.filter(c => c.id !== 'perfil' || identidade).map((c) => (
                         <Item key={c.id} item={c} ativo={c.id === 'perfil' && ativa === c.id} aoClicar={navegar} />
                     ))}
 

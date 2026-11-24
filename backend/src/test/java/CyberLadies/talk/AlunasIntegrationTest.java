@@ -94,7 +94,8 @@ class AlunasIntegrationTest {
         String lista=mvc.perform(get(base).header("Authorization",auth)).andReturn().getResponse().getContentAsString();
         String item=mvc.perform(get(detalhe(ana,trilha)).header("Authorization",auth)).andReturn().getResponse().getContentAsString();
         for(String json:List.of(lista,item))assertThat(json).doesNotContain("email","telefone","senha","competencias","videoId","videoProvedor","conteudoComplementar","privado");
-        mvc.perform(get("/api/perfil").header("Authorization",auth)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/perfil").header("Authorization",auth)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.pessoal.id").value(dona));
         mvc.perform(get(detalhe(ana,trilha)).header("Authorization",auth)).andExpect(jsonPath("$.aulas[0].concluida").value(true))
             .andExpect(jsonPath("$.inscricao.inscritaEm").exists());
     }

@@ -7,8 +7,8 @@ import java.util.List;
 public final class PerfilDados {
     private PerfilDados() {}
     public record Edicao(@NotBlank @Size(max=120) String nome,
-        @NotNull @Size(max=2000) String sobre, @NotNull @Size(max=200) String formacao,
-        @NotNull @Size(max=500) String competencias) {}
+        @NotNull @Size(max=2000) String sobre, @Size(max=200) String formacao,
+        @Size(max=500) String competencias) {}
     public record CertificacaoEntrada(@NotBlank @Size(max=160) String nome,
         @NotBlank @Size(max=160) String instituicao, @NotNull LocalDate data) {}
     public record ExperienciaEntrada(@NotBlank @Size(max=160) String empresa,
@@ -20,7 +20,7 @@ public final class PerfilDados {
     public record Pessoal(long id, String nome, String email, String competencias,
         String sobre, String formacao, boolean temFoto) {}
     public record Participacao(long publicacoes, long comentarios, long curtidas, long candidaturas) {}
-    public record Perfil(Pessoal pessoal, List<Certificacao> certificacoes,
+    public record Perfil(Pessoal pessoal, boolean dadosProfissionais, List<Certificacao> certificacoes,
         List<Experiencia> experiencias, Participacao participacao,
         List<CyberLadies.academy.dto.AcademyDados.Certificado> certificadosPlataforma) {}
 }

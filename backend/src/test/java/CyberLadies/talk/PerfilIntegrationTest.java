@@ -43,6 +43,51 @@ class PerfilIntegrationTest {
         return db.sql("SELECT fixture_conta_integracao(?,?,'fixture','Java','CYBERLADIE',false)")
             .params(nome,UUID.randomUUID()+"@example.invalid").query(Long.class).single();
     }
+    @Test void todosOsPapeisEditamApenasOProprioPerfil() throws Exception {
+        for (String caso : new String[]{"CYBERLADIE","PENDENTE","APROVADA","EMPRESA","ADMIN"}) {
+            boolean educadora=caso.equals("PENDENTE") || caso.equals("APROVADA");
+            String tipo=educadora ? "EDUCADORA" : caso;
+            boolean profissional=tipo.equals("CYBERLADIE") || tipo.equals("EDUCADORA");
+            long titular=db.sql("SELECT fixture_conta_integracao(?,?,'fixture','Java',?,false)")
+                .params(tipo,UUID.randomUUID()+"@example.invalid",tipo).query(Long.class).single();
+            if (educadora)
+                db.sql("INSERT INTO educadora(conta_id,especialidade,instituicao,status) VALUES (?,'Java','Teste',?)")
+                    .params(titular,caso).update();
+            String token="Bearer "+UUID.randomUUID().toString().replace("-","").repeat(2);
+            db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
+                .params(CyberLadies.auth.service.Credenciais.hashBearer(token),titular).update();
+            mvc.perform(get("/api/perfil").header("Authorization",token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.pessoal.id").value(titular))
+                .andExpect(jsonPath("$.pessoal.nome").value(tipo))
+                .andExpect(jsonPath("$.dadosProfissionais").value(profissional));
+            var papeis=db.sql("SELECT papel FROM conta_papel WHERE conta_id=?").param(titular).query(String.class).set();
+            String camposProfissionais=profissional ? ",\"formacao\":\"ADS\",\"competencias\":\"Java\"" : "";
+            mvc.perform(put("/api/perfil").header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nome\":\"Atualizado\",\"sobre\":\"Descrição\",\"id\":"+outra+
+                    ",\"papeis\":[\"ADMIN\"],\"statusEducadora\":\"REJEITADA\""+camposProfissionais+"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(titular));
+            mvc.perform(get("/api/perfil").header("Authorization",token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.pessoal.nome").value("Atualizado"))
+                .andExpect(jsonPath("$.pessoal.sobre").value("Descrição"));
+            assertThat(db.sql("SELECT nome FROM conta WHERE id=?").param(outra).query(String.class).single()).isEqualTo("Outra");
+            assertThat(db.sql("SELECT papel FROM conta_papel WHERE conta_id=?").param(titular).query(String.class).set()).isEqualTo(papeis);
+            if (educadora) {
+                assertThat(db.sql("SELECT status FROM educadora WHERE conta_id=?").param(titular).query(String.class).single())
+                    .isEqualTo(caso);
+                mvc.perform(get("/api/candidaturas").header("Authorization",token)).andExpect(status().isForbidden());
+            }
+            if (!profissional) {
+                mvc.perform(put("/api/perfil").header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nome\":\"Nome indevido\",\"sobre\":\"Descrição\",\"formacao\":\"ADS\",\"competencias\":\"Java\"}"))
+                    .andExpect(status().isForbidden());
+                mvc.perform(post("/api/perfil/certificacoes").header("Authorization",token)
+                    .contentType(MediaType.APPLICATION_JSON).content(certificado)).andExpect(status().isForbidden());
+                mvc.perform(post("/api/perfil/experiencias").header("Authorization",token)
+                    .contentType(MediaType.APPLICATION_JSON).content(experiencia)).andExpect(status().isForbidden());
+                mvc.perform(get("/api/academy/me/progresso").header("Authorization",token)).andExpect(status().isForbidden());
+            }
+        }
+    }
     @Test void edicaoPersistidaSemAdesaoOuExposicaoDeSegredos() throws Exception {
         mvc.perform(get("/api/perfil").header("Authorization",auth))
             .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))
