@@ -42,6 +42,7 @@ function Item({ item, ativo, aoClicar }) {
         <Link
             to={item.rota}
             className={`mp-item ${ativo ? 'mp-item--ativo' : ''}`}
+            aria-current={item.rota === "/perfil" && ativo ? 'page' : undefined}
             onClick={aoClicar}
         >
             {conteudo}
@@ -69,10 +70,12 @@ export default function MenuPopup({ ativa, onFechar, confirmarSaida }) {
         onFechar()
     }
     const dialogo = useRef(null)
-    const pessoal = temPapel(identidade, 'USUARIA') || temPapel(identidade, 'EDUCADORA')
+    const usuaria = temPapel(identidade, 'USUARIA')
+    const pessoal = usuaria || educadora
+    const podeAcessarPerfil = usuaria && !educadora
     const itens = [...(pessoal ? secoes : temPapel(identidade, 'EMPRESA') ? secoes.filter(s => s.id !== 'talk') : []),
         ...(educadoraAprovada ? secoesEducadora : []),
-        ...(temPapel(identidade, 'USUARIA') ? [{ id: 'educadora', titulo: educadora ? 'Minha solicitação' : 'Atuar como educadora', descricao: 'Solicitação de atuação', icone: User, cor: 'lilas', rota: '/educadora' }] : []),
+        ...(usuaria ? [{ id: 'educadora', titulo: educadora ? 'Minha solicitação' : 'Atuar como educadora', descricao: 'Solicitação de atuação', icone: User, cor: 'lilas', rota: '/educadora' }] : []),
         ...(temPapel(identidade, 'ADMIN') ? [{ id: 'admin', titulo: 'Solicitações', descricao: 'Análise de educadoras', icone: User, cor: 'lilas', rota: '/admin/educadoras' }] : [])]
 
     useEffect(() => {
@@ -118,8 +121,8 @@ export default function MenuPopup({ ativa, onFechar, confirmarSaida }) {
 
                     <hr className="mp-divisor" />
 
-                    {conta.filter(c => c.id !== 'perfil' || pessoal).map((c) => (
-                        <Item key={c.id} item={c.id === 'perfil' && educadora ? { ...c, rota: null } : c} aoClicar={navegar} />
+                    {conta.filter(c => c.id !== 'perfil' || podeAcessarPerfil).map((c) => (
+                        <Item key={c.id} item={c} ativo={c.id === 'perfil' && ativa === c.id} aoClicar={navegar} />
                     ))}
 
                     <hr className="mp-divisor" />
