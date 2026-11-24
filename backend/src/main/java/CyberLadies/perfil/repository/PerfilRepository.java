@@ -31,9 +31,19 @@ public class PerfilRepository {
         return db.sql("""
             SELECT (SELECT count(*) FROM talk_post WHERE autora_id=:id) AS publicacoes,
             (SELECT count(*) FROM talk_comentario WHERE autora_id=:id) AS comentarios,
-            (SELECT count(*) FROM talk_curtida WHERE usuaria_id=:id) AS curtidas,
-            (SELECT count(*) FROM cyber_candidatura WHERE usuaria_id=:id) AS candidaturas
+            (SELECT count(*) FROM talk_curtida WHERE usuaria_id=:id) AS curtidas
             """).param("id",usuaria).query(Participacao.class).single();
+    }
+    public long contarCandidaturas(long usuaria) {
+        return db.sql("SELECT count(*) FROM cyber_candidatura WHERE usuaria_id=?").param(usuaria).query(Long.class).single();
+    }
+    public Optional<AtuacaoEducadora> atuacaoEducadora(long conta) {
+        return db.sql("SELECT especialidade,instituicao FROM educadora WHERE conta_id=? AND status='APROVADA'")
+            .param(conta).query(AtuacaoEducadora.class).optional();
+    }
+    public Optional<DadosEmpresa> empresa(long conta) {
+        return db.sql("SELECT cnpj,area_atuacao FROM conta_empresa WHERE conta_id=?")
+            .param(conta).query(DadosEmpresa.class).optional();
     }
     public List<Certificacao> certificacoes(long usuaria) {
         return db.sql("SELECT id,nome,instituicao,data FROM perfil_certificacao WHERE usuaria_id=? ORDER BY data DESC,id DESC")

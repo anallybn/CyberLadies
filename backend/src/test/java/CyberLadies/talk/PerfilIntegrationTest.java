@@ -44,8 +44,8 @@ class PerfilIntegrationTest {
             .params(nome,UUID.randomUUID()+"@example.invalid").query(Long.class).single();
     }
     @Test void todosOsPapeisEditamApenasOProprioPerfil() throws Exception {
-        for (String caso : new String[]{"CYBERLADIE","PENDENTE","APROVADA","EMPRESA","ADMIN"}) {
-            boolean educadora=caso.equals("PENDENTE") || caso.equals("APROVADA");
+        for (String caso : new String[]{"CYBERLADIE","PENDENTE","REJEITADA","APROVADA","EMPRESA","ADMIN"}) {
+            boolean educadora=caso.equals("PENDENTE") || caso.equals("REJEITADA") || caso.equals("APROVADA");
             String tipo=educadora ? "EDUCADORA" : caso;
             boolean profissional=tipo.equals("CYBERLADIE") || tipo.equals("EDUCADORA");
             long titular=db.sql("SELECT fixture_conta_integracao(?,?,'fixture','Java',?,false)")
@@ -53,13 +53,24 @@ class PerfilIntegrationTest {
             if (educadora)
                 db.sql("INSERT INTO educadora(conta_id,especialidade,instituicao,status) VALUES (?,'Java','Teste',?)")
                     .params(titular,caso).update();
-            String token="Bearer "+UUID.randomUUID().toString().replace("-","").repeat(2);
-            db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
-                .params(CyberLadies.auth.service.Credenciais.hashBearer(token),titular).update();
-            mvc.perform(get("/api/perfil").header("Authorization",token))
+            if (tipo.equals("EMPRESA")) {
+                long empresa=db.sql("INSERT INTO cyber_empresa(nome) VALUES ('Empresa de teste') RETURNING id").query(Long.class).single();
+                db.sql("INSERT INTO conta_empresa VALUES (?,?,'11222333000181','Tecnologia')").params(titular,empresa).update();
+            }
+            String token=sessaoPara(titular);
+            String tipoPerfil=educadora && !caso.equals("APROVADA") ? "CYBERLADIE" : tipo;
+            var perfil=mvc.perform(get("/api/perfil").header("Authorization",token))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.pessoal.id").value(titular))
                 .andExpect(jsonPath("$.pessoal.nome").value(tipo))
+                .andExpect(jsonPath("$.tipo").value(tipoPerfil))
                 .andExpect(jsonPath("$.dadosProfissionais").value(profissional));
+            if (tipoPerfil.equals("CYBERLADIE")) perfil.andExpect(jsonPath("$.candidaturas").value(0));
+            else perfil.andExpect(jsonPath("$.candidaturas").doesNotExist());
+            if (tipoPerfil.equals("EDUCADORA")) perfil.andExpect(jsonPath("$.atuacaoEducadora.especialidade").value("Java"));
+            else perfil.andExpect(jsonPath("$.atuacaoEducadora").doesNotExist());
+            if (tipoPerfil.equals("EMPRESA")) perfil.andExpect(jsonPath("$.empresa.areaAtuacao").value("Tecnologia"))
+                .andExpect(jsonPath("$.empresa.cnpj").value("11222333000181"));
+            else perfil.andExpect(jsonPath("$.empresa").doesNotExist());
             var papeis=db.sql("SELECT papel FROM conta_papel WHERE conta_id=?").param(titular).query(String.class).set();
             String camposProfissionais=profissional ? ",\"formacao\":\"ADS\",\"competencias\":\"Java\"" : "";
             mvc.perform(put("/api/perfil").header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
@@ -74,7 +85,8 @@ class PerfilIntegrationTest {
             if (educadora) {
                 assertThat(db.sql("SELECT status FROM educadora WHERE conta_id=?").param(titular).query(String.class).single())
                     .isEqualTo(caso);
-                mvc.perform(get("/api/candidaturas").header("Authorization",token)).andExpect(status().isForbidden());
+                mvc.perform(get("/api/candidaturas").header("Authorization",token))
+                    .andExpect(status().is(caso.equals("APROVADA") ? 403 : 200));
             }
             if (!profissional) {
                 mvc.perform(put("/api/perfil").header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
@@ -88,6 +100,63 @@ class PerfilIntegrationTest {
             }
         }
     }
+    private String sessaoPara(long conta) {
+        String token="Bearer "+UUID.randomUUID().toString().replace("-","").repeat(2);
+        db.sql("INSERT INTO auth_sessao VALUES (?,?,CURRENT_TIMESTAMP+INTERVAL '1 hour')")
+            .params(CyberLadies.auth.service.Credenciais.hashBearer(token),conta).update();
+        return token;
+    }
+
+    @Test void aprovacaoMudaPerfilDaMesmaSessaoSemApagarDados() throws Exception {
+        mvc.perform(put("/api/perfil").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {"nome":"Titular","sobre":"Minha apresentação","formacao":"ADS","competencias":"Java"}
+                """)).andExpect(status().isOk());
+        mvc.perform(post("/api/perfil/certificacoes").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON)
+            .content(certificado)).andExpect(status().isCreated());
+        mvc.perform(post("/api/perfil/experiencias").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON)
+            .content(experiencia)).andExpect(status().isCreated());
+        mvc.perform(get("/api/perfil").header("Authorization",auth))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.tipo").value("CYBERLADIE"))
+            .andExpect(jsonPath("$.candidaturas").value(0));
+        mvc.perform(post("/api/educadora/solicitacao").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {"especialidade":"Engenharia de software","instituicao":"Instituição de teste"}
+                """)).andExpect(status().isCreated());
+        mvc.perform(get("/api/perfil").header("Authorization",auth))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.tipo").value("CYBERLADIE"))
+            .andExpect(jsonPath("$.atuacaoEducadora").doesNotExist());
+        long empresa=db.sql("INSERT INTO cyber_empresa(nome) VALUES ('Empresa de teste') RETURNING id").query(Long.class).single();
+        long vaga=db.sql("INSERT INTO cyber_vaga(empresa_id,titulo,descricao) VALUES (?,'Vaga','Descrição') RETURNING id")
+            .param(empresa).query(Long.class).single();
+        mvc.perform(post("/api/candidaturas").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {"vagaId":%d}
+                """.formatted(vaga))).andExpect(status().isCreated());
+        mvc.perform(get("/api/perfil").header("Authorization",auth))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.candidaturas").value(1));
+        long admin=db.sql("SELECT fixture_conta_integracao('Admin',?,'fixture','','ADMIN',false)")
+            .param(UUID.randomUUID()+"@example.invalid").query(Long.class).single();
+        mvc.perform(post("/api/admin/educadoras/solicitacoes/"+usuaria+"/decisao")
+            .header("Authorization",sessaoPara(admin)).contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {"status":"APROVADA"}
+                """)).andExpect(status().isOk());
+        mvc.perform(get("/api/perfil").header("Authorization",auth)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.tipo").value("EDUCADORA"))
+            .andExpect(jsonPath("$.atuacaoEducadora.especialidade").value("Engenharia de software"))
+            .andExpect(jsonPath("$.atuacaoEducadora.instituicao").value("Instituição de teste"))
+            .andExpect(jsonPath("$.pessoal.formacao").value("ADS"))
+            .andExpect(jsonPath("$.pessoal.competencias").value("Java"))
+            .andExpect(jsonPath("$.pessoal.sobre").value("Minha apresentação"))
+            .andExpect(jsonPath("$.certificacoes.length()").value(1))
+            .andExpect(jsonPath("$.experiencias.length()").value(1))
+            .andExpect(jsonPath("$.candidaturas").doesNotExist());
+        mvc.perform(get("/api/candidaturas").header("Authorization",auth)).andExpect(status().isForbidden());
+        assertThat(db.sql("SELECT count(*) FROM cyber_candidatura WHERE usuaria_id=?").param(usuaria)
+            .query(Long.class).single()).isEqualTo(1L);
+    }
+
     @Test void edicaoPersistidaSemAdesaoOuExposicaoDeSegredos() throws Exception {
         mvc.perform(get("/api/perfil").header("Authorization",auth))
             .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))
@@ -185,7 +254,7 @@ class PerfilIntegrationTest {
             .andExpect(jsonPath("$.participacao.publicacoes").value(1))
             .andExpect(jsonPath("$.participacao.comentarios").value(1))
             .andExpect(jsonPath("$.participacao.curtidas").value(1))
-            .andExpect(jsonPath("$.participacao.candidaturas").value(0));
+            .andExpect(jsonPath("$.candidaturas").value(0));
         mvc.perform(get("/api/perfil").header("Authorization",authOutra))
             .andExpect(jsonPath("$.participacao.publicacoes").value(0));
     }

@@ -1,5 +1,6 @@
 package CyberLadies.perfil.dto;
 
+import CyberLadies.auth.dto.ContaDados.Tipo;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -19,8 +20,11 @@ public final class PerfilDados {
         LocalDate fim, String descricao) {}
     public record Pessoal(long id, String nome, String email, String competencias,
         String sobre, String formacao, boolean temFoto) {}
-    public record Participacao(long publicacoes, long comentarios, long curtidas, long candidaturas) {}
-    public record Perfil(Pessoal pessoal, boolean dadosProfissionais, List<Certificacao> certificacoes,
-        List<Experiencia> experiencias, Participacao participacao,
+    public record Participacao(long publicacoes, long comentarios, long curtidas) {}
+    public record AtuacaoEducadora(String especialidade, String instituicao) {}
+    public record DadosEmpresa(String cnpj, String areaAtuacao) {}
+    public record Perfil(Pessoal pessoal, Tipo tipo, AtuacaoEducadora atuacaoEducadora, DadosEmpresa empresa,
+        boolean dadosProfissionais, List<Certificacao> certificacoes, List<Experiencia> experiencias,
+        Participacao participacao, Long candidaturas,
         List<CyberLadies.academy.dto.AcademyDados.Certificado> certificadosPlataforma) {}
 }

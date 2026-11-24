@@ -4,11 +4,14 @@ import CyberLadies.perfil.dto.PerfilDados.*;
 import CyberLadies.perfil.repository.PerfilRepository;
 import CyberLadies.auth.AcessoAutenticado;
 import CyberLadies.auth.Papel;
+import CyberLadies.auth.dto.ContaDados.Tipo;
+import CyberLadies.auth.service.AcessoConta;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,20 +20,28 @@ import org.springframework.web.server.ResponseStatusException;
 public class PerfilService {
     private final PerfilRepository repository;
     private final AcessoAutenticado acesso;
+    private final AcessoConta contas;
     private final FotoPerfil fotos;
     private final CyberLadies.academy.service.CertificadoAcademyService certificados;
-    public PerfilService(PerfilRepository repository,AcessoAutenticado acesso,FotoPerfil fotos,CyberLadies.academy.service.CertificadoAcademyService certificados) {
-        this.repository=repository; this.acesso=acesso; this.fotos=fotos; this.certificados=certificados;
+    public PerfilService(PerfilRepository repository,AcessoAutenticado acesso,AcessoConta contas,FotoPerfil fotos,CyberLadies.academy.service.CertificadoAcademyService certificados) {
+        this.repository=repository; this.acesso=acesso; this.contas=contas; this.fotos=fotos; this.certificados=certificados;
     }
-    @Transactional(readOnly=true)
+    @Transactional(readOnly=true, isolation=Isolation.REPEATABLE_READ)
     public Perfil consultar() {
         var identidade=acesso.identidade();
         long id=identidade.id();
+        var conta=contas.conta(identidade);
+        var atuacao=conta.perfil()==Tipo.EDUCADORA && "APROVADA".equals(conta.statusEducadora())
+            ? repository.atuacaoEducadora(id).orElse(null) : null;
+        Tipo tipo=conta.perfil()==Tipo.EDUCADORA && atuacao==null ? Tipo.CYBERLADIE : conta.perfil();
+        var empresa=tipo==Tipo.EMPRESA ? repository.empresa(id).orElse(null) : null;
         boolean profissional=identidade.possui(Papel.USUARIA);
         var pessoal=repository.pessoal(id,profissional);
-        if (!profissional) return new Perfil(pessoal,false,List.of(),List.of(),null,List.of());
-        return new Perfil(pessoal,true,repository.certificacoes(id),repository.experiencias(id),
-            repository.participacao(id),certificados.meus());
+        if (!profissional)
+            return new Perfil(pessoal,tipo,atuacao,empresa,false,List.of(),List.of(),null,null,List.of());
+        Long candidaturas=conta.podeCandidatar() ? repository.contarCandidaturas(id) : null;
+        return new Perfil(pessoal,tipo,atuacao,empresa,true,repository.certificacoes(id),repository.experiencias(id),
+            repository.participacao(id),candidaturas,certificados.meus());
     }
     @Transactional
     public Pessoal editar(Edicao dados) {

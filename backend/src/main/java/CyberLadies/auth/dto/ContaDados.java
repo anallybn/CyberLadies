@@ -25,7 +25,7 @@ public final class ContaDados {
         @NotBlank @Size(max=160) String areaAtuacao) implements Estrita {}
     public record Login(@NotBlank @Email @Size(max=254) String email,
         @NotBlank @Size(max=128) String senha) implements Estrita {}
-    public record Conta(long id,String nome,String email,Tipo perfil,String statusEducadora) {}
+    public record Conta(long id,String nome,String email,Tipo perfil,String statusEducadora,boolean podeCandidatar) {}
     public record Credencial(long id,String hash,Tipo tipo,boolean cadastroCompleto,String statusEducadora) {}
     public record Sessao(String token,Tipo perfil,String statusEducadora) {}
 }
