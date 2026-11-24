@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { MessageCircle, Sparkles } from 'lucide-react'
 import icone from '../assets/icone.svg'
 import Circuitos from '../components/Circuitos'
 import TopoLogado from '../components/TopoLogado'
 import PostTalk from '../components/PostTalk'
 import { talk } from '../services/talkApi'
 import { carregarComunidade, publicarPost } from '../services/comunidadeService'
+import './CyberChat.css'
 import './Comunidade.css'
 
 const ABAS = [
@@ -169,7 +171,19 @@ export default function Comunidade() {
                 usuaria?.membro && (
                     <div className="cm-grade">
                         <main className="cm-feed">
-                            <header className="cm-talk-topo"><h1>CyberTalk</h1></header>
+                            <header className="cc-apresentacao cm-talk-topo">
+                                <div>
+                                    <span className="cc-etiqueta">COMUNIDADE E CONEXÕES</span>
+                                    <h1 className="cc-titulo" aria-label="CyberTalk">
+                                        <span className="cc-titulo-icone" aria-hidden="true">
+                                            <MessageCircle size={20} strokeWidth={1.8} />
+                                        </span>
+                                        <span><span className="cc-titulo-cyber">Cyber</span><span className="cc-titulo-chat">Talk</span></span>
+                                        <Sparkles className="cc-titulo-brilho" size={16} strokeWidth={1.5} aria-hidden="true" />
+                                    </h1>
+                                    <p>Compartilhe experiências, conhecimentos e cresça junto com a comunidade.</p>
+                                </div>
+                            </header>
 
                             {postId && (
                                 <Link to="/comunidade">
