@@ -10,18 +10,22 @@ import org.springframework.stereotype.Repository;
 public class PerfilRepository {
     private final JdbcClient db;
     public PerfilRepository(JdbcClient db) { this.db=db; }
-    public Pessoal pessoal(long usuaria) {
+    public Pessoal pessoal(long conta, boolean dadosProfissionais) {
         return db.sql("""
-            SELECT u.id,u.nome,u.email,p.competencias,u.sobre,u.formacao,
-            EXISTS(SELECT 1 FROM perfil_foto WHERE usuaria_id=u.id) AS tem_foto
-            FROM conta u JOIN usuaria p ON p.conta_id=u.id WHERE u.id=?
-            """).param(usuaria).query(Pessoal.class).single();
+            SELECT c.id,c.nome,c.email,
+            CASE WHEN :profissional THEN p.competencias END AS competencias, c.sobre,
+            CASE WHEN :profissional THEN c.formacao END AS formacao,
+            EXISTS(SELECT 1 FROM perfil_foto WHERE usuaria_id=c.id) AS tem_foto
+            FROM conta c LEFT JOIN usuaria p ON p.conta_id=c.id WHERE c.id=:id
+            """).param("profissional",dadosProfissionais).param("id",conta).query(Pessoal.class).single();
     }
-    public void editar(long usuaria, Edicao dados) {
-        db.sql("UPDATE conta SET nome=?,sobre=?,formacao=? WHERE id=?")
-            .params(dados.nome().strip(),dados.sobre().strip(),dados.formacao().strip(),
-                usuaria).update();
-        db.sql("UPDATE usuaria SET competencias=? WHERE conta_id=?").params(dados.competencias().strip(),usuaria).update();
+    public void editar(long conta, Edicao dados) {
+        db.sql("UPDATE conta SET nome=?,sobre=? WHERE id=?")
+            .params(dados.nome().strip(),dados.sobre().strip(),conta).update();
+    }
+    public void editarDadosProfissionais(long conta, Edicao dados) {
+        db.sql("UPDATE conta SET formacao=? WHERE id=?").params(dados.formacao().strip(),conta).update();
+        db.sql("UPDATE usuaria SET competencias=? WHERE conta_id=?").params(dados.competencias().strip(),conta).update();
     }
     public Participacao participacao(long usuaria) {
         return db.sql("""

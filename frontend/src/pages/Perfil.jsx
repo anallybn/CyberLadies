@@ -9,16 +9,19 @@ import './Perfil.css'
 const hoje = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
 const dataLegivel = (valor) => new Date(valor + 'T12:00:00').toLocaleDateString('pt-BR')
 
-function EditorPessoal({ pessoa, ocupado, salvar, cancelar }) {
-    const [valores, setValores] = useState({ nome: pessoa.nome, sobre: pessoa.sobre, formacao: pessoa.formacao, competencias: pessoa.competencias })
+function EditorPessoal({ pessoa, dadosProfissionais, ocupado, salvar, cancelar }) {
+    const [valores, setValores] = useState({
+        nome: pessoa.nome, sobre: pessoa.sobre,
+        ...(dadosProfissionais ? { formacao: pessoa.formacao ?? '', competencias: pessoa.competencias ?? '' } : {}),
+    })
     const mudar = (chave, valor) => setValores((atual) => ({ ...atual, [chave]: valor }))
     return <form className="pf-form" onSubmit={(e) => { e.preventDefault(); if (valores.nome.trim()) salvar(valores) }}>
         <fieldset disabled={ocupado}>
             <legend className="pf-sr">Editar dados pessoais</legend>
             <label>Nome completo<input autoFocus name="nome" required maxLength={120} value={valores.nome} onChange={(e) => mudar('nome', e.target.value)} autoComplete="name" /></label>
-            <label>Formação ou área de estudo<input name="formacao" maxLength={200} value={valores.formacao} onChange={(e) => mudar('formacao', e.target.value)} /></label>
+            {dadosProfissionais && <label>Formação ou área de estudo<input name="formacao" maxLength={200} value={valores.formacao} onChange={(e) => mudar('formacao', e.target.value)} /></label>}
             <label>Sobre você<textarea name="sobre" rows={5} maxLength={2000} value={valores.sobre} onChange={(e) => mudar('sobre', e.target.value)} /></label>
-            <label>Competências<input name="competencias" maxLength={500} value={valores.competencias} onChange={(e) => mudar('competencias', e.target.value)} /></label>
+            {dadosProfissionais && <label>Competências<input name="competencias" maxLength={500} value={valores.competencias} onChange={(e) => mudar('competencias', e.target.value)} /></label>}
             <div className="pf-acoes"><button className="pf-botao" disabled={!valores.nome.trim()} type="submit">{ocupado ? 'Salvando…' : 'Salvar dados'}</button>
                 <button className="pf-secundario" type="button" onClick={cancelar}>Cancelar</button></div>
         </fieldset>
@@ -87,7 +90,7 @@ export default function Perfil() {
             .then((perfil) => { setDados(perfil); setErro('') })
             .catch((falha) => {
                 if (falha.name === 'AbortError') return
-                if (falha.status === 401) navigate('/login?perfil=usuaria&retorno=%2Fperfil', { replace: true })
+                if (falha.status === 401) navigate('/login?retorno=%2Fperfil', { replace: true })
                 else setErro(falha.message)
             })
             .finally(() => { if (!controller.signal.aborted) setCarregando(false) })
@@ -105,7 +108,7 @@ export default function Perfil() {
             setErroFoto('')
         }).catch((falha) => {
             if (falha.name === 'AbortError') return
-            if (falha.status === 401) navigate('/login?perfil=usuaria&retorno=%2Fperfil', { replace: true })
+            if (falha.status === 401) navigate('/login?retorno=%2Fperfil', { replace: true })
             else setErroFoto(falha.message)
         })
         return () => { controller.abort(); if (url) URL.revokeObjectURL(url) }
@@ -123,7 +126,7 @@ export default function Perfil() {
             setMensagem({ erro: false, texto: sucesso })
             return true
         } catch (falha) {
-            if (falha.status === 401) navigate('/login?perfil=usuaria&retorno=%2Fperfil', { replace: true })
+            if (falha.status === 401) navigate('/login?retorno=%2Fperfil', { replace: true })
             else setMensagem({ erro: true, texto: falha.message })
             return false
         } finally {
@@ -191,7 +194,7 @@ export default function Perfil() {
                         <div className="pf-avatar">{temFoto && foto ? <img src={foto} alt="Sua foto de perfil" /> : <UserRound size={52} aria-hidden="true" />}</div>
                         <span className="pf-privado"><ShieldCheck size={14} aria-hidden="true" />Seu perfil privado</span>
                         <h1 id="pf-nome">{dados.pessoal.nome}</h1>
-                        <p>{dados.pessoal.formacao || 'Adicione sua formação ou área de estudo'}</p>
+                        {dados.dadosProfissionais && <p>{dados.pessoal.formacao || 'Adicione sua formação ou área de estudo'}</p>}
                         <div className="pf-acoes pf-foto-acoes">
                             <label className={'pf-secundario pf-upload' + (ocupado ? ' pf-desabilitado' : '')}>Alterar foto
                                 <input type="file" accept="image/png,image/jpeg" disabled={ocupado} onChange={escolherFoto} />
@@ -207,29 +210,31 @@ export default function Perfil() {
                 {mensagem && <div className={'pf-mensagem' + (mensagem.erro ? ' pf-erro' : '')} role={mensagem.erro ? 'alert' : 'status'}>{mensagem.texto}</div>}
                 <section className="pf-cartao" aria-labelledby="pf-pessoal">
                     <div className="pf-secao-topo"><h2 id="pf-pessoal">Sobre você</h2><button className="pf-secundario" disabled={ocupado || editor !== null} onClick={() => abrirEditor('pessoal')}><Pencil size={16} />Editar dados</button></div>
-                    {editor?.tipo === 'pessoal' ? <EditorPessoal pessoa={dados.pessoal} ocupado={ocupado} salvar={salvarPessoal} cancelar={() => setEditor(null)} /> : <>
+                    {editor?.tipo === 'pessoal' ? <EditorPessoal pessoa={dados.pessoal} dadosProfissionais={dados.dadosProfissionais} ocupado={ocupado} salvar={salvarPessoal} cancelar={() => setEditor(null)} /> : <>
                         <p className="pf-texto">{dados.pessoal.sobre || 'Conte um pouco sobre sua trajetória e seus próximos passos na tecnologia.'}</p>
-                        <dl className="pf-dados"><div><dt>E-mail da conta</dt><dd>{dados.pessoal.email}</dd></div><div><dt>Competências</dt><dd>{dados.pessoal.competencias || 'Nenhuma competência informada.'}</dd></div></dl>
+                        <dl className="pf-dados"><div><dt>E-mail da conta</dt><dd>{dados.pessoal.email}</dd></div>{dados.dadosProfissionais && <div><dt>Competências</dt><dd>{dados.pessoal.competencias || 'Nenhuma competência informada.'}</dd></div>}</dl>
                     </>}
                 </section>
-                {secaoRegistros('certificacoes', 'Certificações', Award)}
-                <section className="pf-cartao" aria-labelledby="pf-certificados-plataforma">
-                    <h2 id="pf-certificados-plataforma"><Award size={21} aria-hidden="true" />Certificados da plataforma</h2>
-                    {!dados.certificadosPlataforma?.length ? <p className="pf-vazio">Conclua uma trilha elegível do CyberAcademy para receber seu certificado.</p> :
-                        <ul className="pf-lista">{dados.certificadosPlataforma.map((certificado) => <li key={certificado.id}><div className="pf-registro-texto">
-                            <h3>{certificado.tituloTrilha}</h3><p>CyberAcademy · Versão {certificado.versao} · {certificado.cargaMinutos} minutos</p>
-                            <small>Emitido em {new Date(certificado.emitidoEm).toLocaleDateString('pt-BR')}</small>
-                            <p><Link to={'/academy/certificados/' + certificado.id}>Consultar certificado</Link></p>
-                        </div></li>)}</ul>}
-                </section>
-                {secaoRegistros('experiencias', 'Experiência profissional', BriefcaseBusiness)}
+                {dados.dadosProfissionais && <>
+                    {secaoRegistros('certificacoes', 'Certificações', Award)}
+                    <section className="pf-cartao" aria-labelledby="pf-certificados-plataforma">
+                        <h2 id="pf-certificados-plataforma"><Award size={21} aria-hidden="true" />Certificados da plataforma</h2>
+                        {!dados.certificadosPlataforma?.length ? <p className="pf-vazio">Conclua uma trilha elegível do CyberAcademy para receber seu certificado.</p> :
+                            <ul className="pf-lista">{dados.certificadosPlataforma.map((certificado) => <li key={certificado.id}><div className="pf-registro-texto">
+                                <h3>{certificado.tituloTrilha}</h3><p>CyberAcademy · Versão {certificado.versao} · {certificado.cargaMinutos} minutos</p>
+                                <small>Emitido em {new Date(certificado.emitidoEm).toLocaleDateString('pt-BR')}</small>
+                                <p><Link to={'/academy/certificados/' + certificado.id}>Consultar certificado</Link></p>
+                            </div></li>)}</ul>}
+                    </section>
+                    {secaoRegistros('experiencias', 'Experiência profissional', BriefcaseBusiness)}
+                </>}
                 <section className="pf-cartao" aria-labelledby="pf-avaliacoes"><h2 id="pf-avaliacoes"><MessageSquare size={21} aria-hidden="true" />Feedbacks e avaliações</h2>
                     <p className="pf-vazio">Ainda não há avaliações disponíveis para seu perfil.</p><p className="pf-ajuda">Esta seção será conectada quando o fluxo de avaliações da plataforma estiver disponível.</p></section>
-                <section className="pf-cartao" aria-labelledby="pf-participacao"><h2 id="pf-participacao">Participação na plataforma</h2>
+                {dados.participacao && <section className="pf-cartao" aria-labelledby="pf-participacao"><h2 id="pf-participacao">Participação na plataforma</h2>
                     <p className="pf-ajuda">Seus registros atuais no CyberLadies.</p>
                     <dl className="pf-indicadores">{[['publicacoes', 'Publicações no CyberTalk'], ['comentarios', 'Comentários feitos'], ['curtidas', 'Curtidas realizadas'], ['candidaturas', 'Candidaturas enviadas']].map(([chave, rotulo]) =>
                         <div key={chave}><dt>{rotulo}</dt><dd>{dados.participacao[chave]}</dd></div>)}</dl>
-                </section>
+                </section>}
             </>}
         </main>
     </div>

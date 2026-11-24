@@ -47,7 +47,7 @@ class AuthPerfisIntegrationTest {
         mvc.perform(get("/api/candidaturas").header("Authorization",auth)).andExpect(status().isForbidden());
         mvc.perform(get("/api/educadora/alunas").header("Authorization",auth)).andExpect(status().isForbidden());
     }
-    @Test void cadastroEmpresaUsaContaAtualENaoGanhaAcessoPessoal() throws Exception {
+    @Test void cadastroEmpresaUsaContaAtualSemGanharAcessoDeEstudante() throws Exception {
         String email=email();
         String dados=dados(email).replace("}",",\"cnpj\":\"11222333000181\",\"areaAtuacao\":\"Tecnologia\"}");
         mvc.perform(post("/api/auth/cadastro/empresa").contentType("application/json").content(dados)).andExpect(status().isCreated());
@@ -55,7 +55,8 @@ class AuthPerfisIntegrationTest {
         mvc.perform(get("/api/auth/me").header("Authorization",auth)).andExpect(jsonPath("$.papeis[0]").value("EMPRESA"));
         mvc.perform(get("/api/auth/conta").header("Authorization",auth)).andExpect(jsonPath("$.perfil").value("EMPRESA"));
         mvc.perform(get("/api/candidaturas").header("Authorization",auth)).andExpect(status().isForbidden());
-        mvc.perform(get("/api/perfil").header("Authorization",auth)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/perfil").header("Authorization",auth)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.dadosProfissionais").value(false));
         mvc.perform(get("/api/academy/me/progresso").header("Authorization",auth)).andExpect(status().isForbidden());
         mvc.perform(post("/api/auth/cadastro/empresa").contentType("application/json")
             .content(dados.replace(email,email()))).andExpect(status().isConflict());

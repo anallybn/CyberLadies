@@ -102,7 +102,7 @@ try {
     await click('.topo-logado__avatar')
     await waitFor("!!document.querySelector('.mp')")
     assert.equal(await evaluate("Array.from(document.querySelectorAll('.mp a')).filter(a=>a.getAttribute('href').startsWith('/educadora')).length"),4)
-    assert.equal(await evaluate("Array.from(document.querySelectorAll('.mp-item strong')).some(item=>item.textContent.trim()==='Perfil')"),false)
+    assert.ok(await evaluate("!!document.querySelector('.mp a[href=\"/perfil\"]')"))
     await click('.mp-fechar')
     // Alterar o cache não modifica a identidade nem as permissões no servidor.
     await evaluate("sessionStorage.setItem('perfil','CYBERLADIE');sessionStorage.setItem('statusEducadora','APROVADA')")
