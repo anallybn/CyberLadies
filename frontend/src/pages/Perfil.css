@@ -47,6 +47,17 @@
 .pf-form input,.pf-form textarea { width: 100%; min-width: 0; padding: .8rem; border: 1px solid #bca7da; border-radius: 12px; background: #fff; color: inherit; font: inherit; }
 .pf-form textarea { resize: vertical; }
 .pf-periodo { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.pf-anexar-certificado { display: grid; gap: .45rem; font-size: .82rem; }
+.pf-form .pf-anexar-botao {
+    flex-direction: row;
+    align-items: center;
+    background: #70568f;
+    border-color: #70568f;
+    color: #fff;
+    font-family: Poppins, sans-serif;
+}
+.pf-form .pf-anexar-botao:hover { background: #60467e; }
+.pf-form .pf-anexar-botao input { height: 100%; padding: 0; }
 .pf-certificado-pdf { display: grid; gap: .5rem; margin-top: .65rem; }
 .pf-certificado-nome { display: flex; align-items: center; gap: .4rem; overflow-wrap: anywhere; }
 .pf-certificado-nome svg { flex-shrink: 0; color: #695092; }

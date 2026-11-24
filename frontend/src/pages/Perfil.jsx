@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserRound, Award, BriefcaseBusiness, Pencil, Plus, Trash2, MessageSquare, ShieldCheck, FileText, Eye, Download } from 'lucide-react'
 import TopoLogado from '../components/TopoLogado'
@@ -92,6 +92,8 @@ function EditorRegistro({ tipo, registro, ocupado, salvar, cancelar }) {
     const [erro, setErro] = useState('')
     const [arquivo, setArquivo] = useState(null)
     const [erroPdf, setErroPdf] = useState('')
+    const [erroEnvio, setErroEnvio] = useState('')
+    const anexarId = useId()
     const [removerPdf, setRemoverPdf] = useState(false)
     const campoPdf = useRef(null)
     const mudar = (chave, valor) => setValores((atual) => ({ ...atual, [chave]: valor }))
@@ -100,10 +102,11 @@ function EditorRegistro({ tipo, registro, ocupado, salvar, cancelar }) {
         const selecionado = evento.target.files?.[0]
         if (!selecionado) return
         setRemoverPdf(false)
+        setErroEnvio('')
         if (!/\.pdf$/i.test(selecionado.name) || !selecionado.size || selecionado.size > LIMITE_PDF) {
             evento.target.value = ''
             setArquivo(null)
-            setErroPdf('Escolha um arquivo PDF de até 5 MB.')
+            setErroPdf(selecionado.size > LIMITE_PDF ? 'O PDF deve ter até 5 MB.' : 'O arquivo selecionado não é um PDF válido.')
             return
         }
         setArquivo(selecionado)
@@ -114,6 +117,7 @@ function EditorRegistro({ tipo, registro, ocupado, salvar, cancelar }) {
         campoPdf.current.value = ''
         setArquivo(null)
         setErroPdf('')
+        setErroEnvio('')
     }
     const obrigatorios = certificacao ? ['nome', 'instituicao', 'data'] : ['empresa', 'cargo', 'inicio']
     const invalido = obrigatorios.some((chave) => !String(valores[chave] || '').trim()) ||
@@ -124,7 +128,10 @@ function EditorRegistro({ tipo, registro, ocupado, salvar, cancelar }) {
         if (invalido) { setErro('Preencha os campos obrigatórios e confira o período.'); return }
         const dados = certificacao ? { nome: valores.nome.trim(), instituicao: valores.instituicao.trim(), data: valores.data } :
             { empresa: valores.empresa.trim(), cargo: valores.cargo.trim(), inicio: valores.inicio, fim: valores.fim || null, descricao: valores.descricao.trim() }
-        salvar(dados, arquivo, removerPdf)
+        setErroEnvio('')
+        salvar(dados, arquivo, removerPdf, (falha) => {
+            setErroEnvio(falha.status === 413 ? 'O PDF deve ter até 5 MB.' : falha.message)
+        })
     }
     return <form className="pf-form pf-editor-registro" onSubmit={enviar}>
         <fieldset disabled={ocupado}>
@@ -133,17 +140,25 @@ function EditorRegistro({ tipo, registro, ocupado, salvar, cancelar }) {
                 <label>Nome da certificação<input autoFocus name="nome" required maxLength={160} value={valores.nome} onChange={(e) => mudar('nome', e.target.value)} /></label>
                 <label>Instituição<input name="instituicao" required maxLength={160} value={valores.instituicao} onChange={(e) => mudar('instituicao', e.target.value)} /></label>
                 <label>Data de emissão<input name="data" type="date" required max={hoje()} value={valores.data} onChange={(e) => mudar('data', e.target.value)} /></label>
-                <label>Anexar certificado (PDF)
-                    <input ref={campoPdf} type="file" accept=".pdf,application/pdf" onChange={selecionarPdf} />
-                </label>
-                <small>Opcional. Limite de 5 MB.</small>
-                {arquivo && <small role="status" className="pf-certificado-nome">
-                    <FileText size={16} aria-hidden="true" />{arquivo.name}
-                </small>}
-                {erroPdf && <p role="alert" className="pf-erro">{erroPdf}</p>}
-                {(arquivo || erroPdf) && <div className="pf-acoes">
-                    <button type="button" className="pf-secundario" onClick={limparSelecaoPdf}>Limpar seleção</button>
-                </div>}
+                <div className="pf-anexar-certificado">
+                    <span id={anexarId}>Anexar certificado (PDF)</span>
+                    <div className="pf-acoes">
+                        <label className="pf-upload pf-botao pf-anexar-botao">
+                            <FileText size={16} aria-hidden="true" />Escolher arquivo
+                            <input ref={campoPdf} type="file" accept=".pdf,application/pdf" onChange={selecionarPdf}
+                                aria-labelledby={anexarId} aria-invalid={!!(erroPdf || (arquivo && erroEnvio))}
+                                aria-describedby={anexarId + '-ajuda' + ((erroPdf || erroEnvio) ? ' ' + anexarId + '-erro' : '')} />
+                        </label>
+                        {(arquivo || erroPdf) && <button type="button" className="pf-secundario" onClick={limparSelecaoPdf}>
+                            Limpar seleção
+                        </button>}
+                    </div>
+                    <small id={anexarId + '-ajuda'}>Opcional. Limite de 5 MB.</small>
+                    {arquivo && <small role="status" className="pf-certificado-nome">
+                        <FileText size={16} aria-hidden="true" />{arquivo.name}
+                    </small>}
+                    {(erroPdf || erroEnvio) && <p id={anexarId + '-erro'} role="alert" className="pf-erro">{erroPdf || erroEnvio}</p>}
+                </div>
                 {registro?.nomePdf && !arquivo && <label className="pf-remover-pdf">
                     <input type="checkbox" checked={removerPdf} onChange={(e) => setRemoverPdf(e.target.checked)} />
                     <span>Remover PDF atual ({registro.nomePdf})</span>
@@ -211,19 +226,20 @@ export default function Perfil() {
         return () => { controller.abort(); if (url) URL.revokeObjectURL(url) }
     }, [temFoto, versaoFoto, navigate])
 
-    async function executar(operacao, sucesso) {
+    async function executar(operacao, sucesso, { aoFalhar, aplicarResultado } = {}) {
         if (bloqueio.current) return false
         bloqueio.current = true
         setOcupado(true)
         setMensagem(null)
         try {
-            await operacao()
-            const atualizado = await carregarPerfil()
-            setDados(atualizado)
+            const resultado = await operacao()
+            if (aplicarResultado) aplicarResultado(resultado)
+            else setDados(await carregarPerfil())
             setMensagem({ erro: false, texto: sucesso })
             return true
         } catch (falha) {
             if (falha.status === 401) navigate('/login?retorno=%2Fperfil', { replace: true })
+            else if (aoFalhar) aoFalhar(falha)
             else setMensagem({ erro: true, texto: falha.message })
             return false
         } finally {
@@ -234,12 +250,21 @@ export default function Perfil() {
     async function salvarPessoal(valores) {
         if (await executar(() => salvarPerfil(valores), 'Dados pessoais atualizados.')) setEditor(null)
     }
-    async function salvarItem(valores, arquivo, removerPdf) {
+    async function salvarItem(valores, arquivo, removerPdf, aoFalhar) {
         const id = editor.registro?.id
-        const operacao = editor.tipo === 'certificacoes'
+        const certificacao = editor.tipo === 'certificacoes'
+        const operacao = certificacao
             ? () => salvarCertificacao(id, valores, arquivo, removerPdf)
             : () => salvarRegistro(editor.tipo, id, valores)
-        if (await executar(operacao, 'Registro salvo.')) setEditor(null)
+        const opcoes = certificacao ? {
+            aoFalhar,
+            aplicarResultado: (salva) => setDados((atual) => ({
+                ...atual,
+                certificacoes: [...atual.certificacoes.filter((item) => item.id !== salva.id), salva]
+                    .sort((a, b) => b.data.localeCompare(a.data) || b.id - a.id),
+            })),
+        } : undefined
+        if (await executar(operacao, 'Registro salvo.', opcoes)) setEditor(null)
     }
     async function excluirItem() {
         if (await executar(() => excluirRegistro(exclusao.tipo, exclusao.id), 'Registro excluído.')) setExclusao(null)
