@@ -22,7 +22,7 @@ function salario(vaga) {
 
 export default function Vagas() {
     const { conta, carregando: consultandoConta, erro: erroConta } = useConta()
-    const podeCandidatar = conta?.perfil === 'CYBERLADIE'
+    const podeCandidatar = conta?.podeCandidatar === true
     const contaRestrita = !!conta && !podeCandidatar
     const [filtros, setFiltros] = useState(INICIAIS)
     const [resultado, setResultado] = useState(null)

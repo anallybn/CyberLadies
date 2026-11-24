@@ -6,6 +6,13 @@ import Circuitos from '../components/Circuitos'
 import { carregarPerfil, salvarPerfil, carregarFoto, enviarFoto, removerFoto, salvarRegistro, excluirRegistro } from '../services/perfilService'
 import './Perfil.css'
 
+const TIPO_PERFIL = { EDUCADORA: 'Educadora', EMPRESA: 'Empresa', ADMIN: 'Administradora' }
+const INDICADORES_COMUNIDADE = [
+    ['publicacoes', 'Publicações no CyberTalk'],
+    ['comentarios', 'Comentários feitos'],
+    ['curtidas', 'Curtidas realizadas'],
+]
+
 const hoje = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
 const dataLegivel = (valor) => new Date(valor + 'T12:00:00').toLocaleDateString('pt-BR')
 
@@ -194,6 +201,7 @@ export default function Perfil() {
                         <div className="pf-avatar">{temFoto && foto ? <img src={foto} alt="Sua foto de perfil" /> : <UserRound size={52} aria-hidden="true" />}</div>
                         <span className="pf-privado"><ShieldCheck size={14} aria-hidden="true" />Seu perfil privado</span>
                         <h1 id="pf-nome">{dados.pessoal.nome}</h1>
+                        {TIPO_PERFIL[dados.tipo] && <p>{TIPO_PERFIL[dados.tipo]}</p>}
                         {dados.dadosProfissionais && <p>{dados.pessoal.formacao || 'Adicione sua formação ou área de estudo'}</p>}
                         <div className="pf-acoes pf-foto-acoes">
                             <label className={'pf-secundario pf-upload' + (ocupado ? ' pf-desabilitado' : '')}>Alterar foto
@@ -212,7 +220,18 @@ export default function Perfil() {
                     <div className="pf-secao-topo"><h2 id="pf-pessoal">Sobre você</h2><button className="pf-secundario" disabled={ocupado || editor !== null} onClick={() => abrirEditor('pessoal')}><Pencil size={16} />Editar dados</button></div>
                     {editor?.tipo === 'pessoal' ? <EditorPessoal pessoa={dados.pessoal} dadosProfissionais={dados.dadosProfissionais} ocupado={ocupado} salvar={salvarPessoal} cancelar={() => setEditor(null)} /> : <>
                         <p className="pf-texto">{dados.pessoal.sobre || 'Conte um pouco sobre sua trajetória e seus próximos passos na tecnologia.'}</p>
-                        <dl className="pf-dados"><div><dt>E-mail da conta</dt><dd>{dados.pessoal.email}</dd></div>{dados.dadosProfissionais && <div><dt>Competências</dt><dd>{dados.pessoal.competencias || 'Nenhuma competência informada.'}</dd></div>}</dl>
+                        <dl className="pf-dados">
+                            <div><dt>E-mail da conta</dt><dd>{dados.pessoal.email}</dd></div>
+                            {dados.atuacaoEducadora && <>
+                                <div><dt>Especialidade</dt><dd>{dados.atuacaoEducadora.especialidade}</dd></div>
+                                <div><dt>Instituição</dt><dd>{dados.atuacaoEducadora.instituicao}</dd></div>
+                            </>}
+                            {dados.empresa && <>
+                                <div><dt>CNPJ</dt><dd>{dados.empresa.cnpj}</dd></div>
+                                <div><dt>Área de atuação</dt><dd>{dados.empresa.areaAtuacao}</dd></div>
+                            </>}
+                            {dados.dadosProfissionais && <div><dt>Competências</dt><dd>{dados.pessoal.competencias || 'Nenhuma competência informada.'}</dd></div>}
+                        </dl>
                     </>}
                 </section>
                 {dados.dadosProfissionais && <>
@@ -232,8 +251,11 @@ export default function Perfil() {
                     <p className="pf-vazio">Ainda não há avaliações disponíveis para seu perfil.</p><p className="pf-ajuda">Esta seção será conectada quando o fluxo de avaliações da plataforma estiver disponível.</p></section>
                 {dados.participacao && <section className="pf-cartao" aria-labelledby="pf-participacao"><h2 id="pf-participacao">Participação na plataforma</h2>
                     <p className="pf-ajuda">Seus registros atuais no CyberLadies.</p>
-                    <dl className="pf-indicadores">{[['publicacoes', 'Publicações no CyberTalk'], ['comentarios', 'Comentários feitos'], ['curtidas', 'Curtidas realizadas'], ['candidaturas', 'Candidaturas enviadas']].map(([chave, rotulo]) =>
-                        <div key={chave}><dt>{rotulo}</dt><dd>{dados.participacao[chave]}</dd></div>)}</dl>
+                    <dl className="pf-indicadores">
+                        {INDICADORES_COMUNIDADE.map(([chave, rotulo]) =>
+                            <div key={chave}><dt>{rotulo}</dt><dd>{dados.participacao[chave]}</dd></div>)}
+                        {dados.candidaturas != null && <div><dt>Candidaturas enviadas</dt><dd>{dados.candidaturas}</dd></div>}
+                    </dl>
                 </section>}
             </>}
         </main>

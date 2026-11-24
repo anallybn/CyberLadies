@@ -16,15 +16,15 @@ public class CandidaturaService {
     public CandidaturaService(CandidaturaRepository repository,AcessoConta acesso,VagaService vagas) {
         this.repository=repository; this.acesso=acesso; this.vagas=vagas;
     }
-    public List<Candidatura> listar() { return repository.listar(acesso.cyberLadie().id()); }
+    public List<Candidatura> listar() { return repository.listar(acesso.candidata().id()); }
     public Candidatura buscar(long id) {
-        long usuaria=acesso.cyberLadie().id();
+        long usuaria=acesso.candidata().id();
         return repository.buscar(id,usuaria).orElseThrow(() ->
             new ResponseStatusException(HttpStatus.NOT_FOUND,"Candidatura não encontrada."));
     }
     @Transactional
     public Candidatura cadastrar(long vagaId) {
-        long usuaria=acesso.cyberLadie().id();
+        long usuaria=acesso.candidata().id();
         vagas.buscarPorId(vagaId);
         var criada=repository.cadastrar(usuaria,vagaId);
         if (criada.isEmpty()) {
@@ -34,7 +34,7 @@ public class CandidaturaService {
         return criada.get();
     }
     public void bloquearAlteracao() {
-        acesso.cyberLadie().id();
+        acesso.candidata().id();
         throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Alterações de candidaturas não estão disponíveis nesta etapa.");
     }
 }

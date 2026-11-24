@@ -44,7 +44,7 @@ class AuthPerfisIntegrationTest {
             .content("{\"especialidade\":\"Java\",\"instituicao\":\"Teste\"}")).andExpect(status().isCreated());
         mvc.perform(get("/api/auth/conta").header("Authorization",auth)).andExpect(jsonPath("$.perfil").value("EDUCADORA"))
             .andExpect(jsonPath("$.statusEducadora").value("PENDENTE"));
-        mvc.perform(get("/api/candidaturas").header("Authorization",auth)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/candidaturas").header("Authorization",auth)).andExpect(status().isOk());
         mvc.perform(get("/api/educadora/alunas").header("Authorization",auth)).andExpect(status().isForbidden());
     }
     @Test void cadastroEmpresaUsaContaAtualSemGanharAcessoDeEstudante() throws Exception {
