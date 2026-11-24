@@ -8,6 +8,8 @@ import java.util.UUID;
 import javax.imageio.ImageIO;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
+import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -237,16 +239,54 @@ class PerfilIntegrationTest {
         assertThat(db.sql("SELECT count(*) FROM perfil_certificacao_pdf WHERE certificacao_id=?")
             .param(id).query(Long.class).single()).isZero();
     }
+    @Test void aceitaPdfComRestricaoDeEdicaoSemSenhaDeAbertura() throws Exception {
+        byte[] original=pdfComProtecao("");
+        mvc.perform(multipart("/api/perfil/certificacoes").file(dadosCertificacao())
+            .file(pdf("restrito.pdf",original)).header("Authorization",auth))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.nomePdf").value("restrito.pdf"));
+        long id=db.sql("SELECT id FROM perfil_certificacao WHERE usuaria_id=?").param(usuaria).query(Long.class).single();
+        mvc.perform(get("/api/perfil/certificacoes/"+id+"/pdf").header("Authorization",auth))
+            .andExpect(status().isOk()).andExpect(content().bytes(original));
+    }
+    @Test void aceitaPdfLegivelComOffsetDeReferenciaIncorreto() throws Exception {
+        byte[] original=gerarPdf(1);
+        var texto=new String(original,StandardCharsets.ISO_8859_1);
+        var recuperavel=texto.replaceFirst("startxref\\s+\\d+", "startxref\n1").getBytes(StandardCharsets.ISO_8859_1);
+        assertThat(recuperavel).isNotEqualTo(original);
+        mvc.perform(multipart("/api/perfil/certificacoes").file(dadosCertificacao())
+            .file(pdf("recuperavel.pdf",recuperavel)).header("Authorization",auth))
+            .andExpect(status().isCreated());
+    }
+    private byte[] pdfComProtecao(String senhaAbertura) throws Exception {
+        try (var documento=new PDDocument(); var saida=new ByteArrayOutputStream()) {
+            documento.addPage(new PDPage());
+            var permissoes=new AccessPermission();
+            permissoes.setCanModify(false);
+            documento.protect(new StandardProtectionPolicy("senha-proprietaria",senhaAbertura,permissoes));
+            documento.save(saida);
+            return saida.toByteArray();
+        }
+    }
     @Test void recusaPdfsInvalidosEAcimaDoLimiteSemCriarCertificacao() throws Exception {
         var rota="/api/perfil/certificacoes";
-        var invalido="%PDF-1.7\n<html>inválido</html>".getBytes(StandardCharsets.UTF_8);
         for (var arquivo : new MockMultipartFile[]{pdf("vazio.pdf",new byte[0]),pdf("texto.pdf","texto".getBytes()),
-                pdf("falso.pdf",invalido),pdf("imagem.png",gerarPdf(1))}) {
+                pdf("imagem.png",gerarPdf(1))}) {
             mvc.perform(multipart(rota).file(dadosCertificacao()).file(arquivo).header("Authorization",auth))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.detail").value("O arquivo selecionado não é um PDF válido."));
+        }
+        for (String texto : new String[]{"%PDF-1.7\n<html>inválido</html>", "%PDF-1.7\n<html>inválido</html>\n%%EOF\n"}) {
+            mvc.perform(multipart(rota).file(dadosCertificacao())
+                .file(pdf("truncado.pdf",texto.getBytes(StandardCharsets.UTF_8))).header("Authorization",auth))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("O PDF está corrompido ou incompleto. Exporte o documento novamente."));
         }
         mvc.perform(multipart(rota).file(dadosCertificacao())
-            .file(pdf("grande.pdf",new byte[5*1024*1024+1])).header("Authorization",auth)).andExpect(status().isPayloadTooLarge());
+            .file(pdf("protegido.pdf",pdfComProtecao("senha-de-abertura"))).header("Authorization",auth))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.detail").value("O PDF está protegido por senha. Envie uma cópia que abra sem senha."));
+        mvc.perform(multipart(rota).file(dadosCertificacao())
+            .file(pdf("grande.pdf",new byte[5*1024*1024+1])).header("Authorization",auth))
+            .andExpect(status().isPayloadTooLarge()).andExpect(jsonPath("$.detail").value("O PDF deve ter até 5 MB."));
         assertThat(db.sql("SELECT count(*) FROM perfil_certificacao WHERE usuaria_id=?").param(usuaria).query(Long.class).single())
             .isZero();
     }
