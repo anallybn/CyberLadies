@@ -1,7 +1,5 @@
 /* Estilos exclusivos de Meus Materiais. */
 .mm-conteudo { max-width: 1240px; padding-top: 38px; }
-.mm-apresentacao h1 { color: #554370; font-size: 28px; line-height: 1.3; letter-spacing: -.5px; margin-bottom: 7px; }
-.mm-apresentacao > p { font-size: 14px; line-height: 1.7; color: #806c92; }
 .mm-indicadores { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0; }
 .mm-indicadores > div { display: flex; align-items: center; gap: 16px; padding: 10px 15px; background: #ffffff88; border: 1px solid #e1d5ed; border-radius: 9px; }
 .mm-indicadores dt { font-size: 13px; color: #877299; }
@@ -50,5 +48,5 @@
 .mm-pagina :focus-visible { outline: 2px solid #a58bc0; outline-offset: 3px; }
 @keyframes mm-girar { to { transform: rotate(360deg); } }
 @media(max-width: 1000px) { .mm-grade { grid-template-columns: repeat(2,minmax(0,1fr)); } .mm-trilha { margin-left: 0; } }
-@media(max-width: 580px) { .mm-grade { grid-template-columns: minmax(0,1fr); } .mm-conteudo { padding-top: 27px; } .mm-apresentacao h1 { font-size: 25px; } .mm-status { gap: 8px; } .mm-status button { font-size: 13px; padding: 6px 11px; } .mm-indicadores { gap: 8px; } .mm-indicadores > div { padding: 9px 11px; gap: 10px; } .mm-indicadores dt { font-size: 12px; } .mm-estado { padding: 30px 18px; } .mm-trilha { width: 100%; } .mm-trilha select { flex: 1; max-width: 100%; } }
+@media(max-width: 580px) { .mm-grade { grid-template-columns: minmax(0,1fr); } .mm-conteudo { padding-top: 27px; } .mm-status { gap: 8px; } .mm-status button { font-size: 13px; padding: 6px 11px; } .mm-indicadores { gap: 8px; } .mm-indicadores > div { padding: 9px 11px; gap: 10px; } .mm-indicadores dt { font-size: 12px; } .mm-estado { padding: 30px 18px; } .mm-trilha { width: 100%; } .mm-trilha select { flex: 1; max-width: 100%; } }
 @media(prefers-reduced-motion: reduce) { .mm-carregando { animation: none; } }

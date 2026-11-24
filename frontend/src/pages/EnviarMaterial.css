@@ -1,8 +1,6 @@
 .em-conteudo { max-width: 1240px; }
 .em-apresentacao { display: grid; grid-template-columns: fit-content(560px) 185px; gap: 40px; justify-content: start; align-items: center; width: fit-content; max-width: 100%; margin-bottom: 22px; }
 .em-voltar { font-size: 13px; text-decoration: none; color: #80658f; display: inline-flex; gap: 12px; margin-bottom: 10px; }
-.em-apresentacao h1 { font-size: 28px; letter-spacing: -.65px; line-height: 1.3; color: #55416f; margin-bottom: 6px; }
-.em-apresentacao p { font-size: 14px; color: #7e688e; }
 .em-etiqueta { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 13px; color: #795d92; }
 .em-reserva-mascote { display: grid; place-items: center; min-width: 0; }
 .em-mascote { display: block; width: 100%; height: auto; object-fit: contain; }
@@ -65,7 +63,6 @@
 @media(max-width: 480px) {
  .em-apresentacao { grid-template-columns: minmax(0,1fr) 90px; gap: 12px; }
  .em-reserva-mascote { align-self: center; }
- .em-apresentacao h1 { font-size: 25px; }
  .em-card-titulo { padding: 17px; }
  .em-campos { padding: 18px 17px; }
  .em-dupla { gap: 11px; }
@@ -76,11 +73,6 @@
  .em-acoes button { width: 100%; }
 }
 
-/* Assinatura do título limitada à apresentação desta página. */
-.em-apresentacao .em-titulo{display:flex;align-items:center;gap:11px;font-family:Poppins,sans-serif;font-weight:700}
-.em-titulo-enviar{color:#29244f}.em-titulo-material{color:#8969ba}
-.em-titulo-icone{display:inline-flex;align-items:center;justify-content:center;flex:0 0 36px;height:36px;border-radius:10px;background:#e9dff5;color:#8969ba;pointer-events:none}
-@media(max-width:480px){.em-apresentacao .em-titulo{gap:8px}.em-titulo-icone{flex-basis:30px;height:30px;border-radius:9px}.em-titulo > span:last-child{min-width:0}}
 /* Mascote inteiro no cabeçalho interno, sem deslocar formulário ou prévia. */
 .em-card-informacoes > .em-card-titulo{position:relative}
 .em-mascote-card{position:absolute;right:13px;bottom:2px;width:145px;height:auto;max-height:76px;object-fit:contain;pointer-events:none;user-select:none}

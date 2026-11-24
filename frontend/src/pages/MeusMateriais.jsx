@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { Archive, BookOpen, Clock3, Eye, FileText, FileVideo, Layers, Plus, Search, SearchX } from 'lucide-react'
 import TopoLogado from '../components/TopoLogado'
+import TituloEducadora from '../components/TituloEducadora'
 import { useConta } from '../hooks/useConta'
 import { consultarMeusMateriais, filtrarMateriais } from '../services/educadoraMateriaisService'
 import { CATEGORIAS, NIVEIS, duracao } from '../services/academyService'
@@ -46,8 +47,8 @@ export default function MeusMateriais() {
         <TopoLogado ativa="materiais" />
         <main className="ed-conteudo mm-conteudo">
             <header className="mm-apresentacao">
-                <h1>Meus Materiais</h1>
-                <p>Gerencie todos os seus conteúdos publicados e rascunhos</p>
+                <TituloEducadora icone={FileText} inicio="Meus" destaque="Materiais"
+                    subtitulo="Gerencie todos os seus conteúdos publicados e rascunhos" />
             </header>
             {negado ? <section className="mm-estado" role="alert"><FileText size={30} aria-hidden="true" /><h2>Acesso exclusivo da Educadora</h2><p>Entre com uma conta Educadora para consultar seus materiais.</p><Link to="/academy">Acessar CyberAcademy</Link></section> : <>
                 <dl className="mm-indicadores">
