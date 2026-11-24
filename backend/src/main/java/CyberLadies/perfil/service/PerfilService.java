@@ -37,10 +37,11 @@ public class PerfilService {
         var empresa=tipo==Tipo.EMPRESA ? repository.empresa(id).orElse(null) : null;
         boolean profissional=identidade.possui(Papel.USUARIA);
         var pessoal=repository.pessoal(id,profissional);
+        var certificacoes=repository.certificacoes(id);
         if (!profissional)
-            return new Perfil(pessoal,tipo,atuacao,empresa,false,List.of(),List.of(),null,null,List.of());
+            return new Perfil(pessoal,tipo,atuacao,empresa,false,certificacoes,List.of(),null,null,List.of());
         Long candidaturas=conta.podeCandidatar() ? repository.contarCandidaturas(id) : null;
-        return new Perfil(pessoal,tipo,atuacao,empresa,true,repository.certificacoes(id),repository.experiencias(id),
+        return new Perfil(pessoal,tipo,atuacao,empresa,true,certificacoes,repository.experiencias(id),
             repository.participacao(id),candidaturas,certificados.meus());
     }
     @Transactional
@@ -56,16 +57,32 @@ public class PerfilService {
         if (profissional) repository.editarDadosProfissionais(id,dados);
         return repository.pessoal(id,profissional);
     }
-    public Certificacao adicionarCertificacao(CertificacaoEntrada dados) {
-        long id=titularDadosProfissionais(); validarData(dados.data());
-        return repository.adicionarCertificacao(id,dados);
+    @Transactional
+    public Certificacao adicionarCertificacao(CertificacaoEntrada dados, MultipartFile arquivo) {
+        long titular=acesso.identidade().id();
+        validarData(dados.data());
+        var pdf=arquivo==null ? null : PdfCertificacao.ler(arquivo);
+        long id=repository.adicionarCertificacao(titular,dados);
+        if (pdf!=null) repository.salvarPdfCertificacao(id,pdf);
+        return repository.certificacao(titular,id);
     }
-    public Certificacao editarCertificacao(long id,CertificacaoEntrada dados) {
-        long usuaria=titularDadosProfissionais(); validarData(dados.data());
-        return repository.editarCertificacao(usuaria,id,dados).orElseThrow(this::ausente);
+    @Transactional
+    public Certificacao editarCertificacao(long id, CertificacaoEntrada dados, MultipartFile arquivo, boolean removerPdf) {
+        long titular=acesso.identidade().id();
+        validarData(dados.data());
+        if (arquivo!=null && removerPdf)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Selecione apenas uma ação para o PDF.");
+        var pdf=arquivo==null ? null : PdfCertificacao.ler(arquivo);
+        if (!repository.editarCertificacao(titular,id,dados)) throw ausente();
+        if (pdf!=null) repository.salvarPdfCertificacao(id,pdf);
+        else if (removerPdf) repository.removerPdfCertificacao(id);
+        return repository.certificacao(titular,id);
+    }
+    public ArquivoPdf pdfCertificacao(long id) {
+        return repository.pdfCertificacao(acesso.identidade().id(),id).orElseThrow(this::ausente);
     }
     public void excluirCertificacao(long id) {
-        if (!repository.excluirCertificacao(titularDadosProfissionais(),id)) throw ausente();
+        if (!repository.excluirCertificacao(acesso.identidade().id(),id)) throw ausente();
     }
     public Experiencia adicionarExperiencia(ExperienciaEntrada dados) {
         long id=titularDadosProfissionais(); validarExperiencia(dados);

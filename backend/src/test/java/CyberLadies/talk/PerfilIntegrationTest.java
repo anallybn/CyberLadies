@@ -2,9 +2,12 @@ package CyberLadies.talk;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.UUID;
 import javax.imageio.ImageIO;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,12 +91,14 @@ class PerfilIntegrationTest {
                 mvc.perform(get("/api/candidaturas").header("Authorization",token))
                     .andExpect(status().is(caso.equals("APROVADA") ? 403 : 200));
             }
+            mvc.perform(multipart("/api/perfil/certificacoes").file(dadosCertificacao())
+                .file(pdf("certificado.pdf", gerarPdf(1))).header("Authorization",token)).andExpect(status().isCreated());
+            mvc.perform(get("/api/perfil").header("Authorization",token)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.certificacoes[0].nomePdf").value("certificado.pdf"));
             if (!profissional) {
                 mvc.perform(put("/api/perfil").header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
                     .content("{\"nome\":\"Nome indevido\",\"sobre\":\"Descrição\",\"formacao\":\"ADS\",\"competencias\":\"Java\"}"))
                     .andExpect(status().isForbidden());
-                mvc.perform(post("/api/perfil/certificacoes").header("Authorization",token)
-                    .contentType(MediaType.APPLICATION_JSON).content(certificado)).andExpect(status().isForbidden());
                 mvc.perform(post("/api/perfil/experiencias").header("Authorization",token)
                     .contentType(MediaType.APPLICATION_JSON).content(experiencia)).andExpect(status().isForbidden());
                 mvc.perform(get("/api/academy/me/progresso").header("Authorization",token)).andExpect(status().isForbidden());
@@ -173,6 +178,91 @@ class PerfilIntegrationTest {
         assertThat(db.sql("SELECT nome FROM conta WHERE id=?").param(outra).query(String.class).single()).isEqualTo("Outra");
         assertThat(db.sql("SELECT email FROM conta WHERE id=?").param(usuaria).query(String.class).single()).endsWith("@example.invalid");
         assertThat(db.sql("SELECT EXISTS(SELECT 1 FROM talk_participacao WHERE conta_id=?)").param(usuaria).query(Boolean.class).single()).isFalse();
+    }
+    private MockMultipartFile dadosCertificacao() {
+        return new MockMultipartFile("dados","dados.json","application/json",certificado.getBytes(StandardCharsets.UTF_8));
+    }
+    private MockMultipartFile pdf(String nome, byte[] bytes) {
+        return new MockMultipartFile("arquivo",nome,"application/pdf",bytes);
+    }
+    private byte[] gerarPdf(int paginas) throws Exception {
+        try (var documento=new PDDocument(); var saida=new ByteArrayOutputStream()) {
+            for (int i=0;i<paginas;i++) documento.addPage(new PDPage());
+            documento.save(saida);
+            return saida.toByteArray();
+        }
+    }
+    @Test void pdfPrivadoPodeSerVisualizadoBaixadoSubstituidoERemovido() throws Exception {
+        byte[] original=gerarPdf(1);
+        byte[] substituto=gerarPdf(2);
+        mvc.perform(multipart("/api/perfil/certificacoes").file(dadosCertificacao())
+            .file(pdf("Emissão.pdf",original)).header("Authorization",auth))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.nomePdf").value("Emissão.pdf"));
+        long id=db.sql("SELECT id FROM perfil_certificacao WHERE usuaria_id=?").param(usuaria).query(Long.class).single();
+        String rota="/api/perfil/certificacoes/"+id;
+        mvc.perform(get("/api/perfil").header("Authorization",auth)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.certificacoes[0].nomePdf").value("Emissão.pdf"))
+            .andExpect(jsonPath("$.certificacoes[0].dados").doesNotExist());
+        mvc.perform(get(rota+"/pdf").header("Authorization",auth)).andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_PDF)).andExpect(content().bytes(original))
+            .andExpect(header().string("Cache-Control","no-store"))
+            .andExpect(header().string("Content-Disposition",org.hamcrest.Matchers.startsWith("inline;")));
+        mvc.perform(get(rota+"/pdf").param("baixar","true").header("Authorization",auth))
+            .andExpect(status().isOk()).andExpect(content().bytes(original))
+            .andExpect(header().string("Content-Disposition",org.hamcrest.Matchers.startsWith("attachment;")));
+        mvc.perform(get(rota+"/pdf")).andExpect(status().isUnauthorized());
+        mvc.perform(get(rota+"/pdf").header("Authorization",authOutra)).andExpect(status().isNotFound());
+        mvc.perform(get(rota+"/pdf").param("baixar","true").header("Authorization",authOutra)).andExpect(status().isNotFound());
+        mvc.perform(multipart(org.springframework.http.HttpMethod.PUT,rota).file(dadosCertificacao())
+            .file(pdf("outra.pdf",substituto)).header("Authorization",authOutra)).andExpect(status().isNotFound());
+        mvc.perform(multipart(org.springframework.http.HttpMethod.PUT,rota).file(dadosCertificacao())
+            .param("removerPdf","true").header("Authorization",authOutra)).andExpect(status().isNotFound());
+        mvc.perform(delete(rota).header("Authorization",authOutra)).andExpect(status().isNotFound());
+
+        mvc.perform(put(rota).header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content(certificado))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.nomePdf").value("Emissão.pdf"));
+        mvc.perform(multipart(org.springframework.http.HttpMethod.PUT,rota).file(dadosCertificacao())
+            .file(pdf("substituto.pdf",substituto)).header("Authorization",auth))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.nomePdf").value("substituto.pdf"));
+        mvc.perform(get(rota+"/pdf").header("Authorization",auth)).andExpect(content().bytes(substituto));
+        mvc.perform(multipart(org.springframework.http.HttpMethod.PUT,rota).file(dadosCertificacao())
+            .param("removerPdf","true").header("Authorization",auth)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.nomePdf").doesNotExist());
+        mvc.perform(get(rota+"/pdf").header("Authorization",auth)).andExpect(status().isNotFound());
+
+        mvc.perform(multipart(org.springframework.http.HttpMethod.PUT,rota).file(dadosCertificacao())
+            .file(pdf("novo.pdf",original)).header("Authorization",auth)).andExpect(status().isOk());
+        mvc.perform(delete(rota).header("Authorization",auth)).andExpect(status().isNoContent());
+        mvc.perform(get(rota+"/pdf").header("Authorization",auth)).andExpect(status().isNotFound());
+        assertThat(db.sql("SELECT count(*) FROM perfil_certificacao_pdf WHERE certificacao_id=?")
+            .param(id).query(Long.class).single()).isZero();
+    }
+    @Test void recusaPdfsInvalidosEAcimaDoLimiteSemCriarCertificacao() throws Exception {
+        var rota="/api/perfil/certificacoes";
+        var invalido="%PDF-1.7\n<html>inválido</html>".getBytes(StandardCharsets.UTF_8);
+        for (var arquivo : new MockMultipartFile[]{pdf("vazio.pdf",new byte[0]),pdf("texto.pdf","texto".getBytes()),
+                pdf("falso.pdf",invalido),pdf("imagem.png",gerarPdf(1))}) {
+            mvc.perform(multipart(rota).file(dadosCertificacao()).file(arquivo).header("Authorization",auth))
+                .andExpect(status().isBadRequest());
+        }
+        mvc.perform(multipart(rota).file(dadosCertificacao())
+            .file(pdf("grande.pdf",new byte[5*1024*1024+1])).header("Authorization",auth)).andExpect(status().isPayloadTooLarge());
+        assertThat(db.sql("SELECT count(*) FROM perfil_certificacao WHERE usuaria_id=?").param(usuaria).query(Long.class).single())
+            .isZero();
+    }
+    @Test void arquivoInvalidoNaEdicaoPreservaMetadadosEAnexo() throws Exception {
+        byte[] original=gerarPdf(1);
+        mvc.perform(multipart("/api/perfil/certificacoes").file(dadosCertificacao()).file(pdf("original.pdf",original))
+            .header("Authorization",auth)).andExpect(status().isCreated());
+        long id=db.sql("SELECT id FROM perfil_certificacao WHERE usuaria_id=?").param(usuaria).query(Long.class).single();
+        String rota="/api/perfil/certificacoes/"+id;
+        var novosDados=new MockMultipartFile("dados","dados.json","application/json",
+            certificado.replace("Certificação teste","Nome novo").getBytes(StandardCharsets.UTF_8));
+        mvc.perform(multipart(org.springframework.http.HttpMethod.PUT,rota).file(novosDados)
+            .file(pdf("invalido.pdf",new byte[]{1})).header("Authorization",auth)).andExpect(status().isBadRequest());
+        mvc.perform(get(rota+"/pdf").header("Authorization",auth)).andExpect(content().bytes(original));
+        mvc.perform(get("/api/perfil").header("Authorization",auth))
+            .andExpect(jsonPath("$.certificacoes[0].nome").value("Certificação teste"));
     }
     @Test void crudDeCertificacoesEAutoria() throws Exception {
         mvc.perform(post("/api/perfil/certificacoes").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content(certificado))
