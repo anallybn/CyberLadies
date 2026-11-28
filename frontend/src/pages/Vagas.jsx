@@ -7,6 +7,7 @@ import Circuitos from '../components/Circuitos'
 import mascote from '../assets/gatinho-cybervagas.png'
 import { listarVagas, buscarVaga, minhasCandidaturas, candidatar } from '../services/vagasService'
 import './Vagas.css'
+import '../components/DetalheDemonstrativo.css'
 
 const INICIAIS = { busca: '', nivel: [], modalidade: [], salarioMinimo: '', paraMaes: false, pcd: false, semFormacao: false }
 const NIVEIS = { ESTAGIO: 'Estágio', JUNIOR: 'Júnior', PLENO: 'Pleno', SENIOR: 'Sênior' }
@@ -160,8 +161,8 @@ export default function Vagas() {
             </div>
         </article>
     }
-    return <div className="cv">
-        <TopoLogado ativa="vagas" /><Circuitos />
+    return <div className={demonstracaoAberta ? 'cv detalhe-demonstrativo' : 'cv'}>
+        <TopoLogado ativa="vagas" />{!demonstracaoAberta && <Circuitos />}
         <main className="cv-conteudo">
             <section className="cv-apresentacao" aria-labelledby="cv-titulo">
                 <div>

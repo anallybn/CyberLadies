@@ -1,0 +1,53 @@
+/* Acabamento visual do CyberChat aplicado aos detalhes demonstrativos. */
+.detalhe-demonstrativo {
+    --detalhe-sombra: 0 10px 32px #6853830d;
+    isolation: isolate;
+    background: radial-gradient(ellipse at 90% 15%, #dfd2f380, transparent 45%),
+        radial-gradient(ellipse at 10% 90%, #e6d9f7a0, transparent 50%), #f5effa;
+}
+
+.detalhe-demonstrativo::before,
+.detalhe-demonstrativo::after {
+    content: '';
+    position: absolute;
+    width: clamp(210px, 25vw, 360px);
+    aspect-ratio: 666 / 375;
+    background: url('../assets/circuitos.svg') center / contain no-repeat;
+    opacity: .24;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.detalhe-demonstrativo::before {
+    top: 80px;
+    left: 0;
+    transform: scaleY(-1);
+}
+
+.detalhe-demonstrativo::after {
+    right: 0;
+    bottom: 16px;
+    transform: scaleX(-1);
+}
+
+.detalhe-demonstrativo .cv-detalhe > .cv-cartao,
+.detalhe-demonstrativo .ac-conteudo > :is(.ac-cartao, .ac-estado) {
+    background: #ffffffed;
+    border: 1px solid #dcd0ec;
+    border-radius: 18px;
+    box-shadow: var(--detalhe-sombra);
+}
+
+.detalhe-demonstrativo .ac-player {
+    box-shadow: var(--detalhe-sombra);
+}
+
+@media (max-width: 900px) {
+    .detalhe-demonstrativo::before,
+    .detalhe-demonstrativo::after { width: 190px; opacity: .16; }
+}
+
+@media (max-width: 600px) {
+    .detalhe-demonstrativo::before,
+    .detalhe-demonstrativo::after { display: none; }
+}

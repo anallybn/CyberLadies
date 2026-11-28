@@ -25,7 +25,7 @@ function AulaDemonstrativa() {
         titulo.current?.focus({ preventScroll: true })
     }, [])
 
-    return <AcademyShell>
+    return <AcademyShell demonstracao>
         <AcademyVoltar />
         <header>
             <span className="ac-tag">Demonstração acadêmica</span>
