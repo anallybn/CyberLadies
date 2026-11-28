@@ -4,9 +4,10 @@ import TopoLogado from './TopoLogado'
 import Circuitos from './Circuitos'
 
 import '../pages/Academy.css'
+import './DetalheDemonstrativo.css'
 
-export function AcademyShell({ children }) {
-    return <div className="ac"><TopoLogado ativa="academy" /><Circuitos />
+export function AcademyShell({ children, demonstracao = false }) {
+    return <div className={demonstracao ? 'ac detalhe-demonstrativo' : 'ac'}><TopoLogado ativa="academy" />{!demonstracao && <Circuitos />}
         <main className="ac-conteudo">{children}</main></div>
 }
 export function AcademyEstado({ carregando, erro, repetir }) {
