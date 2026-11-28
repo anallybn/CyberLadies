@@ -1,7 +1,7 @@
 import { useConta } from '../hooks/useConta'
 import { useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AcademyShell, AcademyEstado, AcademyVoltar, AcademyProgresso } from '../components/AcademyUI'
+import { AcademyShell, AcademyEstado, AcademyVoltar, AcademyProgresso, AcademyPlayer } from '../components/AcademyUI'
 import { useAcademy } from '../hooks/useAcademy'
 import { academy, duracao } from '../services/academyService'
 
@@ -42,11 +42,8 @@ export default function Aula() {
             <Link to={'/academy/trilhas/' + dados.aula.trilhaId}>← Ver trilha e inscrição</Link>
             <h1>{dados.aula.titulo}</h1><p>{duracao(dados.aula.duracaoMinutos)}</p>
             <p className="ac-texto">{dados.aula.descricao}</p>
-            {reproduzir === id ? <iframe className="ac-player" title={'Videoaula: ' + dados.aula.titulo} src={dados.video.url}
-                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                sandbox="allow-scripts allow-same-origin allow-presentation" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /> :
-                <div className="ac-estado"><p>Vídeo hospedado no {dados.video.provedor === 'YOUTUBE' ? 'YouTube' : 'Vimeo'}. Ao carregar, você se conecta ao provedor externo.</p>
-                    <button className="ac-botao" onClick={() => setReproduzir(id)}>Carregar vídeo</button></div>}
+            <AcademyPlayer titulo={dados.aula.titulo} video={dados.video}
+                reproduzir={reproduzir === id} aoCarregar={() => setReproduzir(id)} />
             {dados.conteudoComplementar && <section className="ac-cartao"><h2>Conteúdo complementar</h2><p className="ac-texto">{dados.conteudoComplementar}</p></section>}
             {meus.erro && <AcademyEstado erro={meus.erro} repetir={meus.repetir} />}
             {progresso && <AcademyProgresso percentual={progresso.percentual} />}

@@ -5,9 +5,26 @@ import { useAcademy } from '../hooks/useAcademy'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, PlayCircle, GraduationCap } from 'lucide-react'
-import { AcademyShell, AcademyEstado, AcademyProgresso } from '../components/AcademyUI'
+import { AcademyShell, AcademyEstado, AcademyProgresso, AcademyPlayer } from '../components/AcademyUI'
 import { CATEGORIAS, NIVEIS, duracao } from '../services/academyService'
 import mascote from '../assets/gatinho-academy.png'
+
+function AulaDemonstrativa() {
+    const [reproduzir, setReproduzir] = useState(false)
+    return <article className="ac-cartao ac-aula">
+        <div className="ac-miniatura"><span className="ac-tag">{duracao(40)}</span><PlayCircle size={42} aria-hidden="true" /></div>
+        <small>{CATEGORIAS.FRONTEND} · {NIVEIS.INICIANTE} · Demonstração acadêmica</small>
+        <h3>Introdução ao Desenvolvimento Web</h3>
+        <p>Introdução ao HTML em Libras, com legendas em português.</p>
+        <AcademyPlayer titulo="Introdução ao HTML em Libras"
+            video={{ provedor: 'YOUTUBE', url: 'https://www.youtube-nocookie.com/embed/TKrT8c_6iiI' }}
+            reproduzir={reproduzir} aoCarregar={() => setReproduzir(true)} />
+        <p className="ac-ajuda">Instituto Federal de São Paulo, Keller Batista de Souza e Riama Coelho Gouveia.{' '}
+            <a className="ac-link" href="https://educapes.capes.gov.br/handle/capes/584675">Fonte no eduCAPES</a>{' · '}
+            <a className="ac-link" href="https://creativecommons.org/licenses/by-nc-sa/3.0/br/">CC BY-NC-SA 3.0 Brasil</a>
+        </p>
+    </article>
+}
 
 export default function Academy() {
     const { conta } = useConta()
@@ -20,6 +37,9 @@ export default function Academy() {
     const params = new URLSearchParams({ busca: termo, categoria, nivel })
     const estado = useAcademy('/catalogo?' + params)
     const dados = estado.dados
+    const mostrarDemonstracao = !estado.carregando && !estado.erro && !busca.trim() && !termo && !categoria && !nivel
+        && dados?.indicadores?.trilhas === 0 && dados.indicadores.videoaulas === 0
+        && dados.trilhas.length === 0 && dados.aulas.length === 0
     const meus = useAcademy('/me/progresso', true, estudante)
     return <AcademyShell>
         <section className="ac-hero">
@@ -54,7 +74,8 @@ export default function Academy() {
                     </article>)}</div>}
             </section>
             <section aria-labelledby="ac-aulas"><h2 id="ac-aulas">Videoaulas recentes</h2>
-                {!dados.aulas.length ? <p className="ac-vazio">Nenhuma videoaula disponível para esta busca.</p> :
+                {mostrarDemonstracao ? <div className="ac-grade"><AulaDemonstrativa /></div>
+                    : !dados.aulas.length ? <p className="ac-vazio">Nenhuma videoaula disponível para esta busca.</p> :
                     <div className="ac-grade">{dados.aulas.map((aula) => <article className="ac-cartao ac-aula" key={aula.id}>
                         <div className="ac-miniatura"><span className="ac-tag">{duracao(aula.duracaoMinutos)}</span><PlayCircle size={42} aria-hidden="true" /></div>
                         <small>{CATEGORIAS[aula.categoria]} · {NIVEIS[aula.nivel]}</small><h3>{aula.titulo}</h3>

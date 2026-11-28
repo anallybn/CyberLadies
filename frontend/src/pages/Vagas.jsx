@@ -11,6 +11,16 @@ import './Vagas.css'
 const INICIAIS = { busca: '', nivel: [], modalidade: [], salarioMinimo: '', paraMaes: false, pcd: false, semFormacao: false }
 const NIVEIS = { ESTAGIO: 'Estágio', JUNIOR: 'Júnior', PLENO: 'Pleno', SENIOR: 'Sênior' }
 const MODALIDADES = { REMOTO: 'Remoto', HIBRIDO: 'Híbrido', PRESENCIAL: 'Presencial' }
+const DETALHE_DEMONSTRACAO = '/vagas?demonstracao=estagio-frontend'
+const VAGA_DEMONSTRATIVA = {
+    titulo: 'Estágio em Desenvolvimento Front-end',
+    empresa: 'Demonstração acadêmica',
+    modalidade: 'REMOTO',
+    nivel: 'ESTAGIO',
+    tecnologias: 'HTML, CSS, JavaScript',
+    descricao: 'Vaga fictícia para demonstração acadêmica. A proposta é acompanhar a criação e a manutenção de interfaces web em uma equipe de desenvolvimento.',
+    requisitos: 'Noções básicas de HTML, CSS e JavaScript.',
+}
 const moeda = (valor) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor)
 
 function salario(vaga) {
@@ -31,6 +41,11 @@ export default function Vagas() {
     const [tentativa, setTentativa] = useState(0)
     const [params] = useSearchParams()
     const vagaId = params.get('vaga')
+    const semFiltros = !filtros.busca.trim() && !filtros.nivel.length && !filtros.modalidade.length
+        && !filtros.salarioMinimo && !filtros.paraMaes && !filtros.pcd && !filtros.semFormacao
+    const mostrarDemonstracao = !carregando && !erro && semFiltros
+        && resultado?.vagasDisponiveis === 0 && resultado.vagas.length === 0
+    const demonstracaoAberta = !vagaId && mostrarDemonstracao && params.get('demonstracao') === 'estagio-frontend'
     const [detalhe, setDetalhe] = useState({ carregando: false, vaga: null, erro: '' })
     const [candidaturas, setCandidaturas] = useState([])
     const [enviando, setEnviando] = useState(null)
@@ -117,12 +132,13 @@ export default function Vagas() {
             {!enviada && enviando !== vaga.id && <ArrowRight size={16} aria-hidden="true" />}
         </button>
     }
-    function cartao(vaga, completo = false) {
-        return <article className="cv-cartao" key={vaga.id}>
+    function cartao(vaga, completo = false, demonstrativa = false) {
+        const destino = demonstrativa ? DETALHE_DEMONSTRACAO : '/vagas?vaga=' + vaga.id
+        return <article className="cv-cartao" key={demonstrativa ? DETALHE_DEMONSTRACAO : vaga.id}>
             <div className="cv-cartao-topo">
                 <span className="cv-empresa-icone" aria-hidden="true"><BriefcaseBusiness size={22} /></span>
                 <div className="cv-identificacao">
-                    <h2>{completo ? vaga.titulo : <Link to={'/vagas?vaga=' + vaga.id}>{vaga.titulo}</Link>}</h2>
+                    <h2>{completo ? vaga.titulo : <Link to={destino}>{vaga.titulo}</Link>}</h2>
                     <p>{vaga.empresa}</p>
                     <p className="cv-local"><MapPin size={14} aria-hidden="true" />{[vaga.localizacao, MODALIDADES[vaga.modalidade]].filter(Boolean).join(' · ') || 'Localização não informada'}</p>
                 </div>
@@ -138,8 +154,9 @@ export default function Vagas() {
                 {vaga.requisitos && <><h3>Requisitos</h3><p>{vaga.requisitos}</p></>}
             </div>}
             <div className="cv-cartao-rodape">
-                <small>Publicada em <time dateTime={vaga.publicadoEm}>{new Date(vaga.publicadoEm).toLocaleDateString('pt-BR')}</time></small>
-                <div className="cv-acoes">{!completo && <Link to={'/vagas?vaga=' + vaga.id}>Ver detalhes</Link>}{botaoCandidatura(vaga)}</div>
+                {demonstrativa ? <small>Vaga fictícia</small> :
+                    <small>Publicada em <time dateTime={vaga.publicadoEm}>{new Date(vaga.publicadoEm).toLocaleDateString('pt-BR')}</time></small>}
+                <div className="cv-acoes">{!completo && <Link to={destino}>Ver detalhes</Link>}{!demonstrativa && botaoCandidatura(vaga)}</div>
             </div>
         </article>
     }
@@ -161,11 +178,13 @@ export default function Vagas() {
             {feedback && <div className={'cv-mensagem' + (feedback.erro ? ' cv-erro' : '')} role={feedback.erro ? 'alert' : 'status'}>
                 {feedback.texto}<button type="button" onClick={() => setFeedback(null)} aria-label="Fechar mensagem">×</button>
             </div>}
-            {vagaId ? <section className="cv-detalhe" aria-label="Detalhes da vaga">
+            {vagaId || demonstracaoAberta ? <section className="cv-detalhe" aria-label="Detalhes da vaga">
                 <Link to="/vagas" className="cv-voltar">← Voltar às vagas</Link>
-                {detalhe.carregando && <p role="status">Carregando detalhes…</p>}
-                {detalhe.erro && <p role="alert" className="cv-estado">{detalhe.erro}</p>}
-                {detalhe.vaga && cartao(detalhe.vaga, true)}
+                {demonstracaoAberta ? cartao(VAGA_DEMONSTRATIVA, true, true) : <>
+                    {detalhe.carregando && <p role="status">Carregando detalhes…</p>}
+                    {detalhe.erro && <p role="alert" className="cv-estado">{detalhe.erro}</p>}
+                    {detalhe.vaga && cartao(detalhe.vaga, true)}
+                </>}
             </section> : <>
                 <div className="cv-pesquisa">
                     <Search size={20} aria-hidden="true" />
@@ -211,6 +230,7 @@ export default function Vagas() {
                             <button className="cv-botao" onClick={() => { setCarregando(true); setTentativa((t) => t + 1) }}>Tentar novamente</button></div>
                             : carregando ? <div className="cv-estado" role="status"><span className="cv-spinner" />Carregando vagas…</div>
                             : resultado?.vagas.length ? resultado.vagas.map((vaga) => cartao(vaga))
+                            : mostrarDemonstracao ? cartao(VAGA_DEMONSTRATIVA, false, true)
                             : <div className="cv-estado"><BriefcaseBusiness size={36} aria-hidden="true" />
                                 <h2>{resultado?.vagasDisponiveis ? 'Nenhuma vaga corresponde aos filtros' : 'Nenhuma vaga disponível no momento'}</h2>
                                 <p>{resultado?.vagasDisponiveis ? 'Experimente outros critérios ou limpe os filtros.' : 'Novas oportunidades aparecerão aqui assim que forem publicadas.'}</p></div>}
