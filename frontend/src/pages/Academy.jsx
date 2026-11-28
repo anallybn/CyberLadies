@@ -2,31 +2,52 @@ import { useConta } from '../hooks/useConta'
 import AcademyMentoras from '../components/AcademyMentoras'
 import AcademyIniciar from '../components/AcademyIniciar'
 import { useAcademy } from '../hooks/useAcademy'
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Search, PlayCircle, GraduationCap } from 'lucide-react'
-import { AcademyShell, AcademyEstado, AcademyProgresso, AcademyPlayer } from '../components/AcademyUI'
+import { AcademyShell, AcademyEstado, AcademyProgresso, AcademyPlayer, AcademyVoltar } from '../components/AcademyUI'
 import { CATEGORIAS, NIVEIS, duracao } from '../services/academyService'
 import mascote from '../assets/gatinho-academy.png'
 
+const AULA_DEMONSTRATIVA = {
+    titulo: 'Introdução ao Desenvolvimento Web',
+    categoria: CATEGORIAS.FRONTEND,
+    nivel: NIVEIS.INICIANTE,
+    duracao: duracao(40),
+}
+const DETALHE_DEMONSTRACAO = '/academy?demonstracao=html'
+
 function AulaDemonstrativa() {
     const [reproduzir, setReproduzir] = useState(false)
-    return <article className="ac-cartao ac-aula">
-        <div className="ac-miniatura"><span className="ac-tag">{duracao(40)}</span><PlayCircle size={42} aria-hidden="true" /></div>
-        <small>{CATEGORIAS.FRONTEND} · {NIVEIS.INICIANTE} · Demonstração acadêmica</small>
-        <h3>Introdução ao Desenvolvimento Web</h3>
-        <p>Introdução ao HTML em Libras, com legendas em português.</p>
+    const titulo = useRef(null)
+    useEffect(() => {
+        window.scrollTo(0, 0)
+        titulo.current?.focus({ preventScroll: true })
+    }, [])
+
+    return <AcademyShell>
+        <AcademyVoltar />
+        <header>
+            <span className="ac-tag">Demonstração acadêmica</span>
+            <h1 ref={titulo} tabIndex={-1}>{AULA_DEMONSTRATIVA.titulo}</h1>
+            <p className="ac-ajuda">{AULA_DEMONSTRATIVA.categoria} · {AULA_DEMONSTRATIVA.nivel} · {AULA_DEMONSTRATIVA.duracao}</p>
+        </header>
         <AcademyPlayer titulo="Introdução ao HTML em Libras"
             video={{ provedor: 'YOUTUBE', url: 'https://www.youtube-nocookie.com/embed/TKrT8c_6iiI' }}
             reproduzir={reproduzir} aoCarregar={() => setReproduzir(true)} />
-        <p className="ac-ajuda">Instituto Federal de São Paulo, Keller Batista de Souza e Riama Coelho Gouveia.{' '}
-            <a className="ac-link" href="https://educapes.capes.gov.br/handle/capes/584675">Fonte no eduCAPES</a>{' · '}
-            <a className="ac-link" href="https://creativecommons.org/licenses/by-nc-sa/3.0/br/">CC BY-NC-SA 3.0 Brasil</a>
-        </p>
-    </article>
+        <section className="ac-cartao">
+            <h2>Sobre a aula</h2>
+            <p className="ac-texto">Introdução ao HTML em Libras, com legendas em português. Conheça a estrutura básica de uma página web.</p>
+            <p className="ac-ajuda">Instituto Federal de São Paulo, Keller Batista de Souza e Riama Coelho Gouveia.{' '}
+                <a className="ac-link" href="https://educapes.capes.gov.br/handle/capes/584675">Fonte no eduCAPES</a>{' · '}
+                <a className="ac-link" href="https://creativecommons.org/licenses/by-nc-sa/3.0/br/">CC BY-NC-SA 3.0 Brasil</a>
+            </p>
+        </section>
+    </AcademyShell>
 }
 
 export default function Academy() {
+    const [parametros] = useSearchParams()
     const { conta } = useConta()
     const estudante = ['CYBERLADIE', 'EDUCADORA'].includes(conta?.perfil)
     const [busca, setBusca] = useState('')
@@ -41,6 +62,8 @@ export default function Academy() {
         && dados?.indicadores?.trilhas === 0 && dados.indicadores.videoaulas === 0
         && dados.trilhas.length === 0 && dados.aulas.length === 0
     const meus = useAcademy('/me/progresso', true, estudante)
+    if (mostrarDemonstracao && parametros.get('demonstracao') === 'html') return <AulaDemonstrativa />
+
     return <AcademyShell>
         <section className="ac-hero">
             <div><span className="ac-etiqueta">CYBERACADEMY · APRENDA NO SEU RITMO</span>
@@ -74,7 +97,12 @@ export default function Academy() {
                     </article>)}</div>}
             </section>
             <section aria-labelledby="ac-aulas"><h2 id="ac-aulas">Videoaulas recentes</h2>
-                {mostrarDemonstracao ? <div className="ac-grade"><AulaDemonstrativa /></div>
+                {mostrarDemonstracao ? <div className="ac-grade"><article className="ac-cartao ac-aula">
+                    <div className="ac-miniatura"><span className="ac-tag">{AULA_DEMONSTRATIVA.duracao}</span><PlayCircle size={42} aria-hidden="true" /></div>
+                    <small>{AULA_DEMONSTRATIVA.categoria} · {AULA_DEMONSTRATIVA.nivel} · Demonstração acadêmica</small>
+                    <h3>{AULA_DEMONSTRATIVA.titulo}</h3>
+                    <Link className="ac-link" to={DETALHE_DEMONSTRACAO}>Assistir aula →</Link>
+                </article></div>
                     : !dados.aulas.length ? <p className="ac-vazio">Nenhuma videoaula disponível para esta busca.</p> :
                     <div className="ac-grade">{dados.aulas.map((aula) => <article className="ac-cartao ac-aula" key={aula.id}>
                         <div className="ac-miniatura"><span className="ac-tag">{duracao(aula.duracaoMinutos)}</span><PlayCircle size={42} aria-hidden="true" /></div>
